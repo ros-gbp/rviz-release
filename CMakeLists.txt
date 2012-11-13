@@ -30,6 +30,8 @@ find_package(Boost REQUIRED COMPONENTS thread signals filesystem system program_
 find_package(Eigen REQUIRED)
 find_package(PkgConfig REQUIRED)
 
+catkin_python_setup()
+
 catkin_package(
   INCLUDE_DIRS src ${EIGEN_INCLUDE_DIRS}
   LIBRARIES rviz default_plugin rviz_shiboken rviz_sip
@@ -75,7 +77,8 @@ include_directories(src)
 
 add_subdirectory(src)
 
-install(DIRECTORY ogre_media DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY icons      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY images     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(FILES default.rviz   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY ogre_media         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY icons              DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY images             DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES default.rviz           DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
