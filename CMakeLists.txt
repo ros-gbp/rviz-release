@@ -6,6 +6,7 @@ find_package(catkin REQUIRED
   image_geometry 
   image_transport
   interactive_markers 
+  laser_geometry
   message_filters
   nav_msgs
   pluginlib
@@ -30,9 +31,11 @@ find_package(Boost REQUIRED COMPONENTS thread signals filesystem system program_
 find_package(Eigen REQUIRED)
 find_package(PkgConfig REQUIRED)
 
+catkin_python_setup()
+
 catkin_package(
   INCLUDE_DIRS src ${EIGEN_INCLUDE_DIRS}
-  LIBRARIES rviz default_plugin rviz_shiboken rviz_sip
+  LIBRARIES rviz default_plugin
 )
 
 #set(CMAKE_BUILD_TYPE Debug)
@@ -75,7 +78,8 @@ include_directories(src)
 
 add_subdirectory(src)
 
-install(DIRECTORY ogre_media DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY icons      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY images     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(FILES default.rviz   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY ogre_media         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY icons              DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY images             DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES default.rviz           DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES plugin_description.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
