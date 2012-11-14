@@ -89,7 +89,7 @@ set(SOURCE_FILES
 
 add_library(default_plugin ${SOURCE_FILES})
                                     
-target_link_libraries(default_plugin ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(default_plugin ${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS default_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -99,6 +99,3 @@ install(TARGETS default_plugin
 #install(TARGETS default_plugin
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 #  LIBRARY DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(FILES plugin_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
