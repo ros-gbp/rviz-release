@@ -37,13 +37,15 @@
 #include <visualization_msgs/InteractiveMarkerUpdate.h>
 #include <visualization_msgs/InteractiveMarkerInit.h>
 
+#ifndef Q_MOC_RUN
 #include <message_filters/subscriber.h>
 #include <tf/message_filter.h>
+#include <interactive_markers/interactive_marker_client.h>
+#endif
 
 #include "rviz/display.h"
 #include "rviz/selection/forwards.h"
 
-#include <interactive_markers/interactive_marker_client.h>
 #include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 namespace rviz
@@ -82,6 +84,8 @@ protected Q_SLOTS:
   void updateTopic();
   void updateShowDescriptions();
   void updateShowAxes();
+  void publishFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void onStatusUpdate( StatusProperty::Level level, const std::string& name, const std::string& text );
 
 private:
 
@@ -132,6 +136,8 @@ private:
   BoolProperty* show_axes_property_;
 
   boost::shared_ptr<interactive_markers::InteractiveMarkerClient> im_client_;
+
+  ros::Publisher feedback_pub_;
 
   std::string topic_ns_;
 };
