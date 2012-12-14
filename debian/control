@@ -1,0 +1,12 @@
+Source: ros-groovy-rviz
+Section: misc
+Priority: extra
+Maintainer: David Gossow <dgossow@willowgarage.com>
+Build-Depends: debhelper (>= 7.0.50~), ros-groovy-rosconsole,ros-groovy-catkin,libeigen3-dev,ros-groovy-urdf,ros-groovy-resource-retriever,ros-groovy-nav-msgs,ros-groovy-python-qt-binding,ros-groovy-laser-geometry,ros-groovy-roscpp,ros-groovy-roslib,libqt4-dev,libyaml-cpp-dev,ros-groovy-visualization-msgs,ros-groovy-tf,ros-groovy-image-geometry,ros-groovy-urdf-interface,ros-groovy-interactive-markers,ros-groovy-message-filters,ros-groovy-sensor-msgs,ros-groovy-std-msgs,libqt4-opengl-dev,ros-groovy-image-transport,libassimp-dev,ros-groovy-rospy,ros-groovy-std-srvs,ros-groovy-pluginlib,libogre-dev,ros-groovy-geometry-msgs,ros-groovy-rosbag
+Homepage: http://ros.org/wiki/rviz
+Standards-Version: 3.9.2
+
+Package: ros-groovy-rviz
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-groovy-rosconsole,libeigen3-dev,ros-groovy-interactive-markers,ros-groovy-resource-retriever,ros-groovy-nav-msgs,ros-groovy-python-qt-binding,ros-groovy-laser-geometry,ros-groovy-roscpp,ros-groovy-roslib,libqt4-dev,libyaml-cpp-dev,ros-groovy-visualization-msgs,ros-groovy-tf,ros-groovy-image-geometry,ros-groovy-urdf-interface,ros-groovy-urdf,ros-groovy-message-filters,ros-groovy-sensor-msgs,ros-groovy-std-msgs,libqt4-opengl-dev,ros-groovy-image-transport,libassimp-dev,ros-groovy-rospy,ros-groovy-std-srvs,ros-groovy-pluginlib,libogre-dev,ros-groovy-geometry-msgs,ros-groovy-rosbag
+Description: 3D visualization tool for ROS.
