@@ -114,20 +114,6 @@ public:
   typedef std::queue<CloudInfoPtr> Q_CloudInfo;
   typedef std::list<CloudInfoPtr> L_CloudInfo;
 
-  /**
-   * \enum Style
-   * \brief The different styles of pointcloud drawing
-   */
-  enum Style
-  {
-    Points,    ///< Points -- points are drawn as a fixed size in 2d space, ie. always 1 pixel on screen
-    Billboards,///< Billboards -- points are drawn as camera-facing quads in 3d space
-    BillboardSpheres, ///< Billboard "spheres" -- cam-facing tris with a pixel shader that causes them to look like spheres
-    Boxes, ///< Boxes -- Actual 3d cube geometry
-
-    StyleCount,
-  };
-
   PointCloudCommon( Display* display );
   ~PointCloudCommon();
 
@@ -144,6 +130,8 @@ public:
 
   Display* getDisplay() { return display_; }
 
+  bool auto_size_;
+
   BoolProperty* selectable_property_;
   FloatProperty* point_world_size_property_;
   FloatProperty* point_pixel_size_property_;
@@ -152,6 +140,8 @@ public:
   EnumProperty* color_transformer_property_;
   EnumProperty* style_property_;
   FloatProperty* decay_time_property_;
+
+  void setAutoSize( bool auto_size );
 
 public Q_SLOTS:
   void causeRetransform();
