@@ -100,6 +100,7 @@ public:
   {
     RM_POINTS,
     RM_SQUARES,
+    RM_FLAT_SQUARES,
     RM_SPHERES,
     RM_TILES,
     RM_BOXES,
@@ -154,6 +155,12 @@ public:
    */
   void setDimensions( float width, float height, float depth );
 
+  /*
+   * If set to true, the size of each point will be multiplied by it z component.
+   * (Used for depth image based point clouds)
+   */
+  void setAutoSize(bool auto_size);
+
   /// See Ogre::BillboardSet::setCommonDirection
   void setCommonDirection( const Ogre::Vector3& vec );
   /// See Ogre::BillboardSet::setCommonUpVector
@@ -202,6 +209,7 @@ private:
 
   Ogre::ResourcePtr point_material_;
   Ogre::ResourcePtr square_material_;
+  Ogre::ResourcePtr flat_square_material_;
   Ogre::ResourcePtr sphere_material_;
   Ogre::ResourcePtr tile_material_;
   Ogre::ResourcePtr box_material_;

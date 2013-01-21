@@ -23,6 +23,11 @@ OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 message(STATUS OGRE_PLUGIN_PATH=${OGRE_PLUGIN_PATH})
 
+if(APPLE)
+  FIND_LIBRARY(Cocoa_LIBRARIES Cocoa)
+  set(rviz_ADDITIONAL_LIBRARIES ${Cocoa_LIBRARIES})
+endif()
+
 find_package(OpenGL REQUIRED)
 
 find_package(PythonLibs REQUIRED)
@@ -71,7 +76,7 @@ include_directories(SYSTEM
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
 )
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(src ${catkin_INCLUDE_DIRS})
 
 link_directories(${OGRE_LIBRARY_DIRS})
 
@@ -84,8 +89,6 @@ add_definitions(-DQT_NO_KEYWORDS)
 # find_package(GTK2)
 # include_directories(${GTK2_INCLUDE_DIRS})
 # include_directories(/usr/include/gdk-pixbuf-2.0)
-
-include_directories(src)
 
 add_subdirectory(src)
 
