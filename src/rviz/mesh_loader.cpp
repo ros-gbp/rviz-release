@@ -175,7 +175,7 @@ public:
   }
 
   // ... and finally a method to open a custom stream
-  Assimp::IOStream* Open(const char* file, const char* mode)
+  Assimp::IOStream* Open(const char* file, const char* mode = "rb")
   {
     ROS_ASSERT(mode == std::string("r") || mode == std::string("rb"));
 
@@ -194,11 +194,16 @@ public:
     return new ResourceIOStream(res);
   }
 
-  void Close(Assimp::IOStream* stream) { delete stream; }
+  void Close(Assimp::IOStream* stream);
 
 private:
   mutable resource_retriever::Retriever retriever_;
 };
+
+void ResourceIOSystem::Close(Assimp::IOStream* stream)
+{
+  delete stream;
+}
 
 // Mostly stolen from gazebo
 void buildMesh(const aiScene* scene, const aiNode* node, const Ogre::MeshPtr& mesh, Ogre::AxisAlignedBox& aabb, float& radius)

@@ -139,18 +139,21 @@ PointCloud::PointCloud()
   ss << "PointCloudMaterial" << count++;
   point_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudPoint");
   square_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudSquare");
+  flat_square_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudFlatSquare");
   sphere_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudSphere");
   tile_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudTile");
   box_material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/PointCloudBox");
 
   point_material_ = Ogre::MaterialPtr(point_material_)->clone(ss.str() + "Point");
   square_material_ = Ogre::MaterialPtr(square_material_)->clone(ss.str() + "Square");
+  flat_square_material_ = Ogre::MaterialPtr(flat_square_material_)->clone(ss.str() + "FlatSquare");
   sphere_material_ = Ogre::MaterialPtr(sphere_material_)->clone(ss.str() + "Sphere");
   tile_material_ = Ogre::MaterialPtr(tile_material_)->clone(ss.str() + "Tiles");
   box_material_ = Ogre::MaterialPtr(box_material_)->clone(ss.str() + "Box");
 
   point_material_->load();
   square_material_->load();
+  flat_square_material_->load();
   sphere_material_->load();
   tile_material_->load();
   box_material_->load();
@@ -166,12 +169,14 @@ PointCloud::~PointCloud()
 {
   point_material_->unload();
   square_material_->unload();
+  flat_square_material_->unload();
   sphere_material_->unload();
   tile_material_->unload();
   box_material_->unload();
 
   Ogre::MaterialManager::getSingleton().remove(point_material_);
   Ogre::MaterialManager::getSingleton().remove(square_material_);
+  Ogre::MaterialManager::getSingleton().remove(flat_square_material_);
   Ogre::MaterialManager::getSingleton().remove(sphere_material_);
   Ogre::MaterialManager::getSingleton().remove(tile_material_);
   Ogre::MaterialManager::getSingleton().remove(box_material_);
@@ -258,6 +263,10 @@ void PointCloud::setRenderMode(RenderMode mode)
   {
     current_material_ = Ogre::MaterialPtr(square_material_);
   }
+  else if (mode == RM_FLAT_SQUARES)
+  {
+    current_material_ = Ogre::MaterialPtr(flat_square_material_);
+  }
   else if (mode == RM_SPHERES)
   {
     current_material_ = Ogre::MaterialPtr(sphere_material_);
@@ -339,6 +348,16 @@ void PointCloud::setDimensions(float width, float height, float depth)
   }
 }
 
+void PointCloud::setAutoSize(bool auto_size)
+{
+  V_PointCloudRenderable::iterator it = renderables_.begin();
+  V_PointCloudRenderable::iterator end = renderables_.end();
+  for (; it != end; ++it)
+  {
+    (*it)->setCustomParameter(AUTO_SIZE_PARAMETER, Ogre::Vector4(auto_size));
+  }
+}
+
 void PointCloud::setCommonDirection(const Ogre::Vector3& vec)
 {
   common_direction_ = vec;
@@ -389,6 +408,7 @@ void PointCloud::setAlpha(float alpha)
   {
     setAlphaBlending(point_material_);
     setAlphaBlending(square_material_);
+    setAlphaBlending(flat_square_material_);
     setAlphaBlending(sphere_material_);
     setAlphaBlending(tile_material_);
     setAlphaBlending(box_material_);
@@ -397,6 +417,7 @@ void PointCloud::setAlpha(float alpha)
   {
     setReplace(point_material_);
     setReplace(square_material_);
+    setReplace(flat_square_material_);
     setReplace(sphere_material_);
     setReplace(tile_material_);
     setReplace(box_material_);
@@ -458,6 +479,10 @@ void PointCloud::addPoints(Point* points, uint32_t num_points)
       vertices = g_point_vertices;
     }
     else if (render_mode_ == RM_SQUARES)
+    {
+      vertices = g_billboard_vertices;
+    }
+    else if (render_mode_ == RM_FLAT_SQUARES)
     {
       vertices = g_billboard_vertices;
     }
@@ -680,6 +705,11 @@ uint32_t PointCloud::getVerticesPerPoint()
   }
 
   if (render_mode_ == RM_SQUARES)
+  {
+    return 6;
+  }
+
+  if (render_mode_ == RM_FLAT_SQUARES)
   {
     return 6;
   }
