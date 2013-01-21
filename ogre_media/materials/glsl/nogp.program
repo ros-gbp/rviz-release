@@ -8,7 +8,6 @@
 fragment_program rviz/include/circle_impl.frag glsl { source include/circle_impl.frag }
 fragment_program rviz/include/pack_depth.frag glsl { source include/pack_depth.frag }
 vertex_program rviz/include/pass_depth.vert glsl { source include/pass_depth.vert }
-geometry_program rviz/include/pass_depth.geom glsl { source include/pass_depth.geom }
 
 vertex_program rviz/nogp/billboard_tile.vert glsl
 {
@@ -44,6 +43,7 @@ vertex_program rviz/nogp/billboard.vert glsl
     param_named_auto worldviewproj_matrix worldviewproj_matrix
     param_named_auto camera_pos           camera_position_object_space
     param_named_auto size custom          0
+    param_named_auto auto_size custom     6
   }
 }
 vertex_program rviz/nogp/billboard.vert(with_depth) glsl
@@ -56,6 +56,7 @@ vertex_program rviz/nogp/billboard.vert(with_depth) glsl
     param_named_auto worldview_matrix     worldview_matrix
     param_named_auto camera_pos           camera_position_object_space
     param_named_auto size custom          0
+    param_named_auto auto_size custom     6
   }
 }
 
@@ -66,6 +67,7 @@ vertex_program rviz/nogp/box.vert glsl
   default_params {
     param_named_auto worldviewproj_matrix worldviewproj_matrix
     param_named_auto size custom          0
+    param_named_auto auto_size custom     6
   }
 }
 vertex_program rviz/nogp/box.vert(with_depth) glsl
@@ -77,6 +79,7 @@ vertex_program rviz/nogp/box.vert(with_depth) glsl
     param_named_auto worldviewproj_matrix worldviewproj_matrix
     param_named_auto worldview_matrix     worldview_matrix
     param_named_auto size custom          0
+    param_named_auto auto_size custom     6
   }
 }
 
