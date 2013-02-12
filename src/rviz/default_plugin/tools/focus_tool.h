@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2013, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,51 +26,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef RENDER_SYSTEM_H
-#define RENDER_SYSTEM_H
 
-#include <OGRE/OgreRoot.h>
-#include <stdint.h>
+#ifndef RVIZ_FOCUS_TOOL_H
+#define RVIZ_FOCUS_TOOL_H
+
+#include "rviz/tool.h"
+
+#include <QCursor>
 
 namespace rviz
 {
 
-class RenderSystem
+//! The Focus Tool allows the user to set the focal point of the current
+//! view controller with a single mouse click.
+class FocusTool: public Tool
 {
 public:
-  static RenderSystem* get();
+  FocusTool();
+  virtual ~FocusTool();
 
-  Ogre::RenderWindow* makeRenderWindow( intptr_t window_id, unsigned int width, unsigned int height );
+  virtual void onInitialize();
 
-  Ogre::Root* root() { return ogre_root_; }
+  virtual void activate();
+  virtual void deactivate();
 
-  // @brief return OpenGl Version as integer, e.g. 320 for OpenGl 3.20
-  int getGlVersion() { return gl_version_; }
+  virtual int processMouseEvent( ViewportMouseEvent& event );
 
-  // @brief return GLSL Version as integer, e.g. 150 for GLSL 1.50
-  int getGlslVersion() { return glsl_version_; }
-
-private:
-  RenderSystem();
-  void setupDummyWindowId();
-  void loadOgrePlugins();
-
-  // Find and configure the render system.
-  void setupRenderSystem();
-  void setupResources();
-  void detectGlVersion();
-
-  static RenderSystem* instance_;
-
-  // ID for a dummy window of size 1x1, used to keep Ogre happy.
-  unsigned long dummy_window_id_;
-
-  Ogre::Root* ogre_root_;
-
-  int gl_version_;
-  int glsl_version_;
+protected:
+  QCursor std_cursor_;
+  QCursor hit_cursor_;
 };
 
-} // end namespace rviz
+}
 
-#endif // RENDER_SYSTEM_H
+#endif
+
+

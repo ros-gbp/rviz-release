@@ -30,6 +30,7 @@ qt4_wrap_cpp(MOC_FILES
   tools/goal_tool.h
   tools/initial_pose_tool.h
   tools/interaction_tool.h
+  tools/point_tool.h
   view_controllers/orbit_view_controller.h
   view_controllers/xy_orbit_view_controller.h
   view_controllers/fixed_orientation_ortho_view_controller.h
@@ -40,6 +41,7 @@ set(SOURCE_FILES
   axes_display.cpp
   camera_display.cpp
   depth_cloud_display.cpp
+  depth_cloud_mld.cpp
   grid_cells_display.cpp
   grid_display.cpp
   image_display.cpp
@@ -73,8 +75,10 @@ set(SOURCE_FILES
   range_display.cpp
   robot_model_display.cpp
   tf_display.cpp
+  tools/focus_tool.cpp
   tools/measure_tool.cpp
   tools/move_tool.cpp
+  tools/point_tool.cpp
   tools/pose_tool.cpp
   tools/goal_tool.cpp
   tools/initial_pose_tool.cpp
