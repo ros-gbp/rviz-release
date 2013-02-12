@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2013, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,51 +26,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef RENDER_SYSTEM_H
-#define RENDER_SYSTEM_H
 
-#include <OGRE/OgreRoot.h>
-#include <stdint.h>
+#ifndef RVIZ_POINT_TOOL_H
+#define RVIZ_POINT_TOOL_H
+
+#ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
+# include <ros/node_handle.h>
+# include <ros/publisher.h>
+
+# include "rviz/tool.h"
+
+# include <QCursor>
+# include <QObject>
+#endif
 
 namespace rviz
 {
+class StringProperty;
+class BoolProperty;
 
-class RenderSystem
+//! The Point Tool allows the user to click on a point which
+//! gets published as a PointStamped message.
+class PointTool: public Tool
 {
+  Q_OBJECT
 public:
-  static RenderSystem* get();
+  PointTool();
+  virtual ~PointTool();
 
-  Ogre::RenderWindow* makeRenderWindow( intptr_t window_id, unsigned int width, unsigned int height );
+  virtual void onInitialize();
 
-  Ogre::Root* root() { return ogre_root_; }
+  virtual void activate();
+  virtual void deactivate();
 
-  // @brief return OpenGl Version as integer, e.g. 320 for OpenGl 3.20
-  int getGlVersion() { return gl_version_; }
+  virtual int processMouseEvent( ViewportMouseEvent& event );
 
-  // @brief return GLSL Version as integer, e.g. 150 for GLSL 1.50
-  int getGlslVersion() { return glsl_version_; }
+public Q_SLOTS:
 
-private:
-  RenderSystem();
-  void setupDummyWindowId();
-  void loadOgrePlugins();
+  void updateTopic();
+  void updateAutoDeactivate();
 
-  // Find and configure the render system.
-  void setupRenderSystem();
-  void setupResources();
-  void detectGlVersion();
+protected:
+  QCursor std_cursor_;
+  QCursor hit_cursor_;
 
-  static RenderSystem* instance_;
+  ros::NodeHandle nh_;
+  ros::Publisher pub_;
 
-  // ID for a dummy window of size 1x1, used to keep Ogre happy.
-  unsigned long dummy_window_id_;
-
-  Ogre::Root* ogre_root_;
-
-  int gl_version_;
-  int glsl_version_;
+  StringProperty* topic_property_;
+  BoolProperty* auto_deactivate_property_;
 };
 
-} // end namespace rviz
+}
 
-#endif // RENDER_SYSTEM_H
+#endif
+
+
