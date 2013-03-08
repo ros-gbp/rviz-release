@@ -149,9 +149,9 @@ protected:
 
   typedef std::vector<rviz::PointCloud::Point> V_Point;
 
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
-  virtual void processMessage(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::ImageConstPtr& rgb_msg);
-  void caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg );
+  virtual void processMessage(sensor_msgs::Image::ConstPtr msg);
+  virtual void processMessage(sensor_msgs::ImageConstPtr depth_msg, sensor_msgs::ImageConstPtr rgb_msg);
+  void caminfoCallback( sensor_msgs::CameraInfo::ConstPtr msg );
 
   // overrides from Display
   virtual void onEnable();
@@ -181,9 +181,9 @@ protected:
   boost::shared_ptr<tf::MessageFilter<sensor_msgs::Image> > depthmap_tf_filter_;
   image_transport::ImageTransport rgb_it_;
   boost::shared_ptr<image_transport::SubscriberFilter > rgb_sub_;
-  boost::shared_ptr<message_filters::Subscriber<sensor_msgs::CameraInfo> > cameraInfo_sub_;
-  sensor_msgs::CameraInfo::ConstPtr camInfo_;
-  boost::mutex camInfo_mutex_;
+  boost::shared_ptr<message_filters::Subscriber<sensor_msgs::CameraInfo> > cam_info_sub_;
+  sensor_msgs::CameraInfo::ConstPtr cam_info_;
+  boost::mutex cam_info_mutex_;
 
   typedef ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> SyncPolicyDepthColor;
   typedef message_filters::Synchronizer<SyncPolicyDepthColor> SynchronizerDepthColor;

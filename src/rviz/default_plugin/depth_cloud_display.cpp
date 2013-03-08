@@ -73,7 +73,7 @@ DepthCloudDisplay::DepthCloudDisplay()
   , depthmap_sub_()
   , rgb_it_ (threaded_nh_)
   , rgb_sub_()
-  , cameraInfo_sub_()
+  , cam_info_sub_()
   , queue_size_(5)
   , ml_depth_data_(new MultiLayerDepth())
   , angular_thres_(0.5f)
@@ -269,7 +269,7 @@ void DepthCloudDisplay::subscribe()
     depthmap_tf_filter_.reset();
     depthmap_sub_.reset(new image_transport::SubscriberFilter());
     rgb_sub_.reset(new image_transport::SubscriberFilter());
-    cameraInfo_sub_.reset(new message_filters::Subscriber<sensor_msgs::CameraInfo>());
+    cam_info_sub_.reset(new message_filters::Subscriber<sensor_msgs::CameraInfo>());
 
     std::string depthmap_topic = depth_topic_property_->getTopicStd();
     std::string color_topic = color_topic_property_->getTopicStd();
@@ -286,8 +286,8 @@ void DepthCloudDisplay::subscribe()
 
       // subscribe to CameraInfo  topic
       std::string info_topic = image_transport::getCameraInfoTopic(depthmap_topic);
-      cameraInfo_sub_->subscribe(threaded_nh_, info_topic, queue_size_);
-      cameraInfo_sub_->registerCallback(boost::bind(&DepthCloudDisplay::caminfoCallback, this, _1));
+      cam_info_sub_->subscribe(threaded_nh_, info_topic, queue_size_);
+      cam_info_sub_->registerCallback(boost::bind(&DepthCloudDisplay::caminfoCallback, this, _1));
 
       if (!color_topic.empty() && !color_transport.empty()) {
         // subscribe to color image topic
@@ -317,10 +317,10 @@ void DepthCloudDisplay::subscribe()
   }
 }
 
-void DepthCloudDisplay::caminfoCallback( const sensor_msgs::CameraInfo::ConstPtr& msg )
+void DepthCloudDisplay::caminfoCallback( sensor_msgs::CameraInfo::ConstPtr msg )
 {
-  boost::mutex::scoped_lock lock(camInfo_mutex_);
-  camInfo_ = msg;
+  boost::mutex::scoped_lock lock(cam_info_mutex_);
+  cam_info_ = msg;
  }
 
 void DepthCloudDisplay::unsubscribe()
@@ -334,7 +334,7 @@ void DepthCloudDisplay::unsubscribe()
     depthmap_tf_filter_.reset();
     depthmap_sub_.reset();
     rgb_sub_.reset();
-    cameraInfo_sub_.reset();
+    cam_info_sub_.reset();
   }
   catch (ros::Exception& e)
   {
@@ -369,54 +369,62 @@ void DepthCloudDisplay::reset()
   setStatus( StatusProperty::Ok, "Message", "Ok" );
 }
 
-void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg)
+void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg)
 {
-
   processMessage(depth_msg, sensor_msgs::ImageConstPtr());
-
 }
 
-void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg,
-                                        const sensor_msgs::ImageConstPtr& rgb_msg)
+void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg,
+                                       sensor_msgs::ImageConstPtr rgb_msg)
 {
+  if (context_->getFrameManager()->getPause() )
+  {
+    return;
+  }
 
-   ++messages_received_;
-   setStatus( StatusProperty::Ok, "Depth Map", QString::number(messages_received_) + " depth maps received");
-   setStatus( StatusProperty::Ok, "Message", "Ok" );
+  std::ostringstream s;
 
-   sensor_msgs::CameraInfo::ConstPtr camInfo;
-   {
-     boost::mutex::scoped_lock lock(camInfo_mutex_);
-     camInfo = camInfo_;
-   }
+  ++messages_received_;
+  setStatus( StatusProperty::Ok, "Depth Map", QString::number(messages_received_) + " depth maps received");
+  setStatus( StatusProperty::Ok, "Message", "Ok" );
 
-   if (rgb_msg)
-   {
-     if (depth_msg->header.frame_id != rgb_msg->header.frame_id)
-     {
-       std::stringstream errorMsg;
-       errorMsg << "Depth image frame id [" << depth_msg->header.frame_id.c_str()
+  sensor_msgs::CameraInfo::ConstPtr cam_info;
+  {
+    boost::mutex::scoped_lock lock(cam_info_mutex_);
+    cam_info = cam_info_;
+  }
+
+  if ( !cam_info || !depth_msg )
+  {
+    return;
+  }
+
+  s.str("");
+  s << depth_msg->width << " x " << depth_msg->height;
+  setStatusStd( StatusProperty::Ok, "Depth Image Size", s.str() );
+
+  if (rgb_msg)
+  {
+    s.str("");
+    s << rgb_msg->width << " x " << rgb_msg->height;
+    setStatusStd( StatusProperty::Ok, "Image Size", s.str() );
+
+    if (depth_msg->header.frame_id != rgb_msg->header.frame_id)
+    {
+      std::stringstream errorMsg;
+      errorMsg << "Depth image frame id [" << depth_msg->header.frame_id.c_str()
            << "] doesn't match color image frame id [" << rgb_msg->header.frame_id.c_str() << "]";
-       setStatusStd( StatusProperty::Error, "Message", errorMsg.str() );
-       return;
-     }
+      setStatusStd( StatusProperty::Warn, "Message", errorMsg.str() );
+    }
+  }
 
-     if (depth_msg->width != rgb_msg->width || depth_msg->height != rgb_msg->height)
-     {
-       std::stringstream errorMsg;
-       errorMsg << "Depth image resolution (" << (int)depth_msg->width << "x" << (int)depth_msg->height << ") "
-           "does not match color image resolution (" << (int)rgb_msg->width << "x" << (int)rgb_msg->height << ")";
-       setStatusStd( StatusProperty::Error, "Message", errorMsg.str() );
-       return;
-     }
-   }
-
-   if ( use_auto_size_property_->getBool() )
-   {
-     float f = camInfo->K[0];
-     float s = auto_size_factor_property_->getFloat();
-     pointcloud_common_->point_world_size_property_->setFloat( s / f );
-   }
+  if ( use_auto_size_property_->getBool() )
+  {
+    float f = cam_info->K[0];
+    float bx = cam_info->binning_x > 0 ? cam_info->binning_x : 1.0;
+    float s = auto_size_factor_property_->getFloat();
+    pointcloud_common_->point_world_size_property_->setFloat( s / f * bx );
+  }
 
   bool use_occlusion_compensation = use_occlusion_compensation_property_->getBool();
 
@@ -464,8 +472,12 @@ void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_m
 
   try
   {
-    sensor_msgs::PointCloud2Ptr cloud_msg = ml_depth_data_->generatePointCloudFromDepth(depth_msg, rgb_msg, camInfo);
+    sensor_msgs::PointCloud2Ptr cloud_msg = ml_depth_data_->generatePointCloudFromDepth(depth_msg, rgb_msg, cam_info);
 
+    if ( !cloud_msg.get() )
+    {
+      throw MultiLayerDepthException("generatePointCloudFromDepth() returned zero.");
+    }
     cloud_msg->header = depth_msg->header;
 
     // add point cloud message to pointcloud_common to be visualized
