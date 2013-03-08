@@ -1,3 +1,3 @@
 [git-buildpackage]
-upstream-branch=release/rviz/1.9.24
+upstream-branch=@(release_tag)
 upstream-tree=branch

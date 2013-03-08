@@ -98,6 +98,28 @@ void MultiLayerDepth::initializeConversion(const sensor_msgs::ImageConstPtr& dep
     throw( MultiLayerDepthException (error_msg));
   }
 
+  // do some sanity checks
+  int binning_x = camera_info_msg->binning_x > 1 ? camera_info_msg->binning_x : 1;
+  int binning_y = camera_info_msg->binning_y > 1 ? camera_info_msg->binning_y : 1;
+
+  int roi_width = camera_info_msg->roi.width > 0 ? camera_info_msg->roi.width : camera_info_msg->width;
+  int roi_height = camera_info_msg->roi.height > 0 ? camera_info_msg->roi.height : camera_info_msg->height;
+
+  int expected_width = roi_width / binning_x;
+  int expected_height = roi_height / binning_y;
+
+  if ( expected_width != depth_msg->width ||
+       expected_height != depth_msg->height )
+  {
+    std::ostringstream s;
+    s << "Depth image size and camera info don't match: ";
+    s << depth_msg->width << " x " << depth_msg->height;
+    s << " vs " << expected_width << " x " << expected_height;
+    s << "(binning: " << binning_x << " x " << binning_y;
+    s << ", ROI size: " << roi_width << " x " << roi_height << ")";
+    throw( MultiLayerDepthException (s.str()));
+  }
+
   int width = depth_msg->width;
   int height = depth_msg->height;
 
@@ -116,13 +138,13 @@ void MultiLayerDepth::initializeConversion(const sensor_msgs::ImageConstPtr& dep
     // code in the image_geometry package, but this avoids dependency
     // on OpenCV, which simplifies releasing rviz.
 
-    // Use correct principal point from calibration
-    float center_x = camera_info_msg->P[2] - camera_info_msg->roi.x_offset;
-    float center_y = camera_info_msg->P[6] - camera_info_msg->roi.y_offset;
-
     // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
     double scale_x = camera_info_msg->binning_x > 1 ? (1.0 / camera_info_msg->binning_x) : 1.0;
     double scale_y = camera_info_msg->binning_y > 1 ? (1.0 / camera_info_msg->binning_y) : 1.0;
+
+    // Use correct principal point from calibration
+    float center_x = (camera_info_msg->P[2] - camera_info_msg->roi.x_offset)*scale_x;
+    float center_y = (camera_info_msg->P[6] - camera_info_msg->roi.y_offset)*scale_y;
 
     double fx = camera_info_msg->P[0] * scale_x;
     double fy = camera_info_msg->P[5] * scale_y;
@@ -428,75 +450,89 @@ void MultiLayerDepth::convertColor(const sensor_msgs::ImageConstPtr& color_msg,
 
   }
 
-sensor_msgs::PointCloud2Ptr MultiLayerDepth::generatePointCloudFromDepth(const sensor_msgs::ImageConstPtr& depth_msg,
-                                                                         const sensor_msgs::ImageConstPtr& color_msg,
-                                                                         sensor_msgs::CameraInfoConstPtr& camera_info_msg)
+sensor_msgs::PointCloud2Ptr MultiLayerDepth::generatePointCloudFromDepth(sensor_msgs::ImageConstPtr depth_msg,
+                                                                         sensor_msgs::ImageConstPtr color_msg,
+                                                                         sensor_msgs::CameraInfoConstPtr camera_info_msg)
 {
 
   // Add data to multi depth image
   sensor_msgs::PointCloud2Ptr point_cloud_out;
 
+  // Bit depth of image encoding
+  int bitDepth = enc::bitDepth(depth_msg->encoding);
+  int numChannels = enc::numChannels(depth_msg->encoding);
+
+  if (!camera_info_msg)
   {
-    // Bit depth of image encoding
-    int bitDepth = enc::bitDepth(depth_msg->encoding);
-    int numChannels = enc::numChannels(depth_msg->encoding);
+    throw MultiLayerDepthException("Camera info missing!");
+  }
 
-    if (camera_info_msg)
+  // precompute projection matrix and initialize shadow buffer
+  initializeConversion(depth_msg, camera_info_msg);
+
+  std::vector<uint32_t> rgba_color_raw_;
+
+  if (color_msg)
+  {
+    if (depth_msg->width != color_msg->width || depth_msg->height != color_msg->height)
     {
-
-      // precompute projection matrix and initialize shado buffer
-      initializeConversion(depth_msg, camera_info_msg);
-
-      std::vector<uint32_t> rgba_color_raw_;
-
-      if (color_msg)
-      {
-        // convert color coding to 8-bit rgb data
-        switch (enc::bitDepth(color_msg->encoding))
-        {
-          case 8:
-            convertColor<uint8_t>(color_msg, rgba_color_raw_);
-            break;
-          case 16:
-            convertColor<uint16_t>(color_msg, rgba_color_raw_);
-            break;
-          default:
-            std::string error_msg ("Color image has invalid bit depth");
-            throw( MultiLayerDepthException (error_msg));
-            break;
-        }
-      }
-
-      if (!occlusion_compensation_)
-      {
-        // generate single layer depth cloud
-
-        if ((bitDepth == 32) && (numChannels == 1))
-        {
-          // floating point encoded depth map
-          point_cloud_out = generatePointCloudSL<float>(depth_msg, rgba_color_raw_);
-        }
-        else if ((bitDepth == 16) && (numChannels == 1))
-        {
-          // 32bit integer encoded depth map
-          point_cloud_out = generatePointCloudSL<uint16_t>(depth_msg, rgba_color_raw_);
-        }
-      } else
-      {
-        // generate two layered depth cloud (depth+shadow)
-
-        if ((bitDepth == 32) && (numChannels == 1))
-        {
-          // floating point encoded depth map
-          point_cloud_out = generatePointCloudML<float>(depth_msg, rgba_color_raw_);
-        }
-        else if ((bitDepth == 16) && (numChannels == 1))
-        {
-          // 32bit integer encoded depth map
-          point_cloud_out = generatePointCloudML<uint16_t>(depth_msg, rgba_color_raw_);
-        }
-      }
+      std::stringstream error_msg;
+      error_msg << "Depth image resolution (" << (int)depth_msg->width << "x" << (int)depth_msg->height << ") "
+          "does not match color image resolution (" << (int)color_msg->width << "x" << (int)color_msg->height << ")";
+      throw( MultiLayerDepthException ( error_msg.str() ) );
     }
+
+    // convert color coding to 8-bit rgb data
+    switch (enc::bitDepth(color_msg->encoding))
+    {
+      case 8:
+        convertColor<uint8_t>(color_msg, rgba_color_raw_);
+        break;
+      case 16:
+        convertColor<uint16_t>(color_msg, rgba_color_raw_);
+        break;
+      default:
+        std::string error_msg ("Color image has invalid bit depth");
+        throw( MultiLayerDepthException (error_msg));
+        break;
+    }
+  }
+
+  if (!occlusion_compensation_)
+  {
+    // generate single layer depth cloud
+
+    if ((bitDepth == 32) && (numChannels == 1))
+    {
+      // floating point encoded depth map
+      point_cloud_out = generatePointCloudSL<float>(depth_msg, rgba_color_raw_);
+    }
+    else if ((bitDepth == 16) && (numChannels == 1))
+    {
+      // 32bit integer encoded depth map
+      point_cloud_out = generatePointCloudSL<uint16_t>(depth_msg, rgba_color_raw_);
+    }
+  }
+  else
+  {
+    // generate two layered depth cloud (depth+shadow)
+
+    if ((bitDepth == 32) && (numChannels == 1))
+    {
+      // floating point encoded depth map
+      point_cloud_out = generatePointCloudML<float>(depth_msg, rgba_color_raw_);
+    }
+    else if ((bitDepth == 16) && (numChannels == 1))
+    {
+      // 32bit integer encoded depth map
+      point_cloud_out = generatePointCloudML<uint16_t>(depth_msg, rgba_color_raw_);
+    }
+  }
+
+  if ( !point_cloud_out )
+  {
+    std::string error_msg ("Depth image has invalid format (only 16 bit and float are supported)!");
+    throw( MultiLayerDepthException (error_msg));
   }
 
   return point_cloud_out;
