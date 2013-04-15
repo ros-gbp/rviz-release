@@ -50,6 +50,7 @@
 #include "rviz/ogre_helpers/object.h"
 #include "rviz/ogre_helpers/shape.h"
 #include "rviz/properties/float_property.h"
+#include "rviz/properties/bool_property.h"
 #include "rviz/properties/property.h"
 #include "rviz/properties/quaternion_property.h"
 #include "rviz/properties/vector_property.h"
@@ -72,6 +73,9 @@ public:
 
   virtual void createProperties( const Picked& obj, Property* parent_property );
   virtual void updateProperties();
+
+  virtual void preRenderPass(uint32_t pass);
+  virtual void postRenderPass(uint32_t pass);
 
 private:
   RobotLink* link_;
@@ -109,6 +113,40 @@ void RobotLinkSelectionHandler::updateProperties()
   orientation_property_->setQuaternion( link_->getOrientation() );
 }
 
+
+void RobotLinkSelectionHandler::preRenderPass(uint32_t pass)
+{
+  if (!link_->is_selectable_)
+  {
+    if( link_->visual_node_ )
+    {
+      link_->visual_node_->setVisible( false );
+    }
+    if( link_->collision_node_ )
+    {
+      link_->collision_node_->setVisible( false );
+    }
+    if( link_->trail_ )
+    {
+      link_->trail_->setVisible( false );
+    }
+    if( link_->axes_ )
+    {
+      link_->axes_->getSceneNode()->setVisible( false );
+    }
+  }
+}
+
+void RobotLinkSelectionHandler::postRenderPass(uint32_t pass)
+{
+  if (!link_->is_selectable_)
+  {
+    link_->updateVisibility();
+  }
+}
+
+
+
 RobotLink::RobotLink( Robot* parent, DisplayContext* context, Property* parent_property )
 : parent_( parent )
 , scene_manager_( context->getSceneManager() )
@@ -123,6 +161,7 @@ RobotLink::RobotLink( Robot* parent, DisplayContext* context, Property* parent_p
 , robot_alpha_(1.0)
 , only_render_depth_(false)
 , using_color_( false )
+, is_selectable_( true )
 {
   link_property_ = new Property( "", true, "", parent_property, SLOT( updateVisibility() ), this );
 
@@ -288,19 +327,19 @@ void RobotLink::updateVisibility()
   bool enabled = getEnabled();
   if( visual_node_ )
   {
-    visual_node_->setVisible( enabled && parent_->isVisualVisible() );
+    visual_node_->setVisible( enabled && parent_->isVisible() && parent_->isVisualVisible() );
   }
   if( collision_node_ )
   {
-    collision_node_->setVisible( enabled && parent_->isCollisionVisible() );
+    collision_node_->setVisible( enabled && parent_->isVisible() && parent_->isCollisionVisible() );
   }
   if( trail_ )
   {
-    trail_->setVisible( enabled );
+    trail_->setVisible( enabled && parent_->isVisible() );
   }
   if( axes_ )
   {
-    axes_->getSceneNode()->setVisible( enabled );
+    axes_->getSceneNode()->setVisible( enabled && parent_->isVisible() );
   }
 }
 
@@ -648,25 +687,9 @@ void RobotLink::setToNormalMaterial()
     {
       collision_mesh_->setMaterial( color_material_ );
     }
-    if ( visual_node_ )
-    {
-      visual_node_->setScale( 1, 1, 1.0001 );
-    }
-    if ( collision_node_ )
-    {
-      collision_node_->setScale( 1, 1, 1.0001 );
-    }
   }
   else
   {
-    if ( visual_node_ )
-    {
-      visual_node_->setScale( 1, 1, 1 );
-    }
-    if ( collision_node_ )
-    {
-      collision_node_->setScale( 1, 1, 1 );
-    }
     M_SubEntityToMaterial::iterator it = materials_.begin();
     M_SubEntityToMaterial::iterator end = materials_.end();
     for (; it != end; ++it)
@@ -693,6 +716,18 @@ void RobotLink::unsetColor()
 {
   using_color_ = false;
   setToNormalMaterial();
+}
+
+bool RobotLink::setSelectable( bool selectable )
+{
+  bool old = is_selectable_;
+  is_selectable_ = selectable;
+  return old;
+}
+
+bool RobotLink::getSelectable()
+{
+  return is_selectable_;
 }
 
 Ogre::Vector3 RobotLink::getPosition()
