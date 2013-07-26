@@ -1,3 +1,22 @@
+## rviz - 1.9.32-0
+
+User `hersh@spf` released the packages in the `rviz` repository by running `/usr/bin/bloom-release rviz --track groovy --rosdistro groovy` on `Fri, 26 Jul 2013 23:19:18 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- rosdistro version: `1.9.31-0`
+- old version: `1.9.31-0`
+- new version: `1.9.32-0`
+
+Versions of tools used:
+- bloom version: `0.4.2`
+- catkin_pkg version: `0.1.18`
+- rosdep version: `0.10.21`
+- rosdistro version: `0.2.12`
+- vcstools version: `0.1.31`
+
+
 ## rviz - 1.10.1-0
 
 User `hersh@spf` released the packages in the `rviz` repository by running `/usr/bin/bloom-release rviz --track hydro --rosdistro hydro` on `Tue, 16 Jul 2013 20:27:28 -0000`
