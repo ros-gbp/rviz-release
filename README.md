@@ -1,3 +1,22 @@
+## rviz - 1.10.9-0
+
+User `dgossow@dgossow-MacBookPro` released the packages in the `rviz` repository by running `/usr/bin/bloom-release --track hydro --rosdistro hydro rviz` on `Tue, 15 Oct 2013 20:38:21 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- rosdistro version: `1.10.7-0`
+- old version: `1.10.7-0`
+- new version: `1.10.9-0`
+
+Versions of tools used:
+- bloom version: `0.4.4`
+- catkin_pkg version: `0.1.20`
+- rosdep version: `0.10.22`
+- rosdistro version: `0.2.14`
+- vcstools version: `0.1.31`
+
+
 ## rviz - 1.10.7-0
 
 User `dgossow@lex` released the packages in the `rviz` repository by running `/usr/bin/bloom-release --track hydro --ros-distro hydro rviz` on `Mon, 16 Sep 2013 18:37:07 -0000`
