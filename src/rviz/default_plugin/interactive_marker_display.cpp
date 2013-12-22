@@ -104,11 +104,6 @@ void InteractiveMarkerDisplay::onInitialize()
   onEnable();
 }
 
-void InteractiveMarkerDisplay::setTopic( const QString &topic, const QString &datatype )
-{
-  marker_update_topic_property_->setString( topic );
-}
-
 void InteractiveMarkerDisplay::onEnable()
 {
   subscribe();

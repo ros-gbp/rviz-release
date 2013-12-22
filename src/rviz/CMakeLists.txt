@@ -4,7 +4,7 @@ include_directories(.)
 
 # Build the version number and other build-time constants into the
 # source for access at run-time.
-set(ENV_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/env_config.cpp)
+set(ENV_CONFIG_FILE ${PROJECT_SOURCE_DIR}/build/env_config.cpp)
 set(RVIZ_VERSION ${rviz_VERSION})
 message("making version ${RVIZ_VERSION}.")
 set(ROS_DISTRO $ENV{ROS_DISTRO})
@@ -26,7 +26,6 @@ qt4_wrap_cpp(MOC_FILES
   loading_dialog.h
   message_filter_display.h
   new_object_dialog.h
-  add_display_dialog.h
   panel_dock_widget.h
   panel.h
   properties/bool_property.h
@@ -100,7 +99,6 @@ add_library( ${PROJECT_NAME}
   loading_dialog.cpp
   mesh_loader.cpp
   new_object_dialog.cpp
-  add_display_dialog.cpp
   ogre_helpers/apply_visibility_bits.cpp
   ogre_helpers/arrow.cpp
   ogre_helpers/axes.cpp
@@ -119,7 +117,6 @@ add_library( ${PROJECT_NAME}
   ogre_helpers/render_system.cpp
   ogre_helpers/render_widget.cpp
   ogre_helpers/shape.cpp
-  ogre_helpers/mesh_shape.cpp
   ogre_helpers/stl_loader.cpp
   panel.cpp
   panel_dock_widget.cpp
@@ -188,7 +185,6 @@ target_link_libraries(${PROJECT_NAME}
   ${OGRE_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${QT_LIBRARIES}
-  ${urdfdom_LIBRARIES}
   assimp
   yaml-cpp
 )

@@ -75,9 +75,7 @@ public:
   virtual void fixedFrameChanged();
 
   virtual void reset();
-
-  virtual void setTopic( const QString &topic, const QString &datatype );
-
+  
 protected:
   virtual void onEnable();
   virtual void onDisable();
