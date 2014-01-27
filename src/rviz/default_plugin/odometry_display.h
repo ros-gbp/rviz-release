@@ -71,6 +71,8 @@ public:
   virtual void update( float wall_dt, float ros_dt );
   virtual void reset();
 
+  virtual void setTopic( const QString &topic, const QString &datatype );
+
 protected:
   // overrides from Display
   virtual void onEnable();

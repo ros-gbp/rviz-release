@@ -5,8 +5,10 @@ qt4_wrap_cpp(MOC_FILES
   camera_display.h
   depth_cloud_display.h
   effort_display.h
+  fluid_pressure_display.h
   grid_cells_display.h
   grid_display.h
+  illuminance_display.h
   image_display.h
   interactive_marker_display.h
   interactive_markers/integer_action.h
@@ -28,6 +30,7 @@ qt4_wrap_cpp(MOC_FILES
   pose_display.h
   range_display.h
   robot_model_display.h
+  temperature_display.h
   tf_display.h
   tools/goal_tool.h
   tools/initial_pose_tool.h
@@ -47,8 +50,10 @@ set(SOURCE_FILES
   depth_cloud_mld.cpp
   effort_display.cpp
   effort_visual.cpp
+  fluid_pressure_display.cpp
   grid_cells_display.cpp
   grid_display.cpp
+  illuminance_display.cpp
   image_display.cpp
   interactive_marker_display.cpp
   interactive_markers/integer_action.cpp
@@ -81,6 +86,7 @@ set(SOURCE_FILES
   pose_display.cpp
   range_display.cpp
   robot_model_display.cpp
+  temperature_display.cpp
   tf_display.cpp
   tools/focus_tool.cpp
   tools/measure_tool.cpp
@@ -101,8 +107,7 @@ set(SOURCE_FILES
 )
 
 add_library(default_plugin ${SOURCE_FILES})
-                                    
-target_link_libraries(default_plugin ${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(default_plugin ${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES} ${urdfdom_LIBRARIES})
 
 install(TARGETS default_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

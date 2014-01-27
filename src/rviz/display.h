@@ -39,6 +39,7 @@
 #include "rviz/properties/bool_property.h"
 
 #include <QIcon>
+#include <QSet>
 
 class QDockWidget;
 class QWidget;
@@ -100,6 +101,19 @@ public:
    *
    * Overridden from Property::save(). */
   virtual void save( Config config ) const;
+
+  /** @brief Set the ROS topic to listen to for this display.
+   *
+   *  By default, do nothing.  Subclasses should override this method if they
+   *  subscribe to a single ROS topic.
+   *
+   *  setTopic() is used by the "New display by topic" window; it is called
+   *  with a user selected topic and its type.
+   *
+   *  @param topic The published topic to be visualized.
+   *  @param datatype The datatype of the topic.
+   */
+  virtual void setTopic( const QString &topic, const QString &datatype ) { }
 
   /** @brief Return true if this Display is enabled, false if not. */
   bool isEnabled() const;
@@ -220,6 +234,9 @@ protected:
 
   /** @brief Called by setFixedFrame().  Override to respond to changes to fixed_frame_. */
   virtual void fixedFrameChanged() {}
+
+  /** @brief Returns true if the display has been initialized */
+  bool initialized() const { return initialized_; }
 
   /** @brief This DisplayContext pointer is the main connection a
    * Display has into the rest of rviz.  This is how the FrameManager

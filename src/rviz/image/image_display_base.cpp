@@ -44,7 +44,6 @@ namespace rviz
 
 ImageDisplayBase::ImageDisplayBase() :
     Display()
-    , it_(update_nh_)
     , sub_()
     , tf_filter_()
     , messages_received_(0)
@@ -68,14 +67,43 @@ ImageDisplayBase::ImageDisplayBase() :
 
   transport_property_->setStdString("raw");
 
-  scanForTransportSubscriberPlugins();
-
 }
 
 ImageDisplayBase::~ImageDisplayBase()
 {
   unsubscribe();
 }
+
+void ImageDisplayBase::onInitialize()
+{
+  it_.reset( new image_transport::ImageTransport( update_nh_ ));
+  scanForTransportSubscriberPlugins();
+}
+
+void ImageDisplayBase::setTopic( const QString &topic, const QString &datatype )
+{
+  if ( datatype == ros::message_traits::datatype<sensor_msgs::Image>() )
+  {
+    transport_property_->setStdString( "raw" );
+    topic_property_->setString( topic );
+  }
+  else
+  {
+    int index = topic.lastIndexOf("/");
+    if ( index == -1 )
+    {
+      ROS_WARN("ImageDisplayBase::setTopic() Invalid topic name: %s",
+               topic.toStdString().c_str());
+      return;
+    }
+    QString transport = topic.mid(index + 1);
+    QString base_topic = topic.mid(0, index);
+
+    transport_property_->setString( transport );
+    topic_property_->setString( base_topic );
+  }
+}
+
 
 void ImageDisplayBase::incomingMessage(const sensor_msgs::Image::ConstPtr& msg)
 {
@@ -124,7 +152,7 @@ void ImageDisplayBase::subscribe()
 
     if (!topic_property_->getTopicStd().empty() && !transport_property_->getStdString().empty() )
     {
-      sub_->subscribe(it_, topic_property_->getTopicStd(), (uint32_t)queue_size_property_->getInt(),
+      sub_->subscribe(*it_, topic_property_->getTopicStd(), (uint32_t)queue_size_property_->getInt(),
                       image_transport::TransportHints(transport_property_->getStdString()));
 
       if (targetFrame_.empty())
