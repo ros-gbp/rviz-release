@@ -1,3 +1,22 @@
+## rviz - 1.9.34-0
+
+User `william@dosa.local` released the packages in the `rviz` repository by running `/usr/local/bin/bloom-release -r groovy -t groovy rviz` on `Mon, 27 Jan 2014 05:43:12 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- rosdistro version: `1.9.33-0`
+- old version: `1.9.33-0`
+- new version: `1.9.34-0`
+
+Versions of tools used:
+- bloom version: `0.4.7`
+- catkin_pkg version: `0.1.25`
+- rosdep version: `0.10.25`
+- rosdistro version: `0.3.0`
+- vcstools version: `0.1.33`
+
+
 ## rviz - 1.9.33-0
 
 User `william@dosa` released the packages in the `rviz` repository by running `/usr/local/bin/bloom-release -r groovy -t groovy rviz` on `Sun, 22 Dec 2013 22:15:51 -0000`
