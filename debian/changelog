@@ -1,0 +1,9 @@
+ros-groovy-rviz (1.9.35-1oneiric) oneiric; urgency=high
+
+  * point_cloud: back ported changes to pc iteration
+    fixes #715 <https://github.com/ros-visualization/rviz/issues/715> for me
+  * Contributors: William Woodall
+
+ -- David Gossow <dgossow@gmail.com>  Mon, 24 Feb 2014 08:00:00 -0000
+
+
