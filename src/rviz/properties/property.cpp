@@ -232,12 +232,6 @@ void Property::setParent( Property* new_parent )
 
 QVariant Property::getViewData( int column, int role ) const
 {
-  if ( role == Qt::TextColorRole &&
-       ( parent_ && parent_->getDisableChildren() ) )
-  {
-    return Qt::gray;
-  }
-
   switch( column )
   {
   case 0: // left column: names
@@ -279,9 +273,16 @@ Qt::ItemFlags Property::getViewFlags( int column ) const
 {
   // if the parent propery is a disabled bool property or
   // has its own enabled view flag not set, disable this property as well
-  Qt::ItemFlags enabled_flag = Qt::ItemIsEnabled;//is_read_only_ || ( parent_ && parent_->getDisableChildren() ) ? Qt::NoItemFlags : Qt::ItemIsEnabled;
+  Qt::ItemFlags enabled_flag = Qt::ItemIsEnabled;
+  if ( parent_ )
+  {
+    if( parent_->getDisableChildren() )
+    {
+      enabled_flag = 0;
+    }
+  }
 
-  if( column == 0 )
+  if( column == 0 || is_read_only_ )
   {
     return enabled_flag | Qt::ItemIsSelectable;
   }

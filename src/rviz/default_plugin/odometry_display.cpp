@@ -83,12 +83,9 @@ OdometryDisplay::OdometryDisplay()
 
 OdometryDisplay::~OdometryDisplay()
 {
-  if ( initialized() )
-  {
-    unsubscribe();
-    clear();
-    delete tf_filter_;
-  }
+  unsubscribe();
+  clear();
+  delete tf_filter_;
 }
 
 void OdometryDisplay::onInitialize()
@@ -286,11 +283,6 @@ void OdometryDisplay::reset()
 {
   Display::reset();
   clear();
-}
-
-void OdometryDisplay::setTopic( const QString &topic, const QString &datatype )
-{
-  topic_property_->setString( topic );
 }
 
 } // namespace rviz
