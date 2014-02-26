@@ -1,3 +1,22 @@
+## rviz (hydro) - 1.10.12-0
+
+User `william@dosa` released the packages in the `rviz` repository into the `hydro` distro by running `/usr/local/bin/bloom-release -r hydro -t hydro rviz` on `Wed, 26 Feb 2014 02:26:46 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- rosdistro version: `1.10.11-0`
+- old version: `1.10.11-0`
+- new version: `1.10.12-0`
+
+Versions of tools used:
+- bloom version: `0.5.1`
+- catkin_pkg version: `0.1.26`
+- rosdep version: `0.10.25`
+- rosdistro version: `0.3.4`
+- vcstools version: `0.1.33`
+
+
 ## rviz (indigo) - 1.10.11-0
 
 User `william@dosa` released the packages in the `rviz` repository into the `indigo` distro by running `/usr/local/bin/bloom-release -r indigo -t indigo -n rviz` on `Tue, 25 Feb 2014 00:57:36 -0000`
