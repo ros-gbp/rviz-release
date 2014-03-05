@@ -48,7 +48,7 @@ tracks:
     - git-bloom-generate -y rosrelease :{ros_distro} --source upstream -i :{release_inc}
     - git-bloom-generate -y rosdebian --prefix release/:{ros_distro} :{ros_distro}
       -i :{release_inc}
-    devel_branch: hydro-devel
+    devel_branch: indigo-devel
     last_version: 1.10.12
     name: rviz
     patches: null
