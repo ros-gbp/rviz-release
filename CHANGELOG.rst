@@ -2,6 +2,11 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.10.14 (2014-03-04)
+--------------------
+* Fixed a bug in tutorials caused by uninitialized ros::Time here.
+* Contributors: Dave Hershberger, William Woodall
+
 1.10.13 (2014-02-26)
 --------------------
 * Use assimp-dev as a `build_depend` and leave assimp as the `run_depend`
