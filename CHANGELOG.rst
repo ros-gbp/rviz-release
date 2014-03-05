@@ -2,6 +2,21 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.11.0 (2014-03-04)
+-------------------
+* fixing problems with urdfdom_headers 0.3.0
+* Contributors: William Woodall
+
+1.10.14 (2014-03-04)
+--------------------
+* Fixed a bug in tutorials caused by uninitialized ros::Time here.
+* Contributors: Dave Hershberger, William Woodall
+
+1.10.13 (2014-02-26)
+--------------------
+* Use assimp-dev as a `build_depend` and leave assimp as the `run_depend`
+* Contributors: Scott K Logan, William Woodall
+
 1.10.12 (2014-02-25)
 --------------------
 * Shiboken is now disabled when a version which would segfault is detected (fix `#728 <https://github.com/ros-visualization/rviz/issues/728>`_)
