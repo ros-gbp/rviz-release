@@ -32,9 +32,8 @@
 
 #include "object.h"
 
-#include <OgreMaterial.h>
-#include <OgreVector3.h>
-#include <OgreSharedPtr.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreVector3.h>
 
 namespace Ogre
 {
@@ -58,7 +57,6 @@ public:
     Cube,
     Cylinder,
     Sphere,
-    Mesh,
   };
 
   /**
@@ -103,11 +101,9 @@ public:
 
   Ogre::Entity* getEntity() { return entity_; }
 
-  Ogre::MaterialPtr getMaterial() { return material_; }
-
   static Ogre::Entity* createEntity(const std::string& name, Type shape_type, Ogre::SceneManager* scene_manager);
 
-protected:
+private:
   Ogre::SceneNode* scene_node_;
   Ogre::SceneNode* offset_node_;
   Ogre::Entity* entity_;

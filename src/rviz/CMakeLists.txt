@@ -4,7 +4,7 @@ include_directories(.)
 
 # Build the version number and other build-time constants into the
 # source for access at run-time.
-set(ENV_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/env_config.cpp)
+set(ENV_CONFIG_FILE ${PROJECT_SOURCE_DIR}/build/env_config.cpp)
 set(RVIZ_VERSION ${rviz_VERSION})
 message("making version ${RVIZ_VERSION}.")
 set(ROS_DISTRO $ENV{ROS_DISTRO})
@@ -26,7 +26,6 @@ qt4_wrap_cpp(MOC_FILES
   loading_dialog.h
   message_filter_display.h
   new_object_dialog.h
-  add_display_dialog.h
   panel_dock_widget.h
   panel.h
   properties/bool_property.h
@@ -100,7 +99,6 @@ add_library( ${PROJECT_NAME}
   loading_dialog.cpp
   mesh_loader.cpp
   new_object_dialog.cpp
-  add_display_dialog.cpp
   ogre_helpers/apply_visibility_bits.cpp
   ogre_helpers/arrow.cpp
   ogre_helpers/axes.cpp
@@ -119,7 +117,6 @@ add_library( ${PROJECT_NAME}
   ogre_helpers/render_system.cpp
   ogre_helpers/render_widget.cpp
   ogre_helpers/shape.cpp
-  ogre_helpers/mesh_shape.cpp
   ogre_helpers/stl_loader.cpp
   panel.cpp
   panel_dock_widget.cpp
@@ -185,10 +182,9 @@ add_library( ${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
-  ${OGRE_OV_LIBRARIES_ABS}
+  ${OGRE_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${QT_LIBRARIES}
-  ${urdfdom_LIBRARIES}
   assimp
   yaml-cpp
 )
@@ -202,11 +198,12 @@ if (NOT ASSIMP_FOUND)
   pkg_check_modules(ASSIMP assimp)
 endif()
 if (ASSIMP_FOUND)
-  if( NOT ${ASSIMP_VERSION} VERSION_LESS "2.0.1150" )
-    add_definitions(-DASSIMP_UNIFIED_HEADER_NAMES)
-    message(STATUS "Assimp version has unified headers")
+  if( ${ASSIMP_VERSION} STRGREATER "2.0.0" )
+    set(IS_ASSIMP3 1)
+    add_definitions(-DIS_ASSIMP3)
+    message(STATUS "Found assimp v3")
   else()
-    message(STATUS "Assimp version does not have unified headers")
+    message(STATUS "Found assimp v2")
   endif()
   include_directories(${ASSIMP_INCLUDE_DIRS})
   link_directories(${ASSIMP_LIBRARY_DIRS})
@@ -218,6 +215,7 @@ else()
   set(ASSIMP_CFLAGS_OTHER)
   set(ASSIMP_LINK_FLAGS)
   set(ASSIMP_INCLUDE_DIRS)
+  set(IS_ASSIMP3 0) # most likely not
 endif()
 
 find_package(PkgConfig)
@@ -229,7 +227,7 @@ endif(NEW_YAMLCPP_FOUND)
 ########### The rviz executable ###########
 add_executable(executable main.cpp)
 
-target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS})
+target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_LIBRARIES})
 set_target_properties(executable
                       PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 

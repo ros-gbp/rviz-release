@@ -29,14 +29,8 @@
 #ifndef RENDER_SYSTEM_H
 #define RENDER_SYSTEM_H
 
-#include <OgreRoot.h>
+#include <OGRE/OgreRoot.h>
 #include <stdint.h>
-
-namespace Ogre
-{
-  class OverlaySystem;
-  class SceneManager;
-}
 
 namespace rviz
 {
@@ -50,10 +44,6 @@ public:
 
   Ogre::Root* root() { return ogre_root_; }
 
-  // Prepare a scene_manager to render overlays.
-  // Needed for Ogre >= 1.9 to use fonts; does nothing for prior versions.
-  void prepareOverlays(Ogre::SceneManager* scene_manager);
-
   // @brief return OpenGl Version as integer, e.g. 320 for OpenGl 3.20
   int getGlVersion() { return gl_version_; }
 
@@ -63,23 +53,10 @@ public:
   // @brief Force to use the provided OpenGL version on startup
   static void forceGlVersion( int version );
 
-  // @brief Disable stereo rendering even if supported in HW.
-  static void forceNoStereo();
-
-  // @brief True if we can render stereo on this device.
-  bool isStereoSupported() { return stereo_supported_; }
-
 private:
   RenderSystem();
   void setupDummyWindowId();
   void loadOgrePlugins();
-
-  // helper for makeRenderWindow()
-  Ogre::RenderWindow* tryMakeRenderWindow(const std::string& name,
-                                          unsigned int width,
-                                          unsigned int height,
-                                          const Ogre::NameValuePairList* params,
-                                          int max_attempts);
 
   // Find and configure the render system.
   void setupRenderSystem();
@@ -92,13 +69,10 @@ private:
   unsigned long dummy_window_id_;
 
   Ogre::Root* ogre_root_;
-  Ogre::OverlaySystem* ogre_overlay_system_;
 
   int gl_version_;
   int glsl_version_;
   static int force_gl_version_;
-  bool stereo_supported_;
-  static bool force_no_stereo_;
 };
 
 } // end namespace rviz

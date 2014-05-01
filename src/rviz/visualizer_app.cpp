@@ -32,9 +32,9 @@
 
 #include <boost/program_options.hpp>
 
-#include <OgreMaterialManager.h>
-#include <OgreGpuProgramManager.h>
-#include <OgreHighLevelGpuProgramManager.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreGpuProgramManager.h>
+#include <OGRE/OgreHighLevelGpuProgramManager.h>
 #include <std_srvs/Empty.h>
 
 #ifdef Q_OS_MAC
@@ -133,7 +133,6 @@ bool VisualizerApp::init( int argc, char** argv )
       ("ogre-log,l", "Enable the Ogre.log file (output in cwd) and console output.")
       ("in-mc-wrapper", "Signal that this is running inside a master-chooser wrapper")
       ("opengl", po::value<int>(), "Force OpenGL version (use '--opengl 210' for OpenGL 2.1 compatibility mode)")
-      ("no-stereo", "Disable the use of stereo rendering.")
       ("verbose,v", "Enable debug visualizations");
     po::variables_map vm;
     std::string display_config, fixed_frame, splash_path, help_path;
@@ -141,7 +140,6 @@ bool VisualizerApp::init( int argc, char** argv )
     bool in_mc_wrapper = false;
     bool verbose = false;
     int force_gl_version = 0;
-	bool disable_stereo = false;
     try
     {
       po::store( po::parse_command_line( argc, argv, options ), vm );
@@ -190,11 +188,6 @@ bool VisualizerApp::init( int argc, char** argv )
         enable_ogre_log = true;
       }
 
-      if (vm.count("no-stereo"))
-      {
-        disable_stereo = true;
-      }
-
       if (vm.count("opengl"))
       {
         //std::cout << vm["opengl"].as<std::string>() << std::endl;
@@ -231,11 +224,6 @@ bool VisualizerApp::init( int argc, char** argv )
     if ( force_gl_version )
     {
       RenderSystem::forceGlVersion( force_gl_version );
-    }
-
-    if ( disable_stereo )
-    {
-      RenderSystem::forceNoStereo();
     }
 
     frame_ = new VisualizationFrame;

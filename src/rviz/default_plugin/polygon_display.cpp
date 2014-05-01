@@ -27,10 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-#include <OgreManualObject.h>
-#include <OgreBillboardSet.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreManualObject.h>
+#include <OGRE/OgreBillboardSet.h>
 
 #include "rviz/display_context.h"
 #include "rviz/frame_manager.h"
@@ -56,10 +56,7 @@ PolygonDisplay::PolygonDisplay()
 
 PolygonDisplay::~PolygonDisplay()
 {
-  if ( initialized() )
-  {
-    scene_manager_->destroyManualObject( manual_object_ );
-  }
+  scene_manager_->destroyManualObject( manual_object_ );
 }
 
 void PolygonDisplay::onInitialize()

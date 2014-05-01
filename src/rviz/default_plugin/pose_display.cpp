@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgreEntity.h>
-#include <OgreSceneNode.h>
+#include <OGRE/OgreEntity.h>
+#include <OGRE/OgreSceneNode.h>
 
 #include "rviz/display_context.h"
 #include "rviz/frame_manager.h"
@@ -180,11 +180,8 @@ void PoseDisplay::onInitialize()
 
 PoseDisplay::~PoseDisplay()
 {
-  if ( initialized() )
-  {
-    delete arrow_;
-    delete axes_;
-  }
+  delete arrow_;
+  delete axes_;
 }
 
 void PoseDisplay::onEnable()

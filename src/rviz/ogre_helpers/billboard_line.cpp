@@ -29,13 +29,12 @@
 
 #include "billboard_line.h"
 
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-#include <OgreBillboardChain.h>
-#include <OgreMaterialManager.h>
-#include <OgreTechnique.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreBillboardChain.h>
+#include <OGRE/OgreMaterialManager.h>
 
 #include <sstream>
 
@@ -86,7 +85,7 @@ BillboardLine::~BillboardLine()
 
   scene_manager_->destroySceneNode( scene_node_->getName() );
 
-  material_->unload();
+  Ogre::MaterialManager::getSingleton().remove(material_->getName());
 }
 
 Ogre::BillboardChain* BillboardLine::createChain()

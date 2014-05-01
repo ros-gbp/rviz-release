@@ -36,8 +36,8 @@
 
 #include <ros/time.h>
 
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
 
 #include <boost/thread/mutex.hpp>
 
@@ -206,21 +206,15 @@ private:
   bool adjustTime( const std::string &frame, ros::Time &time );
 
   template<class M>
-  void messageCallback(const ros::MessageEvent<M const>& msg_evt, Display* display)
+  void messageCallback(const boost::shared_ptr<M const>& msg, Display* display)
   {
-    boost::shared_ptr<M const> const &msg = msg_evt.getConstMessage();
-    std::string authority = msg_evt.getPublisherName();
-
-    messageArrived(msg->header.frame_id, msg->header.stamp, authority, display);
+    messageArrived(msg->header.frame_id, msg->header.stamp, msg->__connection_header ? (*msg->__connection_header)["callerid"] : "unknown", display);
   }
 
   template<class M>
-  void failureCallback(const ros::MessageEvent<M const>& msg_evt, tf::FilterFailureReason reason, Display* display)
+  void failureCallback(const boost::shared_ptr<M const>& msg, tf::FilterFailureReason reason, Display* display)
   {
-    boost::shared_ptr<M const> const &msg = msg_evt.getConstMessage();
-    std::string authority = msg_evt.getPublisherName();
-
-    messageFailed(msg->header.frame_id, msg->header.stamp, authority, reason, display);
+    messageFailed(msg->header.frame_id, msg->header.stamp, msg->__connection_header ? (*msg->__connection_header)["callerid"] : "unknown", reason, display);
   }
 
   void messageArrived(const std::string& frame_id, const ros::Time& stamp, const std::string& caller_id, Display* display);

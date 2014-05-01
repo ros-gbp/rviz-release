@@ -35,10 +35,9 @@
 #include <stdint.h>
 
 #include <vector>
-#include <OgreVector3.h>
-#include <OgreColourValue.h>
-#include <OgreMaterial.h>
-#include <OgreSharedPtr.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreColourValue.h>
+#include <OGRE/OgreMaterial.h>
 
 namespace Ogre
 {

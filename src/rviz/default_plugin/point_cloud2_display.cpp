@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include <ros/time.h>
 
@@ -95,16 +95,6 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
   const uint32_t zoff = cloud->fields[zi].offset;
   const uint32_t point_step = cloud->point_step;
   const size_t point_count = cloud->width * cloud->height;
-
-  if( point_count * point_step != cloud->data.size() )
-  {
-    std::stringstream ss;
-    ss << "Data size (" << cloud->data.size() << " bytes) does not match width (" << cloud->width
-       << ") times height (" << cloud->height << ") times point_step (" << point_step << ").  Dropping message.";
-    setStatusStd( StatusProperty::Error, "Message", ss.str() );
-    return;
-  }
-
   filtered->data.resize(cloud->data.size());
   if (point_count == 0)
   {

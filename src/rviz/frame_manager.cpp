@@ -41,7 +41,7 @@ namespace rviz
 
 FrameManager::FrameManager()
 {
-  tf_.reset(new tf::TransformListener(ros::NodeHandle(), ros::Duration(10*60), false));
+  tf_.reset(new tf::TransformListener(ros::NodeHandle(), ros::Duration(10*60), true));
   setSyncMode( SyncOff );
   setPause(false);
 }
@@ -249,7 +249,7 @@ bool FrameManager::transform(const std::string& frame, ros::Time time, const geo
   {
     tf_->transformPose( fixed_frame_, pose_in, pose_out );
   }
-  catch(std::runtime_error& e)
+  catch(tf::TransformException& e)
   {
     ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", frame.c_str(), fixed_frame_.c_str(), e.what());
     return false;

@@ -31,8 +31,7 @@
 #include <QMenu>
 #include <QTimer>
 
-#include <OgreSceneManager.h>
-#include <OgreCamera.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include "rviz/display.h"
 #include "rviz/view_controller.h"

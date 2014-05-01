@@ -29,17 +29,15 @@
 
 #include <boost/bind.hpp>
 
-#include <OgreManualObject.h>
-#include <OgreMaterialManager.h>
-#include <OgreRectangle2D.h>
-#include <OgreRenderSystem.h>
-#include <OgreRenderWindow.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreTextureManager.h>
-#include <OgreViewport.h>
-#include <OgreTechnique.h>
-#include <OgreCamera.h>
+#include <OGRE/OgreManualObject.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreRectangle2D.h>
+#include <OGRE/OgreRenderSystem.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreTextureManager.h>
+#include <OGRE/OgreViewport.h>
 
 #include <tf/transform_listener.h>
 
@@ -109,34 +107,29 @@ CameraDisplay::CameraDisplay()
 
 CameraDisplay::~CameraDisplay()
 {
-  if ( initialized() )
-  {
-    render_panel_->getRenderWindow()->removeListener( this );
+  render_panel_->getRenderWindow()->removeListener( this );
 
-    unsubscribe();
-    caminfo_tf_filter_->clear();
+  unsubscribe();
+  caminfo_tf_filter_->clear();
 
 
-    //workaround. delete results in a later crash
-    render_panel_->hide();
-    //delete render_panel_;
+  //workaround. delete results in a later crash
+  render_panel_->hide();
+  //delete render_panel_;
 
-    delete bg_screen_rect_;
-    delete fg_screen_rect_;
+  delete bg_screen_rect_;
+  delete fg_screen_rect_;
 
-    bg_scene_node_->getParentSceneNode()->removeAndDestroyChild( bg_scene_node_->getName() );
-    fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
+  bg_scene_node_->getParentSceneNode()->removeAndDestroyChild( bg_scene_node_->getName() );
+  fg_scene_node_->getParentSceneNode()->removeAndDestroyChild( fg_scene_node_->getName() );
 
-    delete caminfo_tf_filter_;
+  delete caminfo_tf_filter_;
 
-    context_->visibilityBits()->freeBits(vis_bit_);
-  }
+  context_->visibilityBits()->freeBits(vis_bit_);
 }
 
 void CameraDisplay::onInitialize()
 {
-  ImageDisplayBase::onInitialize();
-
   caminfo_tf_filter_ = new tf::MessageFilter<sensor_msgs::CameraInfo>( *context_->getTFClient(), fixed_frame_.toStdString(),
                                                                        queue_size_property_->getInt(), update_nh_ );
 

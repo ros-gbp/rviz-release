@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include <urdf/model.h>
 
@@ -91,10 +91,7 @@ RobotModelDisplay::RobotModelDisplay()
 
 RobotModelDisplay::~RobotModelDisplay()
 {
-  if ( initialized() )
-  {
-    delete robot_;
-  }
+  delete robot_;
 }
 
 void RobotModelDisplay::onInitialize()
