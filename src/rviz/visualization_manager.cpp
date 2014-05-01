@@ -36,14 +36,16 @@
 
 #include <boost/bind.hpp>
 
-#include <OGRE/OgreRoot.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreLight.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreRenderWindow.h>
+#include <OgreRoot.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreLight.h>
+#include <OgreViewport.h>
+#include <OgreMaterialManager.h>
+#include <OgreMaterial.h>
+#include <OgreRenderWindow.h>
+#include <OgreSharedPtr.h>
+#include <OgreCamera.h>
 
 #include <boost/filesystem.hpp>
 
@@ -64,6 +66,7 @@
 #include "rviz/properties/property_tree_model.h"
 #include "rviz/properties/status_list.h"
 #include "rviz/properties/tf_frame_property.h"
+#include "rviz/properties/int_property.h"
 #include "rviz/render_panel.h"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/tool.h"
@@ -73,6 +76,7 @@
 #include "rviz/view_manager.h"
 #include "rviz/load_resource.h"
 #include "rviz/ogre_helpers/ogre_render_queue_clearer.h"
+#include "rviz/ogre_helpers/render_system.h"
 
 #include "rviz/visualization_manager.h"
 #include "rviz/window_manager_interface.h"
@@ -131,6 +135,8 @@ VisualizationManager::VisualizationManager( RenderPanel* render_panel, WindowMan
 
   scene_manager_ = ogre_root_->createSceneManager( Ogre::ST_GENERIC );
 
+  rviz::RenderSystem::RenderSystem::get()->prepareOverlays(scene_manager_);
+
   directional_light_ = scene_manager_->createLight( "MainDirectional" );
   directional_light_->setType( Ogre::Light::LT_DIRECTIONAL );
   directional_light_->setDirection( Ogre::Vector3( -1, 0, -1 ) );
@@ -162,6 +168,10 @@ VisualizationManager::VisualizationManager( RenderPanel* render_panel, WindowMan
   background_color_property_ = new ColorProperty( "Background Color", QColor(48,48,48),
                                                   "Background color for the 3D view.",
                                                   global_options_, SLOT( updateBackgroundColor() ), this );
+
+  fps_property_ = new IntProperty( "Frame Rate", 30,
+                                   "RViz will try to render this many frames per second.",
+                                   global_options_, SLOT( updateFps() ), this );
 
   root_display_group_->initialize( this ); // only initialize() a Display after its sub-properties are created.
   root_display_group_->setEnabled( true );
@@ -248,7 +258,8 @@ ros::CallbackQueueInterface* VisualizationManager::getUpdateQueue()
 
 void VisualizationManager::startUpdate()
 {
-  update_timer_->start( 33 );
+  float interval = 1000.0 / float(fps_property_->getInt());
+  update_timer_->start( interval );
 }
 
 void VisualizationManager::stopUpdate()
@@ -492,6 +503,14 @@ void VisualizationManager::updateBackgroundColor()
   render_panel_->setBackgroundColor( qtToOgre( background_color_property_->getColor() ));
 
   queueRender();
+}
+
+void VisualizationManager::updateFps()
+{
+  if ( update_timer_->isActive() )
+  {
+    startUpdate();
+  }
 }
 
 void VisualizationManager::handleMouseEvent( const ViewportMouseEvent& vme )

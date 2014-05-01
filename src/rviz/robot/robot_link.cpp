@@ -29,14 +29,16 @@
 
 #include <boost/filesystem.hpp>
 
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreRibbonTrail.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSubEntity.h>
-#include <OGRE/OgreTextureManager.h>
+#include <OgreEntity.h>
+#include <OgreMaterial.h>
+#include <OgreMaterialManager.h>
+#include <OgreRibbonTrail.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSubEntity.h>
+#include <OgreTextureManager.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
 
 #include <ros/console.h>
 
@@ -573,15 +575,19 @@ void RobotLink::createEntityForGeometryElement(const urdf::LinkConstPtr& link, c
     scale = Ogre::Vector3(mesh.scale.x, mesh.scale.y, mesh.scale.z);
     
     std::string model_name = mesh.filename;
-    loadMeshFromResource(model_name);
     
     try
     {
+      loadMeshFromResource(model_name);
       entity = scene_manager_->createEntity( ss.str(), model_name );
+    }
+    catch( Ogre::InvalidParametersException& e )
+    {
+      ROS_ERROR( "Could not convert mesh resource '%s' for link '%s'. It might be an empty mesh: %s", model_name.c_str(), link->name.c_str(), e.what() );
     }
     catch( Ogre::Exception& e )
     {
-      ROS_ERROR( "Could not load model '%s' for link '%s': %s\n", model_name.c_str(), link->name.c_str(), e.what() );
+      ROS_ERROR( "Could not load model '%s' for link '%s': %s", model_name.c_str(), link->name.c_str(), e.what() );
     }
     break;
   }

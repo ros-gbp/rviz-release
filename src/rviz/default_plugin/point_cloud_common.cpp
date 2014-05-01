@@ -29,9 +29,9 @@
 
 #include <QColor>
 
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreWireBoundingBox.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreWireBoundingBox.h>
 
 #include <ros/time.h>
 
@@ -312,7 +312,7 @@ PointCloudCommon::PointCloudCommon( Display* display )
 , new_xyz_transformer_(false)
 , new_color_transformer_(false)
 , needs_retransform_(false)
-, transformer_class_loader_( new pluginlib::ClassLoader<PointCloudTransformer>( "rviz", "rviz::PointCloudTransformer" ))
+, transformer_class_loader_(NULL)
 , display_( display )
 , auto_size_(false)
 {
@@ -361,12 +361,13 @@ PointCloudCommon::PointCloudCommon( Display* display )
                                                   display_, SLOT( updateColorTransformer() ), this );
   connect( color_transformer_property_, SIGNAL( requestOptions( EnumProperty* )),
            this, SLOT( setColorTransformerOptions( EnumProperty* )));
-
-  loadTransformers();
 }
 
 void PointCloudCommon::initialize( DisplayContext* context, Ogre::SceneNode* scene_node )
 {
+  transformer_class_loader_ = new pluginlib::ClassLoader<PointCloudTransformer>( "rviz", "rviz::PointCloudTransformer" );
+  loadTransformers();
+
   context_ = context;
   scene_node_ = scene_node;
 
@@ -382,7 +383,10 @@ PointCloudCommon::~PointCloudCommon()
 {
   spinner_.stop();
 
-  delete transformer_class_loader_;
+  if ( transformer_class_loader_ )
+  {
+    delete transformer_class_loader_;
+  }
 }
 
 void PointCloudCommon::loadTransformers()
@@ -816,10 +820,7 @@ bool PointCloudCommon::transformCloud(const CloudInfoPtr& cloud_info, bool updat
   cloud_points.clear();
 
   size_t size = cloud_info->message_->width * cloud_info->message_->height;
-  PointCloud::Point default_pt;
-  default_pt.color = Ogre::ColourValue(1, 1, 1);
-  default_pt.position = Ogre::Vector3::ZERO;
-  cloud_points.resize(size, default_pt);
+  cloud_points.resize(size);
 
   {
     boost::recursive_mutex::scoped_lock lock(transformers_mutex_);
@@ -846,17 +847,26 @@ bool PointCloudCommon::transformCloud(const CloudInfoPtr& cloud_info, bool updat
       return false;
     }
 
-    xyz_trans->transform(cloud_info->message_, PointCloudTransformer::Support_XYZ, transform, cloud_points);
-    color_trans->transform(cloud_info->message_, PointCloudTransformer::Support_Color, transform, cloud_points);
+    bool res = xyz_trans->transform(cloud_info->message_, PointCloudTransformer::Support_XYZ, transform, cloud_points);
+    res &= color_trans->transform(cloud_info->message_, PointCloudTransformer::Support_Color, transform, cloud_points);
+    // In case there was a problem, assign a default value
+    if (!res)
+    {
+      PointCloud::Point default_pt;
+      default_pt.color = Ogre::ColourValue(1, 1, 1);
+      default_pt.position = Ogre::Vector3::ZERO;
+      cloud_points.clear();
+      cloud_points.resize(size, default_pt);
+    }
   }
 
-  for (size_t i = 0; i < size; ++i)
+  for (V_PointCloudPoint::iterator cloud_point = cloud_points.begin(); cloud_point != cloud_points.end(); ++cloud_point)
   {
-    if (!validateFloats(cloud_points[i].position))
+    if (!validateFloats(cloud_point->position))
     {
-      cloud_points[i].position.x = 999999.0f;
-      cloud_points[i].position.y = 999999.0f;
-      cloud_points[i].position.z = 999999.0f;
+      cloud_point->position.x = 999999.0f;
+      cloud_point->position.y = 999999.0f;
+      cloud_point->position.z = 999999.0f;
     }
   }
 

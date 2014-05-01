@@ -29,16 +29,18 @@
 
 #include <boost/bind.hpp>
 
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreRectangle2D.h>
-#include <OGRE/OgreRenderSystem.h>
-#include <OGRE/OgreRenderWindow.h>
-#include <OGRE/OgreRoot.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreViewport.h>
+#include <OgreManualObject.h>
+#include <OgreMaterialManager.h>
+#include <OgreRectangle2D.h>
+#include <OgreRenderSystem.h>
+#include <OgreRenderWindow.h>
+#include <OgreRoot.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreTextureManager.h>
+#include <OgreViewport.h>
+#include <OgreTechnique.h>
+#include <OgreCamera.h>
 
 #include <tf/transform_listener.h>
 
@@ -74,6 +76,7 @@ ImageDisplay::ImageDisplay()
 
 void ImageDisplay::onInitialize()
 {
+  ImageDisplayBase::onInitialize();
   {
     static uint32_t count = 0;
     std::stringstream ss;
@@ -130,10 +133,12 @@ void ImageDisplay::onInitialize()
 
 ImageDisplay::~ImageDisplay()
 {
-  ImageDisplayBase::unsubscribe();
-  delete render_panel_;
-  delete screen_rect_;
-  img_scene_node_->getParentSceneNode()->removeAndDestroyChild( img_scene_node_->getName() );
+  if ( initialized() )
+  {
+    delete render_panel_;
+    delete screen_rect_;
+    img_scene_node_->getParentSceneNode()->removeAndDestroyChild( img_scene_node_->getName() );
+  }
 }
 
 void ImageDisplay::onEnable()

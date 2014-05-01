@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <ros/time.h>
 
@@ -95,27 +95,61 @@ void PointCloud2Display::processMessage( const sensor_msgs::PointCloud2ConstPtr&
   const uint32_t zoff = cloud->fields[zi].offset;
   const uint32_t point_step = cloud->point_step;
   const size_t point_count = cloud->width * cloud->height;
+
+  if( point_count * point_step != cloud->data.size() )
+  {
+    std::stringstream ss;
+    ss << "Data size (" << cloud->data.size() << " bytes) does not match width (" << cloud->width
+       << ") times height (" << cloud->height << ") times point_step (" << point_step << ").  Dropping message.";
+    setStatusStd( StatusProperty::Error, "Message", ss.str() );
+    return;
+  }
+
   filtered->data.resize(cloud->data.size());
   if (point_count == 0)
   {
     return;
   }
 
-  uint32_t output_count = 0;
-  const uint8_t* ptr = &cloud->data.front();
-  for (size_t i = 0; i < point_count; ++i)
+  uint8_t* output_ptr = &filtered->data.front();
+  const uint8_t* ptr = &cloud->data.front(), *ptr_end = &cloud->data.back(), *ptr_init;
+  size_t points_to_copy = 0;
+  for (; ptr < ptr_end; ptr += point_step)
   {
     float x = *reinterpret_cast<const float*>(ptr + xoff);
     float y = *reinterpret_cast<const float*>(ptr + yoff);
     float z = *reinterpret_cast<const float*>(ptr + zoff);
-    if (validateFloats(Ogre::Vector3(x, y, z)))
+    if (validateFloats(x) && validateFloats(y) && validateFloats(z))
     {
-      memcpy(&filtered->data.front() + (output_count * point_step), ptr, point_step);
-      ++output_count;
+      if (points_to_copy == 0)
+      {
+        // Only memorize where to start copying from
+        ptr_init = ptr;
+        points_to_copy = 1;
+      }
+      else
+      {
+        ++points_to_copy;
+      }
     }
-
-    ptr += point_step;
+    else
+    {
+      if (points_to_copy)
+      {
+        // Copy all the points that need to be copied
+        memcpy(output_ptr, ptr_init, point_step*points_to_copy);
+        output_ptr += point_step*points_to_copy;
+        points_to_copy = 0;
+      }
+    }
   }
+  // Don't forget to flush what needs to be copied
+  if (points_to_copy)
+  {
+    memcpy(output_ptr, ptr_init, point_step*points_to_copy);
+    output_ptr += point_step*points_to_copy;
+  }
+  uint32_t output_count = (output_ptr - &filtered->data.front()) / point_step;
 
   filtered->header = cloud->header;
   filtered->fields = cloud->fields;

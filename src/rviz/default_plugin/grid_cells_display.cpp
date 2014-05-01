@@ -29,10 +29,10 @@
 
 #include <boost/bind.hpp>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreBillboardSet.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
+#include <OgreManualObject.h>
+#include <OgreBillboardSet.h>
 
 #include <tf/transform_listener.h>
 
@@ -93,11 +93,14 @@ void GridCellsDisplay::onInitialize()
 
 GridCellsDisplay::~GridCellsDisplay()
 {
-  unsubscribe();
-  clear();
-  scene_node_->detachObject( cloud_ );
-  delete cloud_;
-  delete tf_filter_;
+  if ( initialized() )
+  {
+    unsubscribe();
+    clear();
+    scene_node_->detachObject( cloud_ );
+    delete cloud_;
+    delete tf_filter_;
+  }
 }
 
 void GridCellsDisplay::clear()

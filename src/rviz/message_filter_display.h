@@ -29,8 +29,8 @@
 #ifndef MESSAGE_FILTER_DISPLAY_H
 #define MESSAGE_FILTER_DISPLAY_H
 
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
 
 #ifndef Q_MOC_RUN
 #include <message_filters/subscriber.h>
@@ -112,6 +112,11 @@ public:
       Display::reset();
       tf_filter_->clear();
       messages_received_ = 0;
+    }
+
+  virtual void setTopic( const QString &topic, const QString &datatype )
+    {
+      topic_property_->setString( topic );
     }
 
 protected:
