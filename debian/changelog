@@ -1,0 +1,18 @@
+ros-groovy-rviz (1.9.36-0quantal) quantal; urgency=high
+
+  * Added CI with travis-ci for Groovy
+  * Fix memory leak in BillboardLine destructor (material not being destroyed correctly) #746
+  * Changed TF listener to use a dedicated thread #707
+  * Contributors: Jordan Brindza, Timm Linder, William Woodall
+
+ -- David Gossow <dgossow@gmail.com>  Thu, 01 May 2014 07:00:00 -0000
+
+ros-groovy-rviz (1.9.35-0quantal) quantal; urgency=high
+
+  * point_cloud: back ported changes to pc iteration
+    fixes #715 <https://github.com/ros-visualization/rviz/issues/715> for me
+  * Contributors: William Woodall
+
+ -- David Gossow <dgossow@gmail.com>  Mon, 24 Feb 2014 08:00:00 -0000
+
+
