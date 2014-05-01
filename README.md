@@ -1,3 +1,22 @@
+## rviz (hydro) - 1.10.15-0
+
+The packages in the `rviz` repository were released into the `hydro` distro by running `/usr/local/bin/bloom-release -r hydro -t hydro rviz` on `Thu, 01 May 2014 23:10:13 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- rosdistro version: `1.10.14-0`
+- old version: `1.10.14-0`
+- new version: `1.10.15-0`
+
+Versions of tools used:
+- bloom version: `0.5.5`
+- catkin_pkg version: `0.2.2`
+- rosdep version: `0.10.27`
+- rosdistro version: `0.3.5`
+- vcstools version: `0.1.33`
+
+
 ## rviz (groovy) - 1.9.36-0
 
 The packages in the `rviz` repository were released into the `groovy` distro by running `/usr/local/bin/bloom-release -r groovy -t groovy rviz` on `Thu, 01 May 2014 20:07:43 -0000`
