@@ -96,10 +96,18 @@ find_package(catkin REQUIRED
   visualization_msgs
 )
 
+if(${tf_VERSION} VERSION_LESS "1.11.3")
+  add_definitions("-DRVIZ_USE_BOOST_SIGNAL_1")
+endif()
+
 
 find_package(Eigen REQUIRED)
 
 catkin_python_setup()
+
+if(NOT OGRE_OV_LIBRARIES_ABS)
+  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES})
+endif()
 
 catkin_package(
   INCLUDE_DIRS
