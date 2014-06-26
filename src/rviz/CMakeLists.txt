@@ -189,7 +189,6 @@ target_link_libraries(${PROJECT_NAME}
   ${OPENGL_LIBRARIES}
   ${QT_LIBRARIES}
   ${rviz_ADDITIONAL_LIBRARIES}
-  ${urdfdom_LIBRARIES}
   assimp
   yaml-cpp
 )
@@ -241,3 +240,6 @@ install(TARGETS executable ${PROJECT_NAME}
 install(DIRECTORY ./
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h")
+
+install(TARGETS executable
+  DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
