@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RESOURCE_RETRIEVING_H_
-#define RESOURCE_RETRIEVING_H_
+#ifndef RVIZ_RELATIVE_HUMIDITY_DISPLAY_H
+#define RVIZ_RELATIVE_HUMIDITY_DISPLAY_H
 
-#include <QPixmap>
-#include <QCursor>
-#include <QString>
+#include <sensor_msgs/RelativeHumidity.h>
+#include <sensor_msgs/PointCloud2.h>
+
+#include "rviz/message_filter_display.h"
 
 namespace rviz
 {
 
-// Helper functions to load resources based on their resource url,
-// e.g. "package://rviz/icons/package.png",
-// or "file:///home/user/.ros/config.yaml".
+class IntProperty;
+class PointCloudCommon;
 
-/* @brief Try to load the pixmap url from disk or the cache.
- *        In case of a failure, the result will be an empty QPixmap.
- *        If fill_cache is set to true (default), the image will be
- *        stored in the cache after loading it from disk.
+/**
+ * \class RelativeHumidityDisplay
+ * \brief Displays a RelativeHumidity message of type sensor_msgs::RelativeHumidity
+ *
  */
-QPixmap loadPixmap( QString url, bool fill_cache=true );
+class RelativeHumidityDisplay: public MessageFilterDisplay<sensor_msgs::RelativeHumidity>
+{
+Q_OBJECT
+public:
+  RelativeHumidityDisplay();
+  ~RelativeHumidityDisplay();
 
-/* @brief Load the default cursor: an arrow.
- *        The fill_cache parameter is ignored.
- */
-QCursor getDefaultCursor( bool fill_cache=true );
+  virtual void reset();
 
-/* @brief Create a cursor using a shape in a file/url.
- *        In case of a failure, the result will be the default arrow cursor.
- *        If fill_cache is set to true (default), the image will be
- *        stored in the cache after loading it from disk.
- */
-QCursor makeIconCursor( QString icon_url, bool fill_cache=true );
+  virtual void update( float wall_dt, float ros_dt );
 
-/* @brief Create a cursor using the shape in the icon QPixmap.
- *        If fill_cache is set to true (default), the image will be
- *        stored in the cache using \e cache_key.
- */
-QCursor makeIconCursor( QPixmap icon, QString cache_key="", bool fill_cache=true );
+private Q_SLOTS:
+  void updateQueueSize();
 
+protected:
+  /** @brief Do initialization. Overridden from MessageFilterDisplay. */
+  virtual void onInitialize();
 
-}
+  /** @brief Process a single message.  Overridden from MessageFilterDisplay. */
+  virtual void processMessage( const sensor_msgs::RelativeHumidityConstPtr& msg );
 
+  IntProperty* queue_size_property_;
 
-#endif /* RESOURCE_RETRIEVING_H_ */
+  PointCloudCommon* point_cloud_common_;
+};
+
+} // namespace rviz
+
+#endif
