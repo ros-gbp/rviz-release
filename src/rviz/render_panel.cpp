@@ -197,6 +197,7 @@ void RenderPanel::showContextMenu( boost::shared_ptr<QMenu> menu )
 
 void RenderPanel::onContextMenuHide()
 {
+  std::cout << "hide\n";
   context_menu_visible_ = false;
 }
 

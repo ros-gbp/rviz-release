@@ -30,15 +30,9 @@ namespace urdf
 // https://code.ros.org/trac/ros-pkg/ticket/5467
 namespace tf
 {
-#ifdef TF_MESSAGEFILTER_DEBUG
-# undef TF_MESSAGEFILTER_DEBUG
-#endif
 #define TF_MESSAGEFILTER_DEBUG(fmt, ...) \
   ROS_DEBUG_NAMED("message_filter", "MessageFilter [target=%s]: "fmt, getTargetFramesString().c_str(), __VA_ARGS__)
 
-#ifdef TF_MESSAGEFILTER_WARN
-# undef TF_MESSAGEFILTER_WARN
-#endif
 #define TF_MESSAGEFILTER_WARN(fmt, ...) \
   ROS_WARN_NAMED("message_filter", "MessageFilter [target=%s]: "fmt, getTargetFramesString().c_str(), __VA_ARGS__)
 
@@ -49,11 +43,7 @@ public:
 	typedef boost::shared_ptr<M const> MConstPtr;
 	typedef ros::MessageEvent<M const> MEvent;
 	typedef boost::function<void(const MConstPtr&, FilterFailureReason)> FailureCallback;
-#ifdef RVIZ_USE_BOOST_SIGNAL_1
 	typedef boost::signal<void(const MConstPtr&, FilterFailureReason)> FailureSignal;
-#else
-	typedef boost::signals2::signal<void(const MConstPtr&, FilterFailureReason)> FailureSignal;
-#endif
 
 	// If you hit this assert your message does not have a header, or does not have the HasHeader trait defined for it
 	ROS_STATIC_ASSERT(ros::message_traits::HasHeader<M>::value);
@@ -494,11 +484,7 @@ public:
 
 	ros::Duration time_tolerance_; ///< Provide additional tolerance on time for messages which are stamped but can have associated duration
 
-#ifdef RVIZ_USE_BOOST_SIGNAL_1
 	boost::signals::connection tf_connection_;
-#else
-	boost::signals2::connection tf_connection_;
-#endif
 	message_filters::Connection message_connection_;
 
 	FailureSignal failure_signal_;
@@ -615,7 +601,7 @@ protected:
   /** @brief Incoming message callback.  Checks if the message pointer
    * is valid, increments messages_received_, then calls
    * processMessage(). */
-  void incomingMessage( const sensor_msgs::JointState::ConstPtr& msg )
+  void incomingMessage( const typename sensor_msgs::JointState::ConstPtr& msg )
     {
       if( !msg )
       {
@@ -631,7 +617,7 @@ protected:
   /** @brief Implement this to process the contents of a message.
    *
    * This is called by incomingMessage(). */
-  virtual void processMessage( const sensor_msgs::JointState::ConstPtr& msg ) = 0;
+  virtual void processMessage( const typename sensor_msgs::JointState::ConstPtr& msg ) = 0;
 
   message_filters::Subscriber<sensor_msgs::JointState> sub_;
   tf::MessageFilterJointState* tf_filter_;
