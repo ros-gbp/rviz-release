@@ -1,10 +1,10 @@
-From af04b71c4a6119b7f687be4a2c6bf7b29fb8bc70 Mon Sep 17 00:00:00 2001
+From ccb7f525264b53e45ca81e5f2c047ce701fa3daf Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Tue, 7 Oct 2014 13:52:42 -0700
-Subject: [PATCH] explicitly set CMAKE_BUILD_TYPE to Release
+Subject: [PATCH 1/2] explicitly set CMAKE_BUILD_TYPE to Release
 
 ---
- debian/rules.em |    1 +
+ debian/rules.em | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/debian/rules.em b/debian/rules.em
@@ -20,5 +20,5 @@ index 06777bd..186e0fb 100755
  		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
  		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
 -- 
-1.7.9.5
+1.9.3 (Apple Git-50)
 

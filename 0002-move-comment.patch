@@ -1,0 +1,27 @@
+From fb4ca115373528b882577f447ddf25a3f482548f Mon Sep 17 00:00:00 2001
+From: William Woodall <william@osrfoundation.org>
+Date: Tue, 7 Oct 2014 14:56:02 -0700
+Subject: [PATCH 2/2] move comment
+
+---
+ debian/rules.em | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/debian/rules.em b/debian/rules.em
+index 186e0fb..633c7a7 100755
+--- a/debian/rules.em
++++ b/debian/rules.em
+@@ -24,8 +24,9 @@ override_dh_auto_configure:
+ 	# in the install tree that was dropped by catkin, and source it.  It will
+ 	# set things like CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, and PYTHONPATH.
+ 	if [ -f "@(InstallationPrefix)/setup.sh" ]; then . "@(InstallationPrefix)/setup.sh"; fi && \
++	# Use release mode explicitly for performance
+ 	dh_auto_configure -- \
+-	        -DCMAKE_BUILD_TYPE="Release" \  # Use release mode explicitly for performance
++	        -DCMAKE_BUILD_TYPE="Release" \
+ 		-DCATKIN_BUILD_BINARY_PACKAGE="1" \
+ 		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
+ 		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
+-- 
+1.9.3 (Apple Git-50)
+
