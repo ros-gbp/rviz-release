@@ -1,7 +1,7 @@
-From fb4ca115373528b882577f447ddf25a3f482548f Mon Sep 17 00:00:00 2001
+From 84e45ed7748ab015a76b143d9717db1103af814b Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Tue, 7 Oct 2014 14:56:02 -0700
-Subject: [PATCH 2/2] move comment
+Subject: [PATCH 2/3] move comment
 
 ---
  debian/rules.em | 3 ++-
