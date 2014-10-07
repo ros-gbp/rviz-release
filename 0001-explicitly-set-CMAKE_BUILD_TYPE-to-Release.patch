@@ -1,0 +1,24 @@
+From af04b71c4a6119b7f687be4a2c6bf7b29fb8bc70 Mon Sep 17 00:00:00 2001
+From: William Woodall <william@osrfoundation.org>
+Date: Tue, 7 Oct 2014 13:52:42 -0700
+Subject: [PATCH] explicitly set CMAKE_BUILD_TYPE to Release
+
+---
+ debian/rules.em |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/debian/rules.em b/debian/rules.em
+index 06777bd..186e0fb 100755
+--- a/debian/rules.em
++++ b/debian/rules.em
+@@ -25,6 +25,7 @@ override_dh_auto_configure:
+ 	# set things like CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, and PYTHONPATH.
+ 	if [ -f "@(InstallationPrefix)/setup.sh" ]; then . "@(InstallationPrefix)/setup.sh"; fi && \
+ 	dh_auto_configure -- \
++	        -DCMAKE_BUILD_TYPE="Release" \  # Use release mode explicitly for performance
+ 		-DCATKIN_BUILD_BINARY_PACKAGE="1" \
+ 		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
+ 		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
+-- 
+1.7.9.5
+
