@@ -15,6 +15,8 @@ export DH_OPTIONS=-v --buildsystem=cmake
 #  https://code.ros.org/trac/ros/ticket/3842
 export LDFLAGS=
 export PKG_CONFIG_PATH=@(InstallationPrefix)/lib/pkgconfig
+# Manually specify the -DNDEBUG option for performance reasons
+export DEB_CXXFLAGS_MAINT_APPEND=-DNDEBUG
 
 %:
 	dh  $@@
@@ -25,7 +27,6 @@ override_dh_auto_configure:
 	# set things like CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, and PYTHONPATH.
 	if [ -f "@(InstallationPrefix)/setup.sh" ]; then . "@(InstallationPrefix)/setup.sh"; fi && \
 	dh_auto_configure -- \
-	        -DCMAKE_BUILD_TYPE="Release" \
 		-DCATKIN_BUILD_BINARY_PACKAGE="1" \
 		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
 		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
