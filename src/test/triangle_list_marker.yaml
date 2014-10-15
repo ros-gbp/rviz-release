@@ -3,7 +3,7 @@ header:
   stamp: 
     secs: 0
     nsecs: 0
-  frame_id: map
+  frame_id: base_link
 ns: cube
 id: 1
 type: 11
@@ -45,17 +45,6 @@ points:
     x: 1
     y: 1
     z: 0
-  - 
-    x: 0
-    y: 0
-    z: 0
-  - 
-    x: 1
-    y: 0
-    z: 0
-  - 
-    x: 1
-    y: 0
-    z: 1
 mesh_resource: ''
 mesh_use_embedded_materials: False
+---
