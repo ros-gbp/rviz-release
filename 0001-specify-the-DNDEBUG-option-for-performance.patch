@@ -1,4 +1,4 @@
-From 86b194747bf2d81d6feb20848c8b4a2c7884f7ef Mon Sep 17 00:00:00 2001
+From 60e1deabf2aa0c902196ab24a856c7f959098aef Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Wed, 15 Oct 2014 11:09:12 -0700
 Subject: [PATCH] specify the -DNDEBUG option for performance
