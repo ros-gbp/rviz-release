@@ -1,3 +1,24 @@
+## rviz (indigo) - 1.11.4-0
+
+The packages in the `rviz` repository were released into the `indigo` distro by running `/usr/local/bin/bloom-release -r indigo -t indigo rviz` on `Thu, 30 Oct 2014 23:08:04 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.11.3-1`
+- old version: `1.11.3-1`
+- new version: `1.11.4-0`
+
+Versions of tools used:
+- bloom version: `0.5.12`
+- catkin_pkg version: `0.2.4`
+- rosdep version: `0.10.30`
+- rosdistro version: `0.3.5`
+- vcstools version: `0.1.35`
+
+
 ## rviz (indigo) - 1.11.3-1
 
 The packages in the `rviz` repository were released into the `indigo` distro by running `/usr/local/bin/bloom-release -r indigo -t indigo rviz` on `Wed, 15 Oct 2014 18:15:34 -0000`
