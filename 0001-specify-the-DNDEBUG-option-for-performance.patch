@@ -1,4 +1,4 @@
-From 60e1deabf2aa0c902196ab24a856c7f959098aef Mon Sep 17 00:00:00 2001
+From 21bf95659e95cac91fb08931e6689b1eaddec5c6 Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Wed, 15 Oct 2014 11:09:12 -0700
 Subject: [PATCH] specify the -DNDEBUG option for performance
@@ -21,5 +21,5 @@ index 06777bd..a06c8a0 100755
  %:
  	dh  $@@
 -- 
-1.9.3 (Apple Git-50)
+1.9.1
 
