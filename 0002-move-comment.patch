@@ -1,4 +1,4 @@
-From d9d63b5e098f034cf0e32c7a6e53b81d0a6b6a80 Mon Sep 17 00:00:00 2001
+From beb95002539fb1f9189a425e5b1803aba4236dcc Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Tue, 7 Oct 2014 14:56:02 -0700
 Subject: [PATCH 2/4] move comment
@@ -23,5 +23,5 @@ index 186e0fb..633c7a7 100755
  		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
  		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
 -- 
-1.9.3 (Apple Git-50)
+2.2.1
 

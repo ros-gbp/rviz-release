@@ -1,4 +1,4 @@
-From 2b50ed35587a94f8cde1dbc0816ba0fae10768a6 Mon Sep 17 00:00:00 2001
+From 66f3d90b6e2cf536192ea07eb8015edda3f3d0d7 Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Wed, 15 Oct 2014 11:08:05 -0700
 Subject: [PATCH 4/4] explicitly only set -DNDEBUG for releasing rviz
@@ -29,5 +29,5 @@ index ab55770..a06c8a0 100755
  		-DCMAKE_INSTALL_PREFIX="@(InstallationPrefix)" \
  		-DCMAKE_PREFIX_PATH="@(InstallationPrefix)"
 -- 
-1.9.3 (Apple Git-50)
+2.2.1
 

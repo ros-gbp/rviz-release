@@ -1,4 +1,4 @@
-From 77128651015d4de87db911bb2dff915467a10075 Mon Sep 17 00:00:00 2001
+From 0c00ae200c5f6eecb076adfc6dba20226b43303d Mon Sep 17 00:00:00 2001
 From: William Woodall <william@osrfoundation.org>
 Date: Tue, 7 Oct 2014 15:04:49 -0700
 Subject: [PATCH 3/4] move comment (again)
@@ -20,5 +20,5 @@ index 633c7a7..ab55770 100755
  	        -DCMAKE_BUILD_TYPE="Release" \
  		-DCATKIN_BUILD_BINARY_PACKAGE="1" \
 -- 
-1.9.3 (Apple Git-50)
+2.2.1
 
