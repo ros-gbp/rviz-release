@@ -173,7 +173,6 @@ protected Q_SLOTS:
   void onSaveImage();
   void onRecentConfigSelected();
   void onHelpWiki();
-  void onHelpAbout();
   void openNewPanelDialog();
   void openNewToolDialog();
   void showHelpPanel();
