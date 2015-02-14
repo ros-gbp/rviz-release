@@ -31,10 +31,10 @@ tracks:
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc}
     devel_branch: hydro-devel
-    last_version: 1.10.18
+    last_version: 1.10.19
     name: upstream
     patches: null
-    release_inc: '4'
+    release_inc: '0'
     release_repo_url: null
     release_tag: :{version}
     ros_distro: hydro
