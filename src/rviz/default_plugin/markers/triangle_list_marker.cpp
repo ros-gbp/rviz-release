@@ -143,43 +143,37 @@ void TriangleListMarker::onNewMessage(const MarkerConstPtr& old_message, const M
   bool has_face_colors = new_message->colors.size() == num_points / 3;
   bool any_vertex_has_alpha = false;
 
-  if (has_vertex_colors)
+  const std::vector<geometry_msgs::Point>& points = new_message->points; 
+  for(size_t i = 0; i < num_points; i += 3)
   {
-    for (size_t i = 0; i < num_points; ++i)
+    std::vector<Ogre::Vector3> corners(3);
+    for(size_t c = 0; c < 3; c++)
     {
-      manual_object_->position(new_message->points[i].x, new_message->points[i].y, new_message->points[i].z);
-      any_vertex_has_alpha = any_vertex_has_alpha || (new_message->colors[i].a < 0.9998);
-      manual_object_->colour(new_message->colors[i].r, new_message->colors[i].g, new_message->colors[i].b, new_message->color.a * new_message->colors[i].a);
+      corners[c] = Ogre::Vector3(points[i+c].x, points[i+c].y, points[i+c].z);
     }
-  }
-  else if (has_face_colors)
-  {
-    for (size_t i = 0; i < num_points; ++i)
+    Ogre::Vector3 normal = (corners[1] - corners[0]).crossProduct(corners[2] - corners[0]);
+    normal.normalise();
+    
+    for(size_t c = 0; c < 3; c++)
     {
-      manual_object_->position(new_message->points[i].x, new_message->points[i].y, new_message->points[i].z);
-      any_vertex_has_alpha = any_vertex_has_alpha || (new_message->colors[i/3].a < 0.9998);
-      manual_object_->colour(new_message->colors[i/3].r, new_message->colors[i/3].g, new_message->colors[i/3].b, new_message->color.a * new_message->colors[i/3].a);
-    }
-  }
-  else
-  {
-    for (size_t i = 0; i < num_points/3; ++i)
-    {
-      Ogre::Vector3 a(new_message->points[3*i].x, new_message->points[3*i].y, new_message->points[3*i].z);
-      Ogre::Vector3 b(new_message->points[3*i+1].x, new_message->points[3*i+1].y, new_message->points[3*i+1].z);
-      Ogre::Vector3 c(new_message->points[3*i+2].x, new_message->points[3*i+2].y, new_message->points[3*i+2].z);
-
-      Ogre::Vector3 normal = (b-a).crossProduct(c-a);
-      normal.normalise();
-
-      manual_object_->position(a);
+      manual_object_->position(corners[c]);
       manual_object_->normal(normal);
-
-      manual_object_->position(b);
-      manual_object_->normal(normal);
-
-      manual_object_->position(c);
-      manual_object_->normal(normal);
+      if(has_vertex_colors)
+      {
+        any_vertex_has_alpha = any_vertex_has_alpha || (new_message->colors[i+c].a < 0.9998);
+        manual_object_->colour(new_message->colors[i+c].r,
+                               new_message->colors[i+c].g,
+                               new_message->colors[i+c].b,
+                               new_message->color.a * new_message->colors[i+c].a);
+      }
+      else if (has_face_colors)
+      {
+        any_vertex_has_alpha = any_vertex_has_alpha || (new_message->colors[i/3].a < 0.9998);
+        manual_object_->colour(new_message->colors[i/3].r,
+                               new_message->colors[i/3].g,
+                               new_message->colors[i/3].b,
+                               new_message->color.a * new_message->colors[i/3].a);
+      }
     }
   }
 
@@ -197,7 +191,7 @@ void TriangleListMarker::onNewMessage(const MarkerConstPtr& old_message, const M
     g = new_message->color.g;
     b = new_message->color.b;
     a = new_message->color.a;
-    material_->getTechnique(0)->setAmbient( .5*r,.5*g,.5*b );
+    material_->getTechnique(0)->setAmbient( r/2,g/2,b/2 );
     material_->getTechnique(0)->setDiffuse( r,g,b,a );
   }
 
