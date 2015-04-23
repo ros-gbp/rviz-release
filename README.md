@@ -1,3 +1,24 @@
+## rviz (jade) - 1.11.7-0
+
+The packages in the `rviz` repository were released into the `jade` distro by running `/usr/local/bin/bloom-release -r jade -t jade rviz` on `Thu, 23 Apr 2015 20:13:57 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `null`
+- new version: `1.11.7-0`
+
+Versions of tools used:
+- bloom version: `0.5.19`
+- catkin_pkg version: `0.2.8`
+- rosdep version: `0.11.2`
+- rosdistro version: `0.4.2`
+- vcstools version: `0.1.36`
+
+
 ## rviz (indigo) - 1.11.7-0
 
 The packages in the `rviz` repository were released into the `indigo` distro by running `/usr/local/bin/bloom-release -r indigo -t indigo rviz` on `Mon, 02 Mar 2015 21:12:26 -0000`
