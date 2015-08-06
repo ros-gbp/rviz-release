@@ -111,60 +111,15 @@ void ToolManager::save( Config config ) const
   }
 }
 
-bool ToolManager::toKey( QString const& str, uint& key )
-{
-  QKeySequence seq( str );
-
-  // We should only working with a single key here
-  if( seq.count() == 1 )
-  {
-    key = seq[ 0 ];
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
 void ToolManager::handleChar( QKeyEvent* event, RenderPanel* panel )
 {
-  // if the incoming key is ESC fallback to the default tool
   if( event->key() == Qt::Key_Escape )
   {
     setCurrentTool( getDefaultTool() );
     return;
   }
-
-  // check if the incoming key triggers the activation of another tool
-  Tool* tool = shortkey_to_tool_map_[ event->key() ];
-  if( tool )
+  if( current_tool_ )
   {
-    // if there is a incoming tool check if it matches the current tool
-    if( current_tool_ == tool)
-    {
-      // if yes, deactivate the current tool and fallback to default
-      setCurrentTool( getDefaultTool() );
-    }
-    else
-    {
-      // if no, check if the current tool accesses all key events
-      if( current_tool_->accessAllKeys() )
-      {
-        // if yes, pass the key
-        current_tool_->processKeyEvent( event, panel );
-      }
-      else
-      {
-        // if no, switch the tool
-        setCurrentTool( tool );
-      }
-    }
-  }
-  else
-  {
-    // if the incoming key triggers no other tool,
-    // just hand down the key event
     current_tool_->processKeyEvent( event, panel );
   }
 }
@@ -175,7 +130,6 @@ void ToolManager::setCurrentTool( Tool* tool )
   {
     current_tool_->deactivate();
   }
-
   current_tool_ = tool;
 
   if( current_tool_ )
@@ -183,7 +137,7 @@ void ToolManager::setCurrentTool( Tool* tool )
     current_tool_->activate();
   }
 
-  Q_EMIT toolChanged( current_tool_ );
+  Q_EMIT toolChanged( tool );
 }
 
 void ToolManager::setDefaultTool( Tool* tool )
@@ -230,18 +184,6 @@ Tool* ToolManager::addTool( const QString& class_id )
   tool->setName( addSpaceToCamelCase( factory_->getClassName( class_id )));
   tool->setIcon( factory_->getIcon( class_id ) );
   tool->initialize( context_ );
-
-  if( tool->getShortcutKey() != '\0' )
-  {
-    uint key;
-    QString str = QString( tool->getShortcutKey() );
-
-    if( toKey( str, key ) )
-    {
-      shortkey_to_tool_map_[ key ] = tool;
-    }
-  }
-
   Property* container = tool->getPropertyContainer();
   connect( container, SIGNAL( childListChanged( Property* )), this, SLOT( updatePropertyVisibility( Property* )));
   updatePropertyVisibility( container );
@@ -280,11 +222,6 @@ void ToolManager::removeTool( int index )
   Q_EMIT toolRemoved( tool );
   delete tool;
   Q_EMIT configChanged();
-}
-
-void ToolManager::refreshTool( Tool* tool )
-{
-  Q_EMIT toolRefreshed( tool );
 }
 
 QStringList ToolManager::getToolClasses()

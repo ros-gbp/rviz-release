@@ -80,9 +80,6 @@ public:
 
   void removeAll();
 
-  /** @brief Triggers redrawing the tool's icon/text in the toolbar. */
-  void refreshTool( Tool* tool );
-
   /**
    * \brief Set the current tool.
    * The current tool is given all mouse and keyboard events which
@@ -130,25 +127,18 @@ Q_SIGNALS:
 
   void toolRemoved( Tool* );
 
-  /** @brief Emitted by refreshTool() to gedraw the tool's icon in the toolbar'. */
-  void toolRefreshed( Tool* );
-
 private Q_SLOTS:
   /** @brief If @a property has children, it is added to the tool
    * property tree, and if it does not, it is removed. */
   void updatePropertyVisibility( Property* property );
 
 private:
-
-  bool toKey( QString const& str, uint& key_out );
   PluginlibFactory<Tool>* factory_;
   PropertyTreeModel* property_tree_model_;
   QList<Tool*> tools_;
   DisplayContext* context_;
   Tool* current_tool_;
   Tool* default_tool_;
-  std::map<int,Tool*> shortkey_to_tool_map_;
-
 };
 
 } // end namespace rviz

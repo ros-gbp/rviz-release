@@ -42,8 +42,6 @@ namespace rviz
 Tool::Tool()
   : property_container_( new Property() )
 {
-  access_all_keys_ = false;
-  shortcut_key_ = '\0';
 }
 
 Tool::~Tool()

@@ -2,124 +2,78 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.11.7 (2015-03-02)
--------------------
-* Fixed a bug where the timestamp was not set for the /initialpose message published by the 2D Pose Estimate tool.
-* Added a method/Qt Signal for refreshing tools called ``refreshTool()``.
-  Calling this method updates the name and icon of a tool in the toolbar.
-* Fixed a bug with ``setCurrentTool``.
-  This fixes a rare gui bug: if an incoming tool directly calls another tool during it's activate() function the tool gets changed accordingly but the toolbar gui becomes inconsistent because Tool* tool pointer is outdated in this case. using Tool* current_tool fixes this.
-* Fixed initialization of Tool's ``shortcut_key_`` and fixed a bug in ``toKeys()``.
-  * Initialized the ``shortcut_key_`` param with '/0' to be able to check whether a tool has a shortkey assigned or not.
-  * Made the tool manager check if a tool has a shortkey before converting the char to a key code.
-  * Fixed the ``toKeys()`` method by removing the assertions, making at a boolean returning function and allowing a single key only, as this is what is to be expected from the ``shortcut_key_`` param this should fix `#851 <https://github.com/ros-visualization/rviz/issues/851>`_
-* Contributors: Henning Deeken, William Woodall, lsouchet
+1.10.20 (2015-08-05)
+--------------------
+* Force and Torque can now be scaled separately in the Wrench display: `#862 <https://github.com/ros-visualization/rviz/issues/862>`_
+* Fixed a bug in the Wrench display: `#883 <https://github.com/ros-visualization/rviz/issues/883>`_
+* Improved error checking when loading ascii stl files.
+* Suppressing some new CMake warnings by setting cmake policies.
+* Re-enable most all of the tests.
+* Check if position and orientation of links of robots contain NaNs when updating pose of robot links.
+* Contributors: Carlos Agüero, Gustavo N Goretkin, Jonathan Bohren, Kei Okada, Ryohei Ueda, William Woodall, louise
 
-1.11.6 (2015-02-13)
--------------------
+1.10.19 (2015-02-13)
+--------------------
 * Fixed a mesh memory leak in ogre_helpers/mesh_shape.h/.cpp
-  This fixes a memory leak which is caused due to no meshes ever being
-  destroyed without removing the mesh from the mesh manager.
-  This gets really bad when drawing meshes with 50K triangles at 10Hz,
-  resulting in a leak rate @ ~60MB/sec.
-* Add a simple 'About' dialog to the help menu.
-* Contributors: Jonathan Bohren, William Woodall, gavanderhoorn
-
-1.11.5 (2015-02-11)
--------------------
-* Tools (on the toolbar) can now indicate if they need access to keypresses by setting the ``access_all_keys_`` attribute.
-  The handling of keypresses in tools has also been refactored. See: pull request `#838 <https://github.com/ros-visualization/rviz/issues/838>`_
-* Path display now has an additional display style called "Billboards" which allows to set the line width of the paths.
-  It also now has an offset property to shift the path with regard to the fixed frame origin.
-  See: pull request `#842 <https://github.com/ros-visualization/rviz/issues/842>`_
-* Meshes now have their ambient values scaled by 0.5 which gives a softer look, which is more in line with Gazebo's look and feel.
-  See: pull request `#841 <https://github.com/ros-visualization/rviz/issues/841>`_
-* The default ambient color for meshes is now 0,0,0, down from 0.5,0.5,0.5.
-  See: pull request `#837 <https://github.com/ros-visualization/rviz/issues/837>`_
-* Triangle-list markers are now shaded like other objects.
-  See: pull request `#833 <https://github.com/ros-visualization/rviz/issues/833>`_
-* Color is now applied to all visuals of the line class, closes `#820 <https://github.com/ros-visualization/rviz/issues/820>`_.
-  See: pull request `#827 <https://github.com/ros-visualization/rviz/issues/827>`_
-* The find_package logic for assimp/yamlcpp has been moved to before add_library for librviz to fix building on OS X.
-  See: pull request `#825 <https://github.com/ros-visualization/rviz/issues/825>`_
-* Fixed moc generation errors with boost >= 1.57.
-  See: pull request `#826 <https://github.com/ros-visualization/rviz/issues/826>`_
-* Contributors: Daniel Stonier, Dave Hershberger, Henning Deeken, Michael Ferguson, Timm Linder, William Woodall, v4hn
-
-1.11.4 (2014-10-30)
--------------------
-* Fixed stereo support for custom projection matrices
-* Fixed read off end of array in triangle_list_marker
-* Add dependency on opengl
-  rviz calls find_package(OpenGL), so it should have a direct dependency
-  on OpenGL. This matters on ARM, where the other packages that rviz
-  depends on use OpenGL.ES, and don't provide a transitive dependency on
-  OpenGL.
-* Update map via QT signal instead of in ros thread
-  Resolved issues when running RViz in rqt where the incomingMap callback
-  is not issued from RViz's main QThread causing a crash in Ogre. Map
-  updates are now handled by emitting a signal to update the map from the
-  callback thread.
-* fix rainbow color, see `#813 <https://github.com/ros-visualization/rviz/issues/813>`_
-* Added TF listener as parameter to constructors of VisualizationManager and FrameManager
+  This fixes a memory leak which is caused due to no meshes ever being destroyed without removing the mesh from the mesh manager.
+  This gets really bad when drawing meshes with 50K triangles at 10Hz, resulting in a leak rate @ ~60MB/sec.
+* Map via QT signal instead of in ros thread
+  Resolved issues when running RViz in rqt where the incoming Map callback is not issued from RViz's main QThread causing a crash in Ogre.
+  Map updates are now handled by emitting a signal to update the map from the callback thread.
+* Fixed read off end of array in triangle_list_marker.
 * Fix add by topic for Marker and MarkerArray
-* Fixed map plugin to only show when active
-* stereo: restore camera after rendering (Avoids a segfault)
+* Contributors: Alex Bencz, Ben Charrow, Dave Hershberger, Jonathan Bohren, William Woodall
+
+1.10.18 (2014-07-29)
+--------------------
+* Backport fix from Indigo for a warning which fails on the farm.
+  Achieved by cherry-picking commit ``12423d1969da5669e6cb0ee698a3483a78ef38dd`` from Indigo.
+* Contributors: William Woodall
+
+1.10.17 (2014-07-29)
+--------------------
+* Fix a bug where the map was shown even if the map plugin was not active
+* Fixed stereo: restore camera after rendering
+  Avoids a segfault
 * fix stereo eye separation
 * fix ogre includes
-* Contributors: Acorn Pooley, Alex Bencz, Austin, Austin Hendrix, Ben Charrow, Dave Hershberger, Jonathan Bohren, Kei Okada, William Woodall, ZdenekM, v4hn
-
-1.11.3 (2014-06-26)
--------------------
-* remove explicit dependency on urdfdom
-  urdfdom is provided via urdf and catkin_* CMake variables.
-  The current setup was unbalanced anyways because along with urdfdom, urdfdom_headers should have been being depended on and used.
-  This precipitated from urdfdom's rosdep key changing as it became a system dependency in Indigo.
-* Add ability to delete all markers in Marker plugin
+* Added python headers for python bindings
+  Adding ``${PYTHON_INCLUDE_DIRS}`` to the sip python bindings.
+  Needed at least on OSX/10.9 to compile successfully.
+* Fix screenshot dialog. Fixes `#783 <https://github.com/ros-visualization/rviz/issues/783>`_
 * fix hidden cursor bug
   On some systems loading a pixmap from an svg file can fail.  On these machines
   an empty cursor results, meaning the cursor is invisible inside Rviz.  This
   works around the problem by using an arrow cursor when the desired cursor
   pixmap canot be loaded.
-* Install rviz to the global bin
+* rviz is now installed to the global bin folder which is on the PATH
+* Added partial support for shading of triagular meshes
 * Added display for sensor_msgs/RelativeHumidity
-* Contributors: Acorn Pooley, Adam Leeper, Chad Rockey, Dave Coleman, William Woodall, hersh, trainman419
-
-1.11.2 (2014-05-13)
--------------------
-* Fix an issue with rendering laser scans: `#762 <https://github.com/ros-visualization/rviz/issues/762>`_
-* Fix an issue with using boost::signal instead of boost::signal2 with tf
-  tf recently moved to boost::signal2, so the effort display needed to be updated too
-  I made it so that it would conditionally use boost::signal2 if the tf version is greater than or equal to 1.11.3
-  I also fixed some compiler warnings in this code
-  closes `#700 <https://github.com/ros-visualization/rviz/issues/700>`_
-* Contributors: Vincent Rabaud, William Woodall
-
-1.11.1 (2014-05-01)
--------------------
-* fix fragment reference in point_cloud_box.material
-  Closes `#759 <https://github.com/ros-visualization/rviz/issues/759>`_
-* upgrade ogre model meshs with the OgreMeshUpgrader from ogre 1.9
-* Changed TF listener to use a dedicated thread.
-* Speed up point cloud rendering by caching some computations and using proper loop iterations
-* Fixed rendering of mesh resource type markers with respect to texture rendering and color tinting
-* Fix segfault on exit for OSX
-* Fix memory leak in BillboardLine destructor (material not being destroyed correctly)
 * Fix disabling of groups (`#709 <https://github.com/ros-visualization/rviz/issues/709>`_)
   This was broken with commit 5897285, which reverted the changes in
   commit c6dacb1, but rather than only removing the change concerning
   the read-only attribute, commented out the entire check, including
   the ``parent_->getDisableChildren()`` call (which existed prior to
   commit 5897285).
-* Add missing libraries to rviz link step, fixes OS X build.
-* fix failing sip bindings when path contains spaces
-* EffortDisplay: Added a check to avoid segfaults when receiving a joint state without efforts
-* Contributors: Dirk Thomas, Hans Gaiser, Jordan Brindza, Mike Purvis, Mirko, Siegfried-A. Gevatter Pujals, Timm Linder, Vincent Rabaud, William Woodall
+* Contributors: Acorn Pooley, Chad Rockey, Dave Hershberger, Nikolaus Demmel, Siegfried-A. Gevatter Pujals, William Woodall, hersh, trainman419, v4hn
 
-1.11.0 (2014-03-04)
--------------------
-* fixing problems with urdfdom_headers 0.3.0
-* Contributors: William Woodall
+1.10.16 (2014-05-13)
+--------------------
+* Fix an issue with rendering laser scans: `#762 <https://github.com/ros-visualization/rviz/issues/762>`_
+* Contributors: Vincent Rabaud, William Woodall
+
+1.10.15 (2014-05-01)
+--------------------
+* Forward ported #707
+  Update frame_manager.cpp
+  Changed TF listener to use a dedicated thread.
+* Fix segfault on exit for OSX
+* Fixed rendering of mesh resource type markers with respect to texture rendering and color tinting
+* Fix memory leak in BillboardLine destructor (material not being destroyed correctly)
+* EffortDisplay: Added a check to avoid segfaults when receiving a joint state without efforts
+* Speed up point cloud rendering
+  this is mostly caching some computations and using proper loop iterations
+* Contributors: Hans Gaiser, Jordan Brindza, Mirko, Timm Linder, Vincent Rabaud, William Woodall
 
 1.10.14 (2014-03-04)
 --------------------
