@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2009, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,36 +26,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef FUN_DISPLAY_H
-#define FUN_DISPLAY_H
 
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/editable_enum_property.h"
+#ifndef RVIZ_THIRD_PERSON_VIEW_CONTROLLER_H
+#define RVIZ_THIRD_PERSON_VIEW_CONTROLLER_H
 
-#include "rviz/display.h"
+#include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 
-class FunDisplay: public Display
+#include <OgreVector3.h>
+
+namespace Ogre
+{
+class SceneNode;
+}
+
+namespace rviz
+{
+
+class TfFrameProperty;
+
+/**
+ * \brief Like the orbit view controller, but focal point moves only in the x-y plane.
+ */
+class ThirdPersonFollowerViewController : public OrbitViewController
 {
 Q_OBJECT
 public:
-  FunDisplay();
+  virtual void onInitialize();
 
-private Q_SLOTS:
-  void onSizeChanged();
-  void onMasterChanged();
-  void onTimerTick();
-  void onMoodChanged();
-  void makeDances( EditableEnumProperty* property );
+  virtual void handleMouseEvent(ViewportMouseEvent& evt);
 
-private:
-  Property* size_;
-  Property* master_;
-  Property* slave_;
-  Property* dance_;
-  EnumProperty* mood_;
-  int count_;
+  virtual void lookAt( const Ogre::Vector3& point );
 
-  static FunDisplay* previous_fun_;
+  /** @brief Configure the settings of this view controller to give,
+   * as much as possible, a similar view as that given by the
+   * @a source_view.
+   *
+   * @a source_view must return a valid @c Ogre::Camera* from getCamera(). */
+  virtual void mimic( ViewController* source_view );
+
+protected:
+  virtual void updateCamera();
+
+  virtual void updateTargetSceneNode();
+
+  bool intersectGroundPlane( Ogre::Ray mouse_ray, Ogre::Vector3 &intersection_3d );
 };
 
-#endif // FUN_DISPLAY_H
+}
+
+#endif // RVIZ_VIEW_CONTROLLER_H
