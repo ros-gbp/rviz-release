@@ -41,14 +41,11 @@
 
 #include "scaled_image_widget.h"
 #include "screenshot_dialog.h"
-#include "visualization_manager.h"
 
 namespace rviz
 {
 
-ScreenshotDialog::ScreenshotDialog( QWidget* main_window, QWidget* render_window,
-    VisualizationManager *vis_manager,
-    const QString& default_save_dir )
+ScreenshotDialog::ScreenshotDialog( QWidget* main_window, QWidget* render_window, const QString& default_save_dir )
   : QWidget( NULL ) // This should be a top-level window to act like a dialog.
   , main_window_( main_window )
   , render_window_( render_window )
@@ -56,7 +53,6 @@ ScreenshotDialog::ScreenshotDialog( QWidget* main_window, QWidget* render_window
   , delay_timer_( new QTimer( this ))
   , first_time_( true )
   , default_save_dir_( default_save_dir )
-  , vis_manager_(vis_manager)
 {
   image_widget_ = new ScaledImageWidget( .5 );
 
@@ -150,9 +146,7 @@ void ScreenshotDialog::save()
     "/rviz_screenshot_" +
     QDateTime::currentDateTime().toString( "yyyy_MM_dd-hh_mm_ss" ) +
     ".png";
-  vis_manager_->stopUpdate();
   QString filename = QFileDialog::getSaveFileName( this, "Save image", default_save_file );
-  vis_manager_->startUpdate();
   if( filename != "" )
   {
     QString with_slashes = QDir::fromNativeSeparators( filename );

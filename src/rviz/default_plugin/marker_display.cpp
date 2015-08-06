@@ -204,6 +204,21 @@ void MarkerDisplay::deleteMarkersInNamespace( const std::string& ns )
   }
 }
 
+void MarkerDisplay::deleteAllMarkers()
+{
+  std::vector<MarkerID> to_delete;
+  M_IDToMarker::iterator marker_it = markers_.begin();
+  for (; marker_it != markers_.end(); ++marker_it)
+  {
+    to_delete.push_back(marker_it->first);
+  }
+
+  for (std::vector<MarkerID>::iterator it = to_delete.begin(); it != to_delete.end(); ++it)
+  {
+    deleteMarker( *it );
+  }
+}
+
 void MarkerDisplay::setMarkerStatus(MarkerID id, StatusLevel level, const std::string& text)
 {
   std::stringstream ss;
@@ -241,6 +256,11 @@ void MarkerDisplay::incomingMarker( const visualization_msgs::Marker::ConstPtr& 
 void MarkerDisplay::failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt, tf::FilterFailureReason reason)
 {
   visualization_msgs::Marker::ConstPtr marker = marker_evt.getConstMessage();
+  if (marker->action == visualization_msgs::Marker::DELETE ||
+      marker->action == 3)  // TODO: visualization_msgs::Marker::DELETEALL when message changes in a future version of ROS
+  {
+    return this->processMessage(marker);
+  }
   std::string authority = marker_evt.getPublisherName();
   std::string error = context_->getFrameManager()->discoverFailureReason(marker->header.frame_id, marker->header.stamp, authority, reason);
   setMarkerStatus(MarkerID(marker->ns, marker->id), StatusProperty::Error, error);
@@ -272,6 +292,10 @@ void MarkerDisplay::processMessage( const visualization_msgs::Marker::ConstPtr& 
 
   case visualization_msgs::Marker::DELETE:
     processDelete( message );
+    break;
+
+  case 3: // TODO: visualization_msgs::Marker::DELETEALL when message changes in a future version of ROS
+    deleteAllMarkers();
     break;
 
   default:
@@ -392,6 +416,7 @@ void MarkerDisplay::processAdd( const visualization_msgs::Marker::ConstPtr& mess
 void MarkerDisplay::processDelete( const visualization_msgs::Marker::ConstPtr& message )
 {
   deleteMarker(MarkerID(message->ns, message->id));
+
   context_->queueRender();
 }
 

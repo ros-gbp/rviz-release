@@ -17,8 +17,30 @@ find_package(Boost REQUIRED
   thread
 )
 
-
 find_package(PkgConfig REQUIRED)
+
+find_package(ASSIMP QUIET)
+if (NOT ASSIMP_FOUND)
+  pkg_check_modules(ASSIMP assimp)
+endif()
+if (ASSIMP_FOUND)
+  if( NOT ${ASSIMP_VERSION} VERSION_LESS "2.0.1150" )
+    add_definitions(-DASSIMP_UNIFIED_HEADER_NAMES)
+    message(STATUS "Assimp version has unified headers")
+  else()
+    message(STATUS "Assimp version does not have unified headers")
+  endif()
+  include_directories(${ASSIMP_INCLUDE_DIRS})
+  link_directories(${ASSIMP_LIBRARY_DIRS})
+else()
+  message(STATUS "could not find assimp (perhaps available thorugh ROS package?), so assimping assimp v2")
+  set(ASSIMP_LIBRARIES assimp)
+  set(ASSIMP_LIBRARY_DIRS)
+  set(ASSIMP_CXX_FLAGS)
+  set(ASSIMP_CFLAGS_OTHER)
+  set(ASSIMP_LINK_FLAGS)
+  set(ASSIMP_INCLUDE_DIRS)
+endif()
 
 pkg_check_modules(OGRE_OV OGRE OGRE-Overlay)
 
@@ -69,11 +91,7 @@ endif()
 
 find_package(OpenGL REQUIRED)
 
-find_package(PythonLibs REQUIRED)
-
 find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
-
-find_package(urdfdom REQUIRED)
 
 find_package(catkin REQUIRED
   COMPONENTS
@@ -107,10 +125,15 @@ if(${tf_VERSION} VERSION_LESS "1.11.3")
   add_definitions("-DRVIZ_USE_BOOST_SIGNAL_1")
 endif()
 
+find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 
 find_package(Eigen REQUIRED)
 
 catkin_python_setup()
+
+if(NOT OGRE_OV_LIBRARIES_ABS)
+  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES})
+endif()
 
 catkin_package(
   INCLUDE_DIRS
@@ -118,14 +141,12 @@ catkin_package(
     ${EIGEN_INCLUDE_DIRS}
     ${OGRE_OV_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIR}
-    ${urdfdom_INCLUDE_DIRS}
   LIBRARIES
     rviz
     default_plugin
     ${OGRE_OV_LIBRARIES_ABS}
     ${rviz_ADDITIONAL_LIBRARIES}
     ${OPENGL_LIBRARIES}
-    ${urdfdom_LIBRARIES}
   CATKIN_DEPENDS
     geometry_msgs
     image_geometry
@@ -151,7 +172,6 @@ include_directories(SYSTEM
   ${OGRE_OV_INCLUDE_DIRS}
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
-  ${urdfdom_INCLUDE_DIRS}
 )
 include_directories(src ${catkin_INCLUDE_DIRS})
 

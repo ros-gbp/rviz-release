@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2009, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,78 +27,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef RVIZ_THIRD_PERSON_VIEW_CONTROLLER_H
+#define RVIZ_THIRD_PERSON_VIEW_CONTROLLER_H
 
-#ifndef RVIZ_PATH_DISPLAY_H
-#define RVIZ_PATH_DISPLAY_H
+#include "rviz/default_plugin/view_controllers/orbit_view_controller.h"
 
-#include <nav_msgs/Path.h>
-
-#include "rviz/message_filter_display.h"
+#include <OgreVector3.h>
 
 namespace Ogre
 {
-class ManualObject;
+class SceneNode;
 }
 
 namespace rviz
 {
 
-class ColorProperty;
-class FloatProperty;
-class IntProperty;
-class EnumProperty;
-class BillboardLine;
-class VectorProperty;
-
+class TfFrameProperty;
 
 /**
- * \class PathDisplay
- * \brief Displays a nav_msgs::Path message
+ * \brief Like the orbit view controller, but focal point moves only in the x-y plane.
  */
-class PathDisplay: public MessageFilterDisplay<nav_msgs::Path>
+class ThirdPersonFollowerViewController : public OrbitViewController
 {
 Q_OBJECT
 public:
-  PathDisplay();
-  virtual ~PathDisplay();
-
-  /** @brief Overridden from Display. */
-  virtual void reset();
-
-protected:
-  /** @brief Overridden from Display. */
   virtual void onInitialize();
 
-  /** @brief Overridden from MessageFilterDisplay. */
-  void processMessage( const nav_msgs::Path::ConstPtr& msg );
+  virtual void handleMouseEvent(ViewportMouseEvent& evt);
 
-private Q_SLOTS:
-  void updateBufferLength();
-  void updateStyle();
-  void updateLineWidth();
-  void updateOffset();
+  virtual void lookAt( const Ogre::Vector3& point );
 
-private:
-  void destroyObjects();
+  /** @brief Configure the settings of this view controller to give,
+   * as much as possible, a similar view as that given by the
+   * @a source_view.
+   *
+   * @a source_view must return a valid @c Ogre::Camera* from getCamera(). */
+  virtual void mimic( ViewController* source_view );
 
-  std::vector<Ogre::ManualObject*> manual_objects_;
-  std::vector<rviz::BillboardLine*> billboard_lines_;
+protected:
+  virtual void updateCamera();
 
-  EnumProperty* style_property_;
-  ColorProperty* color_property_;
-  FloatProperty* alpha_property_;
-  FloatProperty* line_width_property_;
-  IntProperty* buffer_length_property_;
-  VectorProperty* offset_property_;
+  virtual void updateTargetSceneNode();
 
-  enum LineStyle {
-    LINES,
-    BILLBOARDS
-  };
-
+  bool intersectGroundPlane( Ogre::Ray mouse_ray, Ogre::Vector3 &intersection_3d );
 };
 
-} // namespace rviz
+}
 
-#endif /* RVIZ_PATH_DISPLAY_H */
-
+#endif // RVIZ_VIEW_CONTROLLER_H
