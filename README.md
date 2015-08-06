@@ -1,3 +1,24 @@
+## rviz (hydro) - 1.10.20-0
+
+The packages in the `rviz` repository were released into the `hydro` distro by running `/usr/local/bin/bloom-release -r hydro -t hydro rviz` on `Thu, 06 Aug 2015 00:57:34 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+- upstream repository: git@github.com:ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.10.19-0`
+- old version: `1.10.19-0`
+- new version: `1.10.20-0`
+
+Versions of tools used:
+- bloom version: `0.5.20`
+- catkin_pkg version: `0.2.9`
+- rosdep version: `0.11.2`
+- rosdistro version: `0.4.2`
+- vcstools version: `0.1.36`
+
+
 ## rviz (jade) - 1.11.7-0
 
 The packages in the `rviz` repository were released into the `jade` distro by running `/usr/local/bin/bloom-release -r jade -t jade rviz` on `Thu, 23 Apr 2015 20:13:57 -0000`
