@@ -125,13 +125,13 @@ bool STLLoader::load(uint8_t* buffer, const size_t num_bytes, const std::string&
   {
     ROS_ERROR_STREAM("The STL file '" << origin <<"' is malformed. It "
                      "appears to be a binary STL file but does not contain "
-                     "enough data for the 80 byte header and 16-bit integer "
+                     "enough data for the 80 byte header and 32-bit integer "
                      "triangle count.");
     return false;
   }
 
   // one last check to make sure that the size matches the number of triangles
-  unsigned int num_triangles = *(reinterpret_cast<uint16_t *>(buffer + 80));
+  unsigned int num_triangles = *(reinterpret_cast<uint32_t *>(buffer + 80));
   static const size_t number_of_bytes_per_triangle = 50;
   size_t expected_size = binary_stl_header_len + num_triangles * number_of_bytes_per_triangle;
   if (num_bytes != expected_size)
