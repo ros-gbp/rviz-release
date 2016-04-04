@@ -66,18 +66,37 @@ set(SOURCE_FILES
   ${MOC_FILES}
 )
 
-add_library(default_plugin ${SOURCE_FILES})
-target_link_libraries(default_plugin ${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS} ${Boost_LIBRARIES})
+add_library(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME} ${SOURCE_FILES})
+target_link_libraries(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
+  ${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${OGRE_OV_LIBRARIES_ABS}
+  ${QT_LIBRARIES}
+)
 
-install(TARGETS default_plugin
+install(TARGETS ${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 # Generate to the devel space so the extras file can include it from the devel space.
-file(GENERATE
-  OUTPUT "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
-  CONTENT "set(rviz_DEFAULT_PLUGIN_FILE_NAME $<TARGET_FILE_NAME:default_plugin>)"
+add_custom_command(
+  OUTPUT ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake
+  COMMAND
+    ${CMAKE_COMMAND}
+    -DPATH_TO_FILE="${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
+    -DDEFAULT_PLUGIN_FILE_NAME=$<TARGET_FILE_NAME:${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}>
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/file_generate_helper.cmake
 )
+add_custom_target(create_default_plugin_location_file ALL
+  DEPENDS ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake
+)
+# TODO(wjwwood): remove the solution above (including the file_generate_helper.cmake file) when we can
+# depend on cmake >= 2.8.12 (after dropping Saucy) and use the snippet below.
+# file(GENERATE
+#   OUTPUT "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
+#   CONTENT "set(rviz_DEFAULT_PLUGIN_FILE_NAME $<TARGET_FILE_NAME:${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}>)"
+# )
 # Install from the devel space to the install space.
 install(FILES "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
