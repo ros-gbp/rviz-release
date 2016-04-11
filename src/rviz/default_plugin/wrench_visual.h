@@ -1,7 +1,7 @@
 #ifndef WRENCHSTAMPED_VISUAL_H
 #define WRENCHSTAMPED_VISUAL_H
 
-#include <geometry_msgs/WrenchStamped.h>
+#include <geometry_msgs/Wrench.h>
 
 namespace Ogre
 {
@@ -23,18 +23,20 @@ namespace rviz
 // sensor_msgs::WrenchStamped message.  Currently it just shows an arrow with
 // the direction and magnitude of the acceleration vector, but could
 // easily be expanded to include more of the message data.
-class WrenchStampedVisual
+class WrenchVisual
 {
 public:
     // Constructor.  Creates the visual stuff and puts it into the
     // scene, but in an unconfigured state.
-    WrenchStampedVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node );
+    WrenchVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node );
 
     // Destructor.  Removes the visual stuff from the scene.
-    virtual ~WrenchStampedVisual();
+    virtual ~WrenchVisual();
 
+    // Configure the visual to show the given force and torque vectors
+    void setWrench( const Ogre::Vector3 &force, const Ogre::Vector3 &torque );
     // Configure the visual to show the data in the message.
-    void setMessage( const geometry_msgs::WrenchStamped::ConstPtr& msg );
+    void setWrench( const geometry_msgs::Wrench& wrench );
 
     // Set the pose of the coordinate frame the message refers to.
     // These could be done inside setMessage(), but that would require
@@ -51,6 +53,7 @@ public:
     void setForceScale( float s );
     void setTorqueScale( float s );
     void setWidth( float w );
+    void setVisible( bool visible );
 
 private:
     // The object implementing the wrenchStamped circle
@@ -63,6 +66,9 @@ private:
     // A SceneNode whose pose is set to match the coordinate frame of
     // the WrenchStamped message header.
     Ogre::SceneNode* frame_node_;
+    // allow showing/hiding of force / torque arrows
+    Ogre::SceneNode* force_node_;
+    Ogre::SceneNode* torque_node_;
 
     // The SceneManager, kept here only so the destructor can ask it to
     // destroy the ``frame_node_``.
