@@ -1,3 +1,26 @@
+## rviz (kinetic) - 1.12.1-0
+
+The packages in the `rviz` repository were released into the `kinetic` distro by running `/usr/local/bin/bloom-release -r kinetic -t kinetic rviz` on `Wed, 20 Apr 2016 22:43:58 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.12.0-0`
+- old version: `1.12.0-0`
+- new version: `1.12.1-0`
+
+Versions of tools used:
+
+- bloom version: `0.5.21`
+- catkin_pkg version: `0.2.10`
+- rosdep version: `0.11.4`
+- rosdistro version: `0.4.4`
+- vcstools version: `0.1.38`
+
+
 ## rviz (kinetic) - 1.12.0-0
 
 The packages in the `rviz` repository were released into the `kinetic` distro by running `/usr/local/bin/bloom-release -r kinetic -t kinetic rviz` on `Mon, 11 Apr 2016 23:30:02 -0000`
