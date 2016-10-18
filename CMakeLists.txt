@@ -94,7 +94,7 @@ find_package(OpenGL REQUIRED)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(UseQt5 "UseQt5" ON)
+option(UseQt5 "UseQt5" OFF)
 if (UseQt5)
   find_package(Qt5Widgets REQUIRED)
   find_package(Qt5Core REQUIRED)
@@ -170,8 +170,7 @@ endif()
 # This variable controls the target name of the default plugin library.
 # It is used in the extras file (processed in caktin_package(...)) and the
 # cmake code for the default plugin.
-# There is a matching instance of this in the plugin_description.xml.
-set(rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME rviz_default_plugin)
+set(rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME default_plugin)
 
 catkin_package(
   CFG_EXTRAS

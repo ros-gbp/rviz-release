@@ -12,7 +12,7 @@
 namespace rviz
 {
 
-WrenchVisual::WrenchVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node )
+WrenchStampedVisual::WrenchStampedVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node )
 {
     scene_manager_ = scene_manager;
 
@@ -35,7 +35,7 @@ WrenchVisual::WrenchVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* 
     circle_arrow_torque_ = new rviz::Arrow( scene_manager_, torque_node_ );
 }
 
-WrenchVisual::~WrenchVisual()
+WrenchStampedVisual::~WrenchStampedVisual()
 {
     // Delete the arrow to make it disappear.
     delete arrow_force_;
@@ -48,14 +48,19 @@ WrenchVisual::~WrenchVisual()
 }
 
 
-void WrenchVisual::setWrench( const geometry_msgs::Wrench& wrench )
+void WrenchStampedVisual::setMessage( const geometry_msgs::WrenchStamped::ConstPtr& msg )
+{
+    setWrench(msg->wrench);
+}
+
+void WrenchStampedVisual::setWrench( const geometry_msgs::Wrench& wrench )
 {
     Ogre::Vector3 force(wrench.force.x, wrench.force.y, wrench.force.z);
     Ogre::Vector3 torque(wrench.torque.x, wrench.torque.y, wrench.torque.z);
     setWrench(force, torque);
 }
 
-void WrenchVisual::setWrench( const Ogre::Vector3 &force, const Ogre::Vector3 &torque )
+void WrenchStampedVisual::setWrench( const Ogre::Vector3 &force, const Ogre::Vector3 &torque )
 {
     double force_length = force.length() * force_scale_;
     double torque_length = torque.length() * torque_scale_;
@@ -93,45 +98,45 @@ void WrenchVisual::setWrench( const Ogre::Vector3 &force, const Ogre::Vector3 &t
 }
 
 // Position and orientation are passed through to the SceneNode.
-void WrenchVisual::setFramePosition( const Ogre::Vector3& position )
+void WrenchStampedVisual::setFramePosition( const Ogre::Vector3& position )
 {
     frame_node_->setPosition( position );
 }
 
-void WrenchVisual::setFrameOrientation( const Ogre::Quaternion& orientation )
+void WrenchStampedVisual::setFrameOrientation( const Ogre::Quaternion& orientation )
 {
     frame_node_->setOrientation( orientation );
 }
 
 // Color is passed through to the rviz object.
-void WrenchVisual::setForceColor( float r, float g, float b, float a )
+void WrenchStampedVisual::setForceColor( float r, float g, float b, float a )
 {
     arrow_force_->setColor( r, g, b, a );
 }
 // Color is passed through to the rviz object.
-void WrenchVisual::setTorqueColor( float r, float g, float b, float a )
+void WrenchStampedVisual::setTorqueColor( float r, float g, float b, float a )
 {
     arrow_torque_->setColor( r, g, b, a );
     circle_torque_->setColor( r, g, b, a );
     circle_arrow_torque_->setColor( r, g, b, a );
 }
 
-void  WrenchVisual::setForceScale( float s )
+void  WrenchStampedVisual::setForceScale( float s )
 {
     force_scale_ = s;
 }
 
-void  WrenchVisual::setTorqueScale( float s )
+void  WrenchStampedVisual::setTorqueScale( float s )
 {
     torque_scale_ = s;
 }
 
-void  WrenchVisual::setWidth( float w )
+void  WrenchStampedVisual::setWidth( float w )
 {
     width_ = w;
 }
 
-void WrenchVisual::setVisible(bool visible)
+void WrenchStampedVisual::setVisible(bool visible)
 {
     frame_node_->setVisible(visible);
 }
