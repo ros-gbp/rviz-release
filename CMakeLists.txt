@@ -17,6 +17,8 @@ find_package(Boost REQUIRED
   thread
 )
 
+find_package(urdfdom_headers REQUIRED)
+
 find_package(PkgConfig REQUIRED)
 
 find_package(ASSIMP QUIET)
@@ -96,19 +98,21 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 option(UseQt5 "UseQt5" ON)
 if (UseQt5)
-  find_package(Qt5Widgets REQUIRED)
-  find_package(Qt5Core REQUIRED)
-  find_package(Qt5OpenGL REQUIRED)
+  find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+  # set variable names already used with Qt4
+  set(QT_LIBRARIES Qt5::Widgets)
+  set(QTVERSION ${Qt5Widgets_VERSION})
 else()
   find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
+  include(${QT_USE_FILE})
 endif()
+add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED
   COMPONENTS
   angles
   cmake_modules
   geometry_msgs
-  image_geometry
   image_transport
   interactive_markers
   laser_geometry
@@ -129,6 +133,7 @@ find_package(catkin REQUIRED
   tf
   urdf
   visualization_msgs
+  urdfdom_headers
 )
 
 if(${tf_VERSION} VERSION_LESS "1.11.3")
@@ -137,7 +142,7 @@ endif()
 
 find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 
-find_package(Eigen3)
+find_package(Eigen3 QUIET)
 if(NOT EIGEN3_FOUND)
   # Fallback to cmake_modules
   find_package(cmake_modules REQUIRED)
@@ -155,17 +160,8 @@ if(NOT OGRE_OV_LIBRARIES_ABS)
   set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES})
 endif()
 
-if(NOT UseQt5)
-  include(${QT_USE_FILE})
-endif()
-add_definitions(-DQT_NO_KEYWORDS)
-
 # Set the Qt version for use in the extras file.
-if(UseQt5)
-  set(rviz_QT_VERSION ${Qt5Widgets_VERSION})
-else()
-  set(rviz_QT_VERSION ${QTVERSION})
-endif()
+set(rviz_QT_VERSION ${QTVERSION})
 
 # This variable controls the target name of the default plugin library.
 # It is used in the extras file (processed in caktin_package(...)) and the
@@ -188,7 +184,6 @@ catkin_package(
     ${OPENGL_LIBRARIES}
   CATKIN_DEPENDS
     geometry_msgs
-    image_geometry
     image_transport
     interactive_markers
     laser_geometry
@@ -211,6 +206,7 @@ include_directories(SYSTEM
   ${OGRE_OV_INCLUDE_DIRS}
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
+  ${urdfdom_headers_INCLUDE_DIRS}
 )
 include_directories(src ${catkin_INCLUDE_DIRS})
 
