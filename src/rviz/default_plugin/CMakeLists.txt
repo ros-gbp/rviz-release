@@ -63,10 +63,13 @@ set(SOURCE_FILES
   view_controllers/fps_view_controller.cpp
   wrench_display.cpp
   wrench_visual.cpp
-  ${MOC_FILES}
 )
 
 add_library(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME} ${SOURCE_FILES})
+if(NOT WIN32)
+  set_target_properties(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
+    PROPERTIES COMPILE_FLAGS "-std=c++11")
+endif()
 target_link_libraries(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
   ${PROJECT_NAME}
   ${Boost_LIBRARIES}
