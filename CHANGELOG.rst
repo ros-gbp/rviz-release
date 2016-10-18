@@ -2,32 +2,44 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.11.15 (2016-10-18)
---------------------
-* Pose arrays can now be rendered as 3D arrows or pose markers (`#1016 <https://github.com/ros-visualization/rviz/issues/1016>`_)
-* Allow float edits to work with different Locales
-  * (`#1043 <https://github.com/ros-visualization/rviz/issues/1043>`_)
-  * (`#1058 <https://github.com/ros-visualization/rviz/issues/1058>`_)
-* Fix double free in display dialog.
-  * (`#1053 <https://github.com/ros-visualization/rviz/issues/1053>`_)
-  * (`#1057 <https://github.com/ros-visualization/rviz/issues/1057>`_)
-* Now check for a valid root link before walking the robot model (`#1039 <https://github.com/ros-visualization/rviz/issues/1039>`_)
-* Fixed two valgrind-reported issues (`#1001 <https://github.com/ros-visualization/rviz/issues/1001>`_)
+1.12.2 (2016-10-18)
+-------------------
+* Paths can now be rendered as 3D arrows or pose markers (`#1059 <https://github.com/ros-visualization/rviz/issues/1059>`_)
+* Allow float edits to work with different Locales (`#1043 <https://github.com/ros-visualization/rviz/issues/1043>`_)
+* Now check for a valid root link before walking the robot model (`#1041 <https://github.com/ros-visualization/rviz/issues/1041>`_)
+* Added close() signal to Tool class (`#1051 <https://github.com/ros-visualization/rviz/issues/1051>`_)
+* Fix double free in display dialog (`#1053 <https://github.com/ros-visualization/rviz/issues/1053>`_)
+* Tweak focal shape size marker depending on focal distance (`#1021 <https://github.com/ros-visualization/rviz/issues/1021>`_)
+* Support 3D arrows and axes for visualizing PoseArrays (`#1022 <https://github.com/ros-visualization/rviz/issues/1022>`_)
+* Use urdf::*ShredPtr instead of boost::shared_ptr (`#1044 <https://github.com/ros-visualization/rviz/issues/1044>`_)
+* Fixed two valgrind-reported issues (`#1027 <https://github.com/ros-visualization/rviz/issues/1027>`_)
   * in ~RenderPanel()
   * in VisualizationManager(): initialization order
-* Updated the marker display and tf plugins to save the enabled namespaces and frames when changed.
-  * Also updated the plugins so that is saved whenever the plugin is reset.
-  * This also allows the currently selected namespaces/frames to remain selected after the "Reset" button is pressed.
-  * (`#988 <https://github.com/ros-visualization/rviz/issues/988>`_)
-  * (`#989 <https://github.com/ros-visualization/rviz/issues/989>`_)
-* Generalized the WrenchVisual class (`#982 <https://github.com/ros-visualization/rviz/issues/982>`_)
-  * generalized WrenchStampedVisual::setMessage()
-  * alternative API: WrenchStampedVisual::setWrench(OgreVector3 force, OgreVector3 torque)
-  * expose SceneNode::setVisible()
-  * separate scene nodes for force and torque marker
-  * retain API compatibility
-  * retain ABI compatibility
-* Contributors: Maarten de Vries, Michael Görner, Robert Haschke, Ron Tajima, William Woodall
+* Added option to disable the RViz splash-screen (`#1024 <https://github.com/ros-visualization/rviz/issues/1024>`_)
+* Fix compile error due to the user-defined string literals feature (`#1010 <https://github.com/ros-visualization/rviz/issues/1010>`_)
+* Fixed some Qt5 related build issues (`#1008 <https://github.com/ros-visualization/rviz/issues/1008>`_)
+* Removed dependency on OpenCV (`#1009 <https://github.com/ros-visualization/rviz/issues/1009>`_)
+* Contributors: 1r0b1n0, Atsushi Watanabe, Blake Anderson, Jochen Sprickerhof, Kartik Mohta, Maarten de Vries, Michael Görner, Robert Haschke, Victor Lamoine, Víctor Mayoral Vilches, William Woodall
+
+1.12.1 (2016-04-20)
+-------------------
+* Updated the ``plugin_description.xml`` to reflect the new default plugin library name, see: `#1004 <https://github.com/ros-visualization/rviz/issues/1004>`_
+* Contributors: William Woodall
+
+1.12.0 (2016-04-11)
+-------------------
+* Qt5 is now the default build option, but Qt4 support is still available (for C++ only).
+* Fixed support for PyQt5, but disabled PySide2 until we get it working.
+* The default plugin's library was changed to ``rviz_default_plugin``.
+* Changed to use CMake's ``file(GENERATE ...)`` macro when exporting the default plugin's library name.
+* Changed costmap lethal color to be different from illegal values.
+* Cleaned-up and generalized the WrenchVisual display:
+  * renamed ``WrenchStampedVisual`` to ``WrenchVisual``
+  * cleanup: removed deprecated API
+* Updated the marker display and tf plugins to update the map of enabled namespaces and frames whenever those frames are enabled/disabled using the check boxes.
+  Also updated the plugins so that the map of enabled namespaces and frames does not get erased whenever the plugin is reset. (`#988 <https://github.com/ros-visualization/rviz/issues/988>`_)
+  This allows the currently selected namespaces/frames to remain selected after the Reset button is pressed.
+* Contributors: Brett, Robert Haschke, William Woodall
 
 1.11.14 (2016-04-03)
 --------------------
