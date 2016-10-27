@@ -42,6 +42,9 @@
 #include <OgreMaterial.h>
 #endif
 
+#include <urdf/model.h>
+#include <urdf_model/pose.h>
+
 #include "rviz/ogre_helpers/object.h"
 #include "rviz/selection/forwards.h"
 
@@ -57,18 +60,10 @@ class Any;
 class RibbonTrail;
 }
 
-namespace urdf
-{
-class ModelInterface;
-class Link;
-class Joint;
-class Geometry;
-class Pose;
-}
-
 namespace rviz
 {
 class Shape;
+class Arrow;
 class Axes;
 class DisplayContext;
 class FloatProperty;
@@ -79,6 +74,7 @@ class Robot;
 class RobotLinkSelectionHandler;
 class VectorProperty;
 class RobotJoint;
+class StringProperty;
 
 
 /**
@@ -89,7 +85,7 @@ class RobotJoint: public QObject
 {
 Q_OBJECT
 public:
-  RobotJoint( Robot* robot, const boost::shared_ptr<const urdf::Joint>& joint );
+  RobotJoint( Robot* robot, const urdf::JointConstSharedPtr& joint );
   virtual ~RobotJoint();
 
 
@@ -136,6 +132,7 @@ public:
 
 private Q_SLOTS:
   void updateAxes();
+  void updateAxis();
   void updateChildVisibility();
 
 private:
@@ -167,6 +164,12 @@ protected:
   VectorProperty* position_property_;
   QuaternionProperty* orientation_property_;
   Property* axes_property_;
+  // The joint axis if any, as opposed to the frame in which the joint exists above
+  VectorProperty* axis_property_;
+  Property* show_axis_property_;
+  StringProperty* type_property_;
+  FloatProperty* lower_limit_property_;
+  FloatProperty* upper_limit_property_;
 
 private:
   Ogre::Vector3 joint_origin_pos_;
@@ -176,6 +179,7 @@ private:
   bool doing_set_checkbox_;   // prevents updateChildVisibility() from  touching children
 
   Axes* axes_;
+  Arrow* axis_;
 };
 
 } // namespace rviz

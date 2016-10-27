@@ -2,9 +2,16 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.12.4 (2016-10-27)
+-------------------
+* Restored "Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr``" (`#1064 <https://github.com/ros-visualization/rviz/issues/1064>`_)
+  Now supports ``urdfdom`` 0.3 and 0.4 through a compatibility header in ``urdf``.
+* You can now visualize joint axis and display type and limits (`#1029 <https://github.com/ros-visualization/rviz/issues/1029>`_)
+* Contributors: Lucas Walter, Robert Haschke, William Woodall
+
 1.12.3 (2016-10-19)
 -------------------
-* Revert "Use urdf::*ShredPtr instead of boost::shared_ptr" (`#1060 <https://github.com/ros-visualization/rviz/issues/1060>`_)
+* Revert "Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr``" (`#1060 <https://github.com/ros-visualization/rviz/issues/1060>`_)
 * Contributors: William Woodall
 
 1.12.2 (2016-10-18)
@@ -16,7 +23,7 @@ Changelog for package rviz
 * Fix double free in display dialog (`#1053 <https://github.com/ros-visualization/rviz/issues/1053>`_)
 * Tweak focal shape size marker depending on focal distance (`#1021 <https://github.com/ros-visualization/rviz/issues/1021>`_)
 * Support 3D arrows and axes for visualizing PoseArrays (`#1022 <https://github.com/ros-visualization/rviz/issues/1022>`_)
-* Use urdf::*ShredPtr instead of boost::shared_ptr (`#1044 <https://github.com/ros-visualization/rviz/issues/1044>`_)
+* Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr`` (`#1044 <https://github.com/ros-visualization/rviz/issues/1044>`_)
 * Fixed two valgrind-reported issues (`#1027 <https://github.com/ros-visualization/rviz/issues/1027>`_)
   * in ~RenderPanel()
   * in VisualizationManager(): initialization order
