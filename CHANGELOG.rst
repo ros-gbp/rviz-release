@@ -2,6 +2,18 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.12.7 (2017-05-05)
+-------------------
+* Fix render system regression (`#1101 <https://github.com/ros-visualization/rviz/issues/1101>`_)
+  * Also updated the render system code to follow latest recommendations for integrating Qt5 and Ogre3D, see: http://www.ogre3d.org/tikiwiki/tiki-index.php?page=Integrating+Ogre+into+QT5
+  * Restored conditional code for Qt5 versus Qt4, which fixed `#1100 <https://github.com/ros-visualization/rviz/issues/1100>`_
+* Imported several updates to the covariance related displays (`#1099 <https://github.com/ros-visualization/rviz/issues/1099>`_)
+  * Added offset to covariance properties
+  * Refactored CovarianceVisual
+  * Fixed tolerance test at angular discontinuity
+  * Renamed PoseWithCovarianceDisplay::Shape enums
+* Contributors: Ellon Paiva Mendes, William Woodall
+
 1.12.6 (2017-05-02)
 -------------------
 * Added and updated displays to visualize covariance matrices (`#1096 <https://github.com/ros-visualization/rviz/issues/1096>`_)
