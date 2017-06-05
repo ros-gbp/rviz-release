@@ -2,6 +2,54 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.12.9 (2017-06-05)
+-------------------
+* Fix variable name (`#1104 <https://github.com/ros-visualization/rviz/issues/1104>`_)
+  Somehow, variable names got out of sync. Lines 370 and 371 refer to "parameters" but it is "params" everywhere else.
+* Contributors: genemerewether
+
+1.12.8 (2017-05-07)
+-------------------
+* Fixed bug where generated material names were not unique (`#1102 <https://github.com/ros-visualization/rviz/issues/1102>`_)
+  * This was a regression of `#1079 <https://github.com/ros-visualization/rviz/issues/1079>`_
+* Contributors: Maarten de Vries
+
+1.12.7 (2017-05-05)
+-------------------
+* Fix render system regression (`#1101 <https://github.com/ros-visualization/rviz/issues/1101>`_)
+  * Also updated the render system code to follow latest recommendations for integrating Qt5 and Ogre3D, see: http://www.ogre3d.org/tikiwiki/tiki-index.php?page=Integrating+Ogre+into+QT5
+  * Restored conditional code for Qt5 versus Qt4, which fixed `#1100 <https://github.com/ros-visualization/rviz/issues/1100>`_
+* Imported several updates to the covariance related displays (`#1099 <https://github.com/ros-visualization/rviz/issues/1099>`_)
+  * Added offset to covariance properties
+  * Refactored CovarianceVisual
+  * Fixed tolerance test at angular discontinuity
+  * Renamed PoseWithCovarianceDisplay::Shape enums
+* Contributors: Ellon Paiva Mendes, William Woodall
+
+1.12.6 (2017-05-02)
+-------------------
+* Added and updated displays to visualize covariance matrices (`#1096 <https://github.com/ros-visualization/rviz/issues/1096>`_)
+  * Added display for PoseWithCovariance.
+  * Update OdometryDisplay to optionally show covariances.
+* Fixed regression in previous release which was a type error that happened with newer versions of urdf (`#1098 <https://github.com/ros-visualization/rviz/issues/1098>`_)
+* Contributors: William Woodall
+
+1.12.5 (2017-05-01)
+-------------------
+* Renamed duplicated pass_depth.vert in nogp program to avoid Ogre 1.10 runtime error (`#1063 <https://github.com/ros-visualization/rviz/issues/1063>`_)
+* Fixed some handling of Window ID's for OS X and ogre 1.9 (`#1093 <https://github.com/ros-visualization/rviz/issues/1093>`_)
+* Added support for maps larger than video memory using swatches (`#1095 <https://github.com/ros-visualization/rviz/issues/1095>`_)
+* Added fullscreen option (f11) (`#1017 <https://github.com/ros-visualization/rviz/issues/1017>`_)
+* Added an option to transform map based on header timestamp (`#1066 <https://github.com/ros-visualization/rviz/issues/1066>`_)
+* Now updates the display if empty a pointcloud2 message is recieved (`#1073 <https://github.com/ros-visualization/rviz/issues/1073>`_)
+  Previously the old point cloud would continue to be rendered.
+* Now correctly scales the render panel on high resolution displays (`#1078 <https://github.com/ros-visualization/rviz/issues/1078>`_)
+* Added support for multiple materials in a single link of a robot model (`#1079 <https://github.com/ros-visualization/rviz/issues/1079>`_)
+* Now includes missing headers necessary for ogre 1.10 (`#1092 <https://github.com/ros-visualization/rviz/issues/1092>`_)
+* Fixed duplicate property name for Path colors which caused it to not be restored from saved configs (`#1089 <https://github.com/ros-visualization/rviz/issues/1089>`_)
+  See issue `#1087 <https://github.com/ros-visualization/rviz/issues/1087>`_.
+* Contributors: Hidde Wieringa, Kei Okada, Maarten de Vries, Phil Osteen, Timo Röhling, Tom Moore, William Woodall, axelschroth
+
 1.12.4 (2016-10-27)
 -------------------
 * Restored "Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr``" (`#1064 <https://github.com/ros-visualization/rviz/issues/1064>`_)

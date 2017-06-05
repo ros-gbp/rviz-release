@@ -32,6 +32,8 @@
 // This is required for QT_MAC_USE_COCOA to be set
 #include <QtCore/qglobal.h>
 
+#include <QMoveEvent>
+
 #ifndef Q_OS_MAC
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -136,7 +138,7 @@ void RenderSystem::setupDummyWindowId()
 
   int screen = DefaultScreen( display );
 
-  int attribList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, 16, 
+  int attribList[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, 16,
                        GLX_STENCIL_SIZE, 8, None };
 
   XVisualInfo *visual = glXChooseVisual( display, screen, (int*)attribList );
@@ -220,7 +222,7 @@ void RenderSystem::setupRenderSystem()
 #else
   rsList = &(ogre_root_->getAvailableRenderers());
 #endif
-   
+
   // Look for the OpenGL one, which we require.
   renderSys = NULL;
   for( unsigned int i = 0; i < rsList->size(); i++ )
@@ -342,21 +344,19 @@ int checkBadDrawable( Display* display, XErrorEvent* error )
 }
 #endif // Q_WS_X11
 
-Ogre::RenderWindow* RenderSystem::makeRenderWindow( intptr_t window_id, unsigned int width, unsigned int height )
+Ogre::RenderWindow* RenderSystem::makeRenderWindow(
+  WindowIDType window_id,
+  unsigned int width,
+  unsigned int height,
+  double pixel_ratio)
 {
   static int windowCounter = 0; // Every RenderWindow needs a unique name, oy.
 
   Ogre::NameValuePairList params;
   Ogre::RenderWindow *window = NULL;
 
-  std::stringstream window_handle_stream;
-  window_handle_stream << window_id;
-
-#ifdef Q_OS_MAC
-  params["externalWindowHandle"] = window_handle_stream.str();
-#else
-  params["parentWindowHandle"] = window_handle_stream.str();
-#endif
+  params["externalWindowHandle"] = Ogre::StringConverter::toString(window_id);
+  params["parentWindowHandle"] = Ogre::StringConverter::toString(window_id);
 
   params["externalGLControl"] = true;
 
@@ -366,12 +366,11 @@ Ogre::RenderWindow* RenderSystem::makeRenderWindow( intptr_t window_id, unsigned
   }
 
 // Set the macAPI for Ogre based on the Qt implementation
-#ifdef QT_MAC_USE_COCOA
-  params["macAPI"] = "cocoa";
-  params["macAPICocoaUseNSView"] = "true";
-#else
-  params["macAPI"] = "carbon";
+#if defined(Q_OS_MAC)
+	params["macAPI"] = "cocoa";
+	params["macAPICocoaUseNSView"] = "true";
 #endif
+  params["contentScalingFactor"] = std::to_string(pixel_ratio);
 
   std::ostringstream stream;
   stream << "OgreWindow(" << windowCounter++ << ")";
