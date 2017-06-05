@@ -43,6 +43,7 @@
 #include <ros/console.h>
 
 #include <resource_retriever/retriever.h>
+
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
 

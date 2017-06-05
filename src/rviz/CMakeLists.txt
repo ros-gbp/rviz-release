@@ -4,10 +4,6 @@ if(NEW_YAMLCPP_FOUND)
   add_definitions(-DRVIZ_HAVE_YAMLCPP_05)
 endif(NEW_YAMLCPP_FOUND)
 
-if(UNIX AND NOT APPLE)
-  find_package(X11 REQUIRED)
-endif()
-
 add_subdirectory(default_plugin)
 
 include_directories(.)
@@ -23,7 +19,7 @@ configure_file(env_config.cpp.in ${ENV_CONFIG_FILE} @ONLY)
 
 # We create one lib with the C++...
 
-add_library(${PROJECT_NAME}
+add_library( ${PROJECT_NAME}
   bit_allocator.cpp
   config.cpp
   display.cpp
@@ -126,23 +122,22 @@ add_library(${PROJECT_NAME}
   yaml_config_writer.cpp
 
   ${ENV_CONFIG_FILE}
+  ${MOC_FILES}
 )
-
-if(NOT WIN32)
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++11")
-endif()
 
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
-  ${QT_LIBRARIES}
   ${OGRE_OV_LIBRARIES_ABS}
   ${OPENGL_LIBRARIES}
+  ${QT_LIBRARIES}
   ${rviz_ADDITIONAL_LIBRARIES}
-  ${X11_X11_LIB}
   assimp
   yaml-cpp
 )
+if (UseQt5)
+  target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
+endif()
 
 
 if(APPLE)
@@ -152,11 +147,10 @@ endif(APPLE)
 ########### The rviz executable ###########
 add_executable(executable main.cpp)
 
-if(NOT WIN32)
-  set_target_properties(executable PROPERTIES COMPILE_FLAGS "-std=c++11")
-endif()
-
 target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS})
+if (UseQt5)
+  target_link_libraries(executable Qt5::Widgets)
+endif()
 
 set_target_properties(executable
                       PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
