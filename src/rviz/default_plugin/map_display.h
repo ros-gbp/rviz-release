@@ -63,35 +63,12 @@ class QuaternionProperty;
 class RosTopicProperty;
 class VectorProperty;
 
-class MapDisplay;
-class AlphaSetter;
-
-class Swatch
-{
-friend class MapDisplay;
-  public:
-    Swatch(MapDisplay* parent, unsigned int x, unsigned int y, unsigned int width, unsigned int height, float resolution);
-    ~Swatch();
-    void updateAlpha(const Ogre::SceneBlendType sceneBlending, bool depthWrite, AlphaSetter* alpha_setter);
-    void updateData();
-
-  protected:
-    MapDisplay* parent_;
-    Ogre::ManualObject* manual_object_;
-    Ogre::TexturePtr texture_;
-    Ogre::MaterialPtr material_;
-    Ogre::SceneNode* scene_node_;
-    unsigned int x_,y_,width_,height_;
-};
-
-
 /**
  * \class MapDisplay
  * \brief Displays a map along the XY plane.
  */
 class MapDisplay: public Display
 {
-friend class Swatch;
 Q_OBJECT
 public:
   MapDisplay();
@@ -119,7 +96,6 @@ protected Q_SLOTS:
   void updatePalette();
   /** @brief Show current_map_ in the scene. */
   void showMap();
-  void transformMap();
 
 protected:
   // overrides from Display
@@ -130,19 +106,21 @@ protected:
   virtual void unsubscribe();
   virtual void update( float wall_dt, float ros_dt );
 
-  /** @brief Copy msg into current_map_ and call showMap(). */
+  /** @brief Copy msg into current_map_ and call showMap(). */ 
   void incomingMap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
-  /** @brief Copy update's data into current_map_ and call showMap(). */
+  /** @brief Copy update's data into current_map_ and call showMap(). */ 
   void incomingUpdate(const map_msgs::OccupancyGridUpdate::ConstPtr& update);
 
   void clear();
 
-  void createSwatches();
+  void transformMap();
 
-  std::vector<Swatch*> swatches;
+  Ogre::ManualObject* manual_object_;
+  Ogre::TexturePtr texture_;
   std::vector<Ogre::TexturePtr> palette_textures_;
   std::vector<bool> color_scheme_transparency_;
+  Ogre::MaterialPtr material_;
   bool loaded_;
 
   std::string topic_;
@@ -166,7 +144,6 @@ protected:
   EnumProperty* color_scheme_property_;
 
   BoolProperty* unreliable_property_;
-  BoolProperty* transform_timestamp_property_;
 };
 
 } // namespace rviz

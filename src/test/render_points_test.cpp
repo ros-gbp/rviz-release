@@ -34,9 +34,6 @@
 #include <QApplication>
 #include <QVBoxLayout>
 
-#include <OgreCamera.h>
-#include <OgreSceneNode.h>
-
 using namespace rviz;
 
 MyFrame::MyFrame( QWidget* parent )

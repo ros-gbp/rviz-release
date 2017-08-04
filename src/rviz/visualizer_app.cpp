@@ -274,7 +274,7 @@ bool VisualizerApp::init( int argc, char** argv )
       frame_->setHelpPath( QString::fromStdString( help_path ));
     }
     frame_->setShowChooseNewMaster( in_mc_wrapper );
-    if( vm.count("splash-screen") )
+    if( splash_path != "" )
     {
       frame_->setSplashPath( QString::fromStdString( splash_path ));
     }
