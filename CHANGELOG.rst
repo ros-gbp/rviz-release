@@ -2,51 +2,134 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.11.17 (2017-08-04)
+1.12.13 (2017-08-21)
 --------------------
-* Add dhood as maintainer (`#1133 <https://github.com/ros-visualization/rviz/issues/1133>`_)
-* Fixed rendering of markers as reported in #1120 (`#1132 <https://github.com/ros-visualization/rviz/issues/1132>`_)
+* Fixed an issue which caused mesh markers to appear white where previously they were not (`#1132 <https://github.com/ros-visualization/rviz/issues/1132>`_)
 * Contributors: William Woodall
 
-1.11.16 (2017-06-05)
+1.12.12 (2017-08-21)
 --------------------
-* indigo-devel backports from kinetic-devel (1.12.9) (`#1110 <https://github.com/ros-visualization/rviz/issues/1110>`_)
-  * Add fullscreen option (`#1017 <https://github.com/ros-visualization/rviz/issues/1017>`_)
-  * Added compatibility with newer urdfdom versions (`#1064 <https://github.com/ros-visualization/rviz/issues/1064>`_)
-  * Display is now updated if an empty pointcloud2 is published (`#1073 <https://github.com/ros-visualization/rviz/issues/1073>`_)
-  * The render panel is now scaled correctly on high resolution displays (`#1078 <https://github.com/ros-visualization/rviz/issues/1078>`_)
-  * Now supports multiple materials per link in robot display (urdf) (fixed) (`#1079 <https://github.com/ros-visualization/rviz/issues/1079>`_)
-  * Fixed duplicate property name for Path colors which prevent saving correctly to the config file (`#1089 <https://github.com/ros-visualization/rviz/issues/1089>`_)
-* Now supports multiple materials for one link in robot display (urdf) (`#1080 <https://github.com/ros-visualization/rviz/issues/1080>`_)
-* Fixed visualization of collada textures in markers (`#1084 <https://github.com/ros-visualization/rviz/issues/1084>`_)
-* Contributors: Kei Okada, Marieke Copejans, William Woodall
+* Added check for odometry quaternion normalization before displaying (`#1139 <https://github.com/ros-visualization/rviz/issues/1139>`_)
+* Improve point cloud rendering performance (`#1122 <https://github.com/ros-visualization/rviz/issues/1122>`_)
+* Replaced Arial font with Liberation Sans (`#1141 <https://github.com/ros-visualization/rviz/issues/1141>`_)
+* Contributors: Simon Harst, Thomas, William Woodall
 
-1.11.15 (2016-10-18)
+1.12.11 (2017-08-02)
 --------------------
-* Pose arrays can now be rendered as 3D arrows or pose markers (`#1016 <https://github.com/ros-visualization/rviz/issues/1016>`_)
-* Allow float edits to work with different Locales
-  * (`#1043 <https://github.com/ros-visualization/rviz/issues/1043>`_)
-  * (`#1058 <https://github.com/ros-visualization/rviz/issues/1058>`_)
-* Fix double free in display dialog.
-  * (`#1053 <https://github.com/ros-visualization/rviz/issues/1053>`_)
-  * (`#1057 <https://github.com/ros-visualization/rviz/issues/1057>`_)
-* Now check for a valid root link before walking the robot model (`#1039 <https://github.com/ros-visualization/rviz/issues/1039>`_)
-* Fixed two valgrind-reported issues (`#1001 <https://github.com/ros-visualization/rviz/issues/1001>`_)
+* Added dhood as maintainer (`#1131 <https://github.com/ros-visualization/rviz/issues/1131>`_)
+* Fixed finding and linking of tinyxml (`#1130 <https://github.com/ros-visualization/rviz/issues/1130>`_)
+* Changed to only update window title if necessary (`#1124 <https://github.com/ros-visualization/rviz/issues/1124>`_)
+* Added option to invert Z axis for orbit-based view controllers (`#1128 <https://github.com/ros-visualization/rviz/issues/1128>`_)
+* Fixed visualization of collada markers with texture (`#1084 <https://github.com/ros-visualization/rviz/issues/1084>`_) (`#1129 <https://github.com/ros-visualization/rviz/issues/1129>`_)
+* Fixed bug where Ogre::ItemIdentityException occurred while loading mesh (`#1105 <https://github.com/ros-visualization/rviz/issues/1105>`_)
+* Fixed bug caused by combination of Qt and Boost (`#1114 <https://github.com/ros-visualization/rviz/issues/1114>`_)
+* Fixed bug with map_display where it ignored resolution changes in OccupancyGrid maps (`#1115 <https://github.com/ros-visualization/rviz/issues/1115>`_)
+* Fixed bug where keyboard shortcuts sometimes didn't work (`#1117 <https://github.com/ros-visualization/rviz/issues/1117>`_)
+* Contributors: 1r0b1n0, Adam Allevato, Adrian Böckenkamp, Kartik Mohta, Michael Görner, Mikael Arguedas, William Woodall, dhood, gerkey
+
+1.12.10 (2017-06-05)
+--------------------
+* Fix debian jessie compiler error (`#1111 <https://github.com/ros-visualization/rviz/issues/1111>`_)
+* Contributors: William Woodall
+
+1.12.9 (2017-06-05)
+-------------------
+* Fix variable name (`#1104 <https://github.com/ros-visualization/rviz/issues/1104>`_)
+  Somehow, variable names got out of sync. Lines 370 and 371 refer to "parameters" but it is "params" everywhere else.
+* Contributors: genemerewether
+
+1.12.8 (2017-05-07)
+-------------------
+* Fixed bug where generated material names were not unique (`#1102 <https://github.com/ros-visualization/rviz/issues/1102>`_)
+  * This was a regression of `#1079 <https://github.com/ros-visualization/rviz/issues/1079>`_
+* Contributors: Maarten de Vries
+
+1.12.7 (2017-05-05)
+-------------------
+* Fix render system regression (`#1101 <https://github.com/ros-visualization/rviz/issues/1101>`_)
+  * Also updated the render system code to follow latest recommendations for integrating Qt5 and Ogre3D, see: http://www.ogre3d.org/tikiwiki/tiki-index.php?page=Integrating+Ogre+into+QT5
+  * Restored conditional code for Qt5 versus Qt4, which fixed `#1100 <https://github.com/ros-visualization/rviz/issues/1100>`_
+* Imported several updates to the covariance related displays (`#1099 <https://github.com/ros-visualization/rviz/issues/1099>`_)
+  * Added offset to covariance properties
+  * Refactored CovarianceVisual
+  * Fixed tolerance test at angular discontinuity
+  * Renamed PoseWithCovarianceDisplay::Shape enums
+* Contributors: Ellon Paiva Mendes, William Woodall
+
+1.12.6 (2017-05-02)
+-------------------
+* Added and updated displays to visualize covariance matrices (`#1096 <https://github.com/ros-visualization/rviz/issues/1096>`_)
+  * Added display for PoseWithCovariance.
+  * Update OdometryDisplay to optionally show covariances.
+* Fixed regression in previous release which was a type error that happened with newer versions of urdf (`#1098 <https://github.com/ros-visualization/rviz/issues/1098>`_)
+* Contributors: William Woodall
+
+1.12.5 (2017-05-01)
+-------------------
+* Renamed duplicated pass_depth.vert in nogp program to avoid Ogre 1.10 runtime error (`#1063 <https://github.com/ros-visualization/rviz/issues/1063>`_)
+* Fixed some handling of Window ID's for OS X and ogre 1.9 (`#1093 <https://github.com/ros-visualization/rviz/issues/1093>`_)
+* Added support for maps larger than video memory using swatches (`#1095 <https://github.com/ros-visualization/rviz/issues/1095>`_)
+* Added fullscreen option (f11) (`#1017 <https://github.com/ros-visualization/rviz/issues/1017>`_)
+* Added an option to transform map based on header timestamp (`#1066 <https://github.com/ros-visualization/rviz/issues/1066>`_)
+* Now updates the display if empty a pointcloud2 message is recieved (`#1073 <https://github.com/ros-visualization/rviz/issues/1073>`_)
+  Previously the old point cloud would continue to be rendered.
+* Now correctly scales the render panel on high resolution displays (`#1078 <https://github.com/ros-visualization/rviz/issues/1078>`_)
+* Added support for multiple materials in a single link of a robot model (`#1079 <https://github.com/ros-visualization/rviz/issues/1079>`_)
+* Now includes missing headers necessary for ogre 1.10 (`#1092 <https://github.com/ros-visualization/rviz/issues/1092>`_)
+* Fixed duplicate property name for Path colors which caused it to not be restored from saved configs (`#1089 <https://github.com/ros-visualization/rviz/issues/1089>`_)
+  See issue `#1087 <https://github.com/ros-visualization/rviz/issues/1087>`_.
+* Contributors: Hidde Wieringa, Kei Okada, Maarten de Vries, Phil Osteen, Timo Röhling, Tom Moore, William Woodall, axelschroth
+
+1.12.4 (2016-10-27)
+-------------------
+* Restored "Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr``" (`#1064 <https://github.com/ros-visualization/rviz/issues/1064>`_)
+  Now supports ``urdfdom`` 0.3 and 0.4 through a compatibility header in ``urdf``.
+* You can now visualize joint axis and display type and limits (`#1029 <https://github.com/ros-visualization/rviz/issues/1029>`_)
+* Contributors: Lucas Walter, Robert Haschke, William Woodall
+
+1.12.3 (2016-10-19)
+-------------------
+* Revert "Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr``" (`#1060 <https://github.com/ros-visualization/rviz/issues/1060>`_)
+* Contributors: William Woodall
+
+1.12.2 (2016-10-18)
+-------------------
+* Paths can now be rendered as 3D arrows or pose markers (`#1059 <https://github.com/ros-visualization/rviz/issues/1059>`_)
+* Allow float edits to work with different Locales (`#1043 <https://github.com/ros-visualization/rviz/issues/1043>`_)
+* Now check for a valid root link before walking the robot model (`#1041 <https://github.com/ros-visualization/rviz/issues/1041>`_)
+* Added close() signal to Tool class (`#1051 <https://github.com/ros-visualization/rviz/issues/1051>`_)
+* Fix double free in display dialog (`#1053 <https://github.com/ros-visualization/rviz/issues/1053>`_)
+* Tweak focal shape size marker depending on focal distance (`#1021 <https://github.com/ros-visualization/rviz/issues/1021>`_)
+* Support 3D arrows and axes for visualizing PoseArrays (`#1022 <https://github.com/ros-visualization/rviz/issues/1022>`_)
+* Use ``urdf::*ShredPtr`` instead of ``boost::shared_ptr`` (`#1044 <https://github.com/ros-visualization/rviz/issues/1044>`_)
+* Fixed two valgrind-reported issues (`#1027 <https://github.com/ros-visualization/rviz/issues/1027>`_)
   * in ~RenderPanel()
   * in VisualizationManager(): initialization order
-* Updated the marker display and tf plugins to save the enabled namespaces and frames when changed.
-  * Also updated the plugins so that is saved whenever the plugin is reset.
-  * This also allows the currently selected namespaces/frames to remain selected after the "Reset" button is pressed.
-  * (`#988 <https://github.com/ros-visualization/rviz/issues/988>`_)
-  * (`#989 <https://github.com/ros-visualization/rviz/issues/989>`_)
-* Generalized the WrenchVisual class (`#982 <https://github.com/ros-visualization/rviz/issues/982>`_)
-  * generalized WrenchStampedVisual::setMessage()
-  * alternative API: WrenchStampedVisual::setWrench(OgreVector3 force, OgreVector3 torque)
-  * expose SceneNode::setVisible()
-  * separate scene nodes for force and torque marker
-  * retain API compatibility
-  * retain ABI compatibility
-* Contributors: Maarten de Vries, Michael Görner, Robert Haschke, Ron Tajima, William Woodall
+* Added option to disable the RViz splash-screen (`#1024 <https://github.com/ros-visualization/rviz/issues/1024>`_)
+* Fix compile error due to the user-defined string literals feature (`#1010 <https://github.com/ros-visualization/rviz/issues/1010>`_)
+* Fixed some Qt5 related build issues (`#1008 <https://github.com/ros-visualization/rviz/issues/1008>`_)
+* Removed dependency on OpenCV (`#1009 <https://github.com/ros-visualization/rviz/issues/1009>`_)
+* Contributors: 1r0b1n0, Atsushi Watanabe, Blake Anderson, Jochen Sprickerhof, Kartik Mohta, Maarten de Vries, Michael Görner, Robert Haschke, Victor Lamoine, Víctor Mayoral Vilches, William Woodall
+
+1.12.1 (2016-04-20)
+-------------------
+* Updated the ``plugin_description.xml`` to reflect the new default plugin library name, see: `#1004 <https://github.com/ros-visualization/rviz/issues/1004>`_
+* Contributors: William Woodall
+
+1.12.0 (2016-04-11)
+-------------------
+* Qt5 is now the default build option, but Qt4 support is still available (for C++ only).
+* Fixed support for PyQt5, but disabled PySide2 until we get it working.
+* The default plugin's library was changed to ``rviz_default_plugin``.
+* Changed to use CMake's ``file(GENERATE ...)`` macro when exporting the default plugin's library name.
+* Changed costmap lethal color to be different from illegal values.
+* Cleaned-up and generalized the WrenchVisual display:
+  * renamed ``WrenchStampedVisual`` to ``WrenchVisual``
+  * cleanup: removed deprecated API
+* Updated the marker display and tf plugins to update the map of enabled namespaces and frames whenever those frames are enabled/disabled using the check boxes.
+  Also updated the plugins so that the map of enabled namespaces and frames does not get erased whenever the plugin is reset. (`#988 <https://github.com/ros-visualization/rviz/issues/988>`_)
+  This allows the currently selected namespaces/frames to remain selected after the Reset button is pressed.
+* Contributors: Brett, Robert Haschke, William Woodall
 
 1.11.14 (2016-04-03)
 --------------------
