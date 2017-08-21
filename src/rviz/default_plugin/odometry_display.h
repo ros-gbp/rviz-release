@@ -41,86 +41,71 @@
 #include <tf/message_filter.h>
 #endif
 
-#include "rviz/message_filter_display.h"
 #include <nav_msgs/Odometry.h>
+
+#include "rviz/display.h"
 
 namespace rviz
 {
+
 class Arrow;
-class Axes;
 class ColorProperty;
 class FloatProperty;
 class IntProperty;
-class EnumProperty;
-
-class CovarianceProperty;
+class RosTopicProperty;
 
 /**
  * \class OdometryDisplay
  * \brief Accumulates and displays the pose from a nav_msgs::Odometry message
  */
-class OdometryDisplay: public rviz::MessageFilterDisplay<nav_msgs::Odometry>
+class OdometryDisplay: public Display
 {
 Q_OBJECT
 public:
-  enum Shape
-  {
-    ArrowShape,
-    AxesShape,
-  };
-
   OdometryDisplay();
   virtual ~OdometryDisplay();
 
-  // Overides of MessageFilterDisplay
+  // Overrides from Display
   virtual void onInitialize();
-  virtual void reset();
-  // Overides of Display
+  virtual void fixedFrameChanged();
   virtual void update( float wall_dt, float ros_dt );
+  virtual void reset();
+
+  virtual void setTopic( const QString &topic, const QString &datatype );
 
 protected:
-  /** @brief Overridden from MessageFilterDisplay to get Arrow/Axes visibility correct. */
+  // overrides from Display
   virtual void onEnable();
+  virtual void onDisable();
 
 private Q_SLOTS:
-  void updateShapeChoice();
-  void updateShapeVisibility();
-  void updateColorAndAlpha();
-  void updateArrowsGeometry();
-  void updateAxisGeometry();
+  void updateColor();
+  void updateTopic();
+  void updateLength();
 
 private:
-  void updateGeometry( rviz::Arrow* arrow );
-  void updateGeometry( rviz::Axes* axes );
+  void subscribe();
+  void unsubscribe();
   void clear();
 
-  virtual void processMessage( const nav_msgs::Odometry::ConstPtr& message );
+  void incomingMessage( const nav_msgs::Odometry::ConstPtr& message );
+  void transformArrow( const nav_msgs::Odometry::ConstPtr& message, Arrow* arrow );
 
-  typedef std::deque<rviz::Arrow*> D_Arrow;
-  typedef std::deque<rviz::Axes*> D_Axes;
-
+  typedef std::deque<Arrow*> D_Arrow;
   D_Arrow arrows_;
-  D_Axes axes_;
+
+  uint32_t messages_received_;
 
   nav_msgs::Odometry::ConstPtr last_used_message_;
+  message_filters::Subscriber<nav_msgs::Odometry> sub_;
+  tf::MessageFilter<nav_msgs::Odometry>* tf_filter_;
 
-  rviz::EnumProperty* shape_property_;
-
-  rviz::ColorProperty* color_property_;
-  rviz::FloatProperty* alpha_property_;
-  rviz::FloatProperty* position_tolerance_property_;
-  rviz::FloatProperty* angle_tolerance_property_;
-  rviz::IntProperty* keep_property_;
-
-  rviz::FloatProperty* head_radius_property_;
-  rviz::FloatProperty* head_length_property_;
-  rviz::FloatProperty* shaft_radius_property_;
-  rviz::FloatProperty* shaft_length_property_;
-
-  rviz::FloatProperty* axes_length_property_;
-  rviz::FloatProperty* axes_radius_property_;
-
-  CovarianceProperty* covariance_property_;
+  ColorProperty* color_property_;
+  RosTopicProperty* topic_property_;
+  FloatProperty* position_tolerance_property_;
+  FloatProperty* angle_tolerance_property_;
+  IntProperty* keep_property_;
+  FloatProperty* length_property_;
 };
 
 } // namespace rviz
