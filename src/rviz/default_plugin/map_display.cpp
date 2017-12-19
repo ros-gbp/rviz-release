@@ -52,6 +52,7 @@
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/properties/vector_property.h"
 #include "rviz/validate_floats.h"
+#include "rviz/validate_quaternions.h"
 #include "rviz/display_context.h"
 
 #include "map_display.h"
@@ -59,9 +60,162 @@
 namespace rviz
 {
 
+// helper class to set alpha parameter on all renderables.
+class AlphaSetter: public Ogre::Renderable::Visitor
+{
+public:
+  AlphaSetter( float alpha )
+  : alpha_vec_( alpha, alpha, alpha, alpha )
+  {}
+
+  void visit( Ogre::Renderable *rend, ushort lodIndex, bool isDebug, Ogre::Any *pAny=0)
+  {
+    rend->setCustomParameter( ALPHA_PARAMETER, alpha_vec_ );
+  }
+private:
+  Ogre::Vector4 alpha_vec_;
+};
+
+
+Swatch::Swatch(MapDisplay* parent, unsigned int x, unsigned int y, unsigned int width, unsigned int height, float resolution)
+  : parent_(parent), manual_object_( NULL ), x_(x), y_(y), width_(width), height_(height)
+{
+  // Set up map material
+  static int material_count = 0;
+  std::stringstream ss;
+  ss << "MapMaterial" << material_count++;
+  material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/Indexed8BitImage");
+  material_ = material_->clone( ss.str() );
+
+  material_->setReceiveShadows(false);
+  material_->getTechnique(0)->setLightingEnabled(false);
+  material_->setDepthBias( -16.0f, 0.0f );
+  material_->setCullingMode( Ogre::CULL_NONE );
+  material_->setDepthWriteEnabled(false);
+
+  static int map_count = 0;
+  std::stringstream ss2;
+  ss2 << "MapObject" << map_count++;
+  manual_object_ = parent_->scene_manager_->createManualObject( ss2.str() );
+
+  static int node_count = 0;
+  std::stringstream ss3;
+  ss3 << "NodeObject" << node_count++;
+
+  scene_node_ = parent_->scene_node_->createChildSceneNode(ss3.str());
+  scene_node_->attachObject( manual_object_ );
+
+  manual_object_->begin(material_->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
+  {
+    // First triangle
+    {
+      // Bottom left
+      manual_object_->position( 0.0f, 0.0f, 0.0f );
+      manual_object_->textureCoord(0.0f, 0.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+
+      // Top right
+      manual_object_->position( 1.0f, 1.0f, 0.0f );
+      manual_object_->textureCoord(1.0f, 1.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+
+      // Top left
+      manual_object_->position( 0.0f, 1.0f, 0.0f );
+      manual_object_->textureCoord(0.0f, 1.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+    }
+
+    // Second triangle
+    {
+      // Bottom left
+      manual_object_->position( 0.0f, 0.0f, 0.0f );
+      manual_object_->textureCoord(0.0f, 0.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+
+      // Bottom right
+      manual_object_->position( 1.0f, 0.0f, 0.0f );
+      manual_object_->textureCoord(1.0f, 0.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+
+      // Top right
+      manual_object_->position( 1.0f, 1.0f, 0.0f );
+      manual_object_->textureCoord(1.0f, 1.0f);
+      manual_object_->normal( 0.0f, 0.0f, 1.0f );
+    }
+  }
+  manual_object_->end();
+
+  scene_node_->setPosition( x*resolution, y*resolution, 0 );
+  scene_node_->setScale( width*resolution, height*resolution, 1.0 );
+
+  if( parent_->draw_under_property_->getValue().toBool() )
+  {
+    manual_object_->setRenderQueueGroup(Ogre::RENDER_QUEUE_4);
+  }
+
+  // don't show map until the plugin is actually enabled
+  manual_object_->setVisible( false );
+
+
+}
+
+Swatch::~Swatch()
+{
+  parent_->scene_manager_->destroyManualObject(manual_object_);
+}
+
+void Swatch::updateAlpha(const Ogre::SceneBlendType sceneBlending, bool depthWrite, AlphaSetter* alpha_setter)
+{
+  Ogre::Pass* pass = material_->getTechnique( 0 )->getPass( 0 );
+  Ogre::TextureUnitState* tex_unit = NULL;
+
+  material_->setSceneBlending( sceneBlending );
+  material_->setDepthWriteEnabled( depthWrite );
+  if( manual_object_ )
+  {
+    manual_object_->visitRenderables( alpha_setter );
+  }
+}
+
+void Swatch::updateData()
+{
+  unsigned int pixels_size = width_ * height_;
+  unsigned char* pixels = new unsigned char[pixels_size];
+  memset(pixels, 255, pixels_size);
+  unsigned char* ptr = pixels;
+  int N = parent_->current_map_.data.size();
+  unsigned int fw = parent_->current_map_.info.width;
+
+  for(unsigned int yy=y_; yy<y_+height_;yy++){
+    int index = yy * fw + x_;
+    int pixels_to_copy = std::min((int)width_, N-index);
+    memcpy(ptr, &parent_->current_map_.data[ index ], pixels_to_copy);
+    ptr+=pixels_to_copy;
+    if(index+pixels_to_copy>=N) break;
+  }
+
+  Ogre::DataStreamPtr pixel_stream;
+  pixel_stream.bind( new Ogre::MemoryDataStream( pixels, pixels_size ));
+
+  if( !texture_.isNull() )
+  {
+    Ogre::TextureManager::getSingleton().remove( texture_->getName() );
+    texture_.setNull();
+  }
+
+  static int tex_count = 0;
+  std::stringstream ss;
+  ss << "MapTexture" << tex_count++;
+  texture_ = Ogre::TextureManager::getSingleton().loadRawData( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+                                                                 pixel_stream, width_, height_, Ogre::PF_L8, Ogre::TEX_TYPE_2D,
+                                                                 0);
+
+  delete pixels;
+}
+
+
 MapDisplay::MapDisplay()
   : Display()
-  , manual_object_( NULL )
   , loaded_( false )
   , resolution_( 0.0f )
   , width_( 0 )
@@ -98,7 +252,7 @@ MapDisplay::MapDisplay()
   width_property_ = new IntProperty( "Width", 0,
                                      "Width of the map, in meters. (not editable)", this );
   width_property_->setReadOnly( true );
-  
+
   height_property_ = new IntProperty( "Height", 0,
                                       "Height of the map, in meters. (not editable)", this );
   height_property_->setReadOnly( true );
@@ -117,12 +271,21 @@ MapDisplay::MapDisplay()
                                            "Prefer UDP topic transport",
                                            this,
                                            SLOT( updateTopic() ));
+
+  transform_timestamp_property_ = new BoolProperty( "Use Timestamp", false,
+                                                    "Use map header timestamp when transforming",
+                                                    this,
+                                                    SLOT( transformMap() ));
 }
 
 MapDisplay::~MapDisplay()
 {
   unsubscribe();
   clear();
+  for (unsigned i=0; i < swatches.size(); i++){
+      delete swatches[i];
+  }
+  swatches.clear();
 }
 
 unsigned char* makeMapPalette()
@@ -188,10 +351,10 @@ unsigned char* makeCostmapPalette()
   *palette_ptr++ = 255; // green
   *palette_ptr++ = 255; // blue
   *palette_ptr++ = 255; // alpha
-  // lethal obstacle values (100) in yellow
+  // lethal obstacle values (100) in purple
   *palette_ptr++ = 255; // red
-  *palette_ptr++ = 255; // green
-  *palette_ptr++ = 0; // blue
+  *palette_ptr++ = 0; // green
+  *palette_ptr++ = 255; // blue
   *palette_ptr++ = 255; // alpha
   // illegal positive values in green
   for( int i = 101; i <= 127; i++ )
@@ -255,75 +418,6 @@ void MapDisplay::onInitialize()
   color_scheme_transparency_.push_back( true );
   palette_textures_.push_back( makePaletteTexture( makeRawPalette() ));
   color_scheme_transparency_.push_back( true );
-
-  // Set up map material
-  static int material_count = 0;
-  std::stringstream ss;
-  ss << "MapMaterial" << material_count++;
-  material_ = Ogre::MaterialManager::getSingleton().getByName("rviz/Indexed8BitImage");
-  material_ = material_->clone( ss.str() );
-
-  material_->setReceiveShadows(false);
-  material_->getTechnique(0)->setLightingEnabled(false);
-  material_->setDepthBias( -16.0f, 0.0f );
-  material_->setCullingMode( Ogre::CULL_NONE );
-  material_->setDepthWriteEnabled(false);
-
-  static int map_count = 0;
-  std::stringstream ss2;
-  ss2 << "MapObject" << map_count++;
-  manual_object_ = scene_manager_->createManualObject( ss2.str() );
-  scene_node_->attachObject( manual_object_ );
-
-  manual_object_->begin(material_->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
-  {
-    // First triangle
-    {
-      // Bottom left
-      manual_object_->position( 0.0f, 0.0f, 0.0f );
-      manual_object_->textureCoord(0.0f, 0.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-
-      // Top right
-      manual_object_->position( 1.0f, 1.0f, 0.0f );
-      manual_object_->textureCoord(1.0f, 1.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-
-      // Top left
-      manual_object_->position( 0.0f, 1.0f, 0.0f );
-      manual_object_->textureCoord(0.0f, 1.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-    }
-
-    // Second triangle
-    {
-      // Bottom left
-      manual_object_->position( 0.0f, 0.0f, 0.0f );
-      manual_object_->textureCoord(0.0f, 0.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-
-      // Bottom right
-      manual_object_->position( 1.0f, 0.0f, 0.0f );
-      manual_object_->textureCoord(1.0f, 0.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-
-      // Top right
-      manual_object_->position( 1.0f, 1.0f, 0.0f );
-      manual_object_->textureCoord(1.0f, 1.0f);
-      manual_object_->normal( 0.0f, 0.0f, 1.0f );
-    }
-  }
-  manual_object_->end();
-
-  if( draw_under_property_->getValue().toBool() )
-  {
-    manual_object_->setRenderQueueGroup(Ogre::RENDER_QUEUE_4);
-  }
-
-  // don't show map until the plugin is actually enabled
-  manual_object_->setVisible( false );
-
-  updateAlpha();
 }
 
 void MapDisplay::onEnable()
@@ -379,44 +473,27 @@ void MapDisplay::unsubscribe()
   update_sub_.shutdown();
 }
 
-// helper class to set alpha parameter on all renderables.
-class AlphaSetter: public Ogre::Renderable::Visitor
-{
-public:
-  AlphaSetter( float alpha )
-  : alpha_vec_( alpha, alpha, alpha, alpha )
-  {}
-
-  void visit( Ogre::Renderable *rend, ushort lodIndex, bool isDebug, Ogre::Any *pAny=0)
-  {
-    rend->setCustomParameter( ALPHA_PARAMETER, alpha_vec_ );
-  }
-private:
-  Ogre::Vector4 alpha_vec_;
-};
-
 void MapDisplay::updateAlpha()
 {
   float alpha = alpha_property_->getFloat();
-
-  Ogre::Pass* pass = material_->getTechnique( 0 )->getPass( 0 );
-  Ogre::TextureUnitState* tex_unit = NULL;
+  Ogre::SceneBlendType sceneBlending;
+  bool depthWrite;
 
   if( alpha < 0.9998 || color_scheme_transparency_[ color_scheme_property_->getOptionInt() ])
   {
-    material_->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-    material_->setDepthWriteEnabled( false );
+    sceneBlending = Ogre::SBT_TRANSPARENT_ALPHA;
+    depthWrite = false;
   }
   else
   {
-    material_->setSceneBlending( Ogre::SBT_REPLACE );
-    material_->setDepthWriteEnabled( !draw_under_property_->getValue().toBool() );
+    sceneBlending = Ogre::SBT_REPLACE;
+    depthWrite = !draw_under_property_->getValue().toBool();
   }
 
   AlphaSetter alpha_setter( alpha );
-  if( manual_object_ )
-  {
-    manual_object_->visitRenderables( &alpha_setter );
+
+  for (unsigned i=0; i < swatches.size(); i++) {
+    swatches[i]->updateAlpha(sceneBlending, depthWrite, &alpha_setter);
   }
 }
 
@@ -426,19 +503,14 @@ void MapDisplay::updateDrawUnder()
 
   if( alpha_property_->getFloat() >= 0.9998 )
   {
-    material_->setDepthWriteEnabled( !draw_under );
+    for (unsigned i=0; i < swatches.size(); i++)
+      swatches[i]->material_->setDepthWriteEnabled( !draw_under );
   }
 
-  if( manual_object_ )
-  {
-    if( draw_under )
-    {
-      manual_object_->setRenderQueueGroup( Ogre::RENDER_QUEUE_4 );
-    }
-    else
-    {
-      manual_object_->setRenderQueueGroup( Ogre::RENDER_QUEUE_MAIN );
-    }
+  int group = draw_under ? Ogre::RENDER_QUEUE_4 : Ogre::RENDER_QUEUE_MAIN;
+  for (unsigned i=0; i < swatches.size(); i++){
+    if( swatches[i]->manual_object_ )
+      swatches[i]->manual_object_->setRenderQueueGroup( group );
   }
 }
 
@@ -458,15 +530,15 @@ void MapDisplay::clear()
     return;
   }
 
-  if( manual_object_ )
-  {
-    manual_object_->setVisible( false );
-  }
+  for (unsigned i=0; i < swatches.size(); i++){
+    if( swatches[i]->manual_object_ )
+      swatches[i]->manual_object_->setVisible( false );
 
-  if( !texture_.isNull() )
-  {
-    Ogre::TextureManager::getSingleton().remove( texture_->getName() );
-    texture_.setNull();
+    if( !swatches[i]->texture_.isNull() )
+    {
+      Ogre::TextureManager::getSingleton().remove( swatches[i]->texture_->getName() );
+      swatches[i]->texture_.setNull();
+    }
   }
 
   loaded_ = false;
@@ -518,6 +590,59 @@ void MapDisplay::incomingUpdate(const map_msgs::OccupancyGridUpdate::ConstPtr& u
   Q_EMIT mapUpdated();
 }
 
+void MapDisplay::createSwatches()
+{
+  int width = current_map_.info.width;
+  int height = current_map_.info.height;
+  float resolution = current_map_.info.resolution;
+
+  int sw = width;
+  int sh = height;
+  int n_swatches = 1;
+
+  for(int i=0;i<4;i++){
+    ROS_INFO("Creating %d swatches", n_swatches);
+    for (unsigned i=0; i < swatches.size(); i++){
+        delete swatches[i];
+    }
+    swatches.clear();
+    try
+    {
+      int x = 0;
+      int y = 0;
+      for(int i=0;i<n_swatches;i++){
+        int tw, th;
+        if(width - x - sw >= sw)
+          tw = sw;
+        else
+          tw = width - x;
+
+        if(height - y - sh >= sh)
+          th = sh;
+        else
+          th = height - y;
+
+        swatches.push_back(new Swatch(this, x, y, tw, th, resolution));
+        swatches[i]->updateData();
+
+        x += tw;
+        if(x>=width){
+            x = 0;
+            y += sh;
+        }
+      }
+      updateAlpha();
+      return;
+    }catch(Ogre::RenderingAPIException&)
+    {
+        ROS_WARN("Failed to create %d swatches", n_swatches);
+        if(sw>sh) sw/=2;
+        else      sh/=2;
+        n_swatches *= 2;
+    }
+  }
+}
+
 void MapDisplay::showMap()
 {
   if (current_map_.data.empty())
@@ -528,6 +653,12 @@ void MapDisplay::showMap()
   if( !validateFloats( current_map_ ))
   {
     setStatus( StatusProperty::Error, "Map", "Message contained invalid floating point values (nans or infs)" );
+    return;
+  }
+
+  if( !validateQuaternions( current_map_.info.origin ))
+  {
+    setStatus( StatusProperty::Error, "Map", "Message contained invalid quaternions (length not equal to 1)!" );
     return;
   }
 
@@ -551,6 +682,12 @@ void MapDisplay::showMap()
   int width = current_map_.info.width;
   int height = current_map_.info.height;
 
+  if(width != width_ || height != height_ || resolution_ != resolution){
+    createSwatches();
+    width_ = width;
+    height_ = height;
+    resolution_ = resolution;
+  }
 
   Ogre::Vector3 position( current_map_.info.origin.position.x,
                           current_map_.info.origin.position.y,
@@ -565,101 +702,40 @@ void MapDisplay::showMap()
     frame_ = "/map";
   }
 
-  unsigned int pixels_size = width * height;
-  unsigned char* pixels = new unsigned char[pixels_size];
-  memset(pixels, 255, pixels_size);
-
   bool map_status_set = false;
-  unsigned int num_pixels_to_copy = pixels_size;
-  if( pixels_size != current_map_.data.size() )
+  if( width * height != current_map_.data.size() )
   {
     std::stringstream ss;
     ss << "Data size doesn't match width*height: width = " << width
        << ", height = " << height << ", data size = " << current_map_.data.size();
     setStatus( StatusProperty::Error, "Map", QString::fromStdString( ss.str() ));
     map_status_set = true;
-
-    // Keep going, but don't read past the end of the data.
-    if( current_map_.data.size() < pixels_size )
-    {
-      num_pixels_to_copy = current_map_.data.size();
-    }
   }
 
-  memcpy( pixels, &current_map_.data[0], num_pixels_to_copy );
+  for(int i=0;i<swatches.size();i++){
+    swatches[i]->updateData();
 
-  Ogre::DataStreamPtr pixel_stream;
-  pixel_stream.bind( new Ogre::MemoryDataStream( pixels, pixels_size ));
-
-  if( !texture_.isNull() )
-  {
-    Ogre::TextureManager::getSingleton().remove( texture_->getName() );
-    texture_.setNull();
-  }
-
-  static int tex_count = 0;
-  std::stringstream ss;
-  ss << "MapTexture" << tex_count++;
-  try
-  {
-    texture_ = Ogre::TextureManager::getSingleton().loadRawData( ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-                                                                 pixel_stream, width, height, Ogre::PF_L8, Ogre::TEX_TYPE_2D,
-                                                                 0);
-
-    if( !map_status_set )
+    Ogre::Pass* pass = swatches[i]->material_->getTechnique(0)->getPass(0);
+    Ogre::TextureUnitState* tex_unit = NULL;
+    if (pass->getNumTextureUnitStates() > 0)
     {
-      setStatus( StatusProperty::Ok, "Map", "Map OK" );
-    }
-  }
-  catch(Ogre::RenderingAPIException&)
-  {
-    Ogre::Image image;
-    pixel_stream->seek(0);
-    float fwidth = width;
-    float fheight = height;
-    if( width > height )
-    {
-      float aspect = fheight / fwidth;
-      fwidth = 2048;
-      fheight = fwidth * aspect;
+      tex_unit = pass->getTextureUnitState(0);
     }
     else
     {
-      float aspect = fwidth / fheight;
-      fheight = 2048;
-      fwidth = fheight * aspect;
+      tex_unit = pass->createTextureUnitState();
     }
 
-    {
-      std::stringstream ss;
-      ss << "Map is larger than your graphics card supports.  Downsampled from [" << width << "x" << height << "] to [" << fwidth << "x" << fheight << "]";
-      setStatus(StatusProperty::Warn, "Map", QString::fromStdString( ss.str() ));
-    }
-
-    ROS_WARN("Failed to create full-size map texture, likely because your graphics card does not support textures of size > 2048.  Downsampling to [%d x %d]...", (int)fwidth, (int)fheight);
-    //ROS_INFO("Stream size [%d], width [%f], height [%f], w * h [%f]", pixel_stream->size(), width, height, width * height);
-    image.loadRawData(pixel_stream, width, height, Ogre::PF_L8);
-    image.resize(fwidth, fheight, Ogre::Image::FILTER_NEAREST);
-    ss << "Downsampled";
-    texture_ = Ogre::TextureManager::getSingleton().loadImage(ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, image);
+    tex_unit->setTextureName(swatches[i]->texture_->getName());
+    tex_unit->setTextureFiltering( Ogre::TFO_NONE );
+    swatches[i]->manual_object_->setVisible( true );
   }
 
-  delete [] pixels;
 
-  Ogre::Pass* pass = material_->getTechnique(0)->getPass(0);
-  Ogre::TextureUnitState* tex_unit = NULL;
-  if (pass->getNumTextureUnitStates() > 0)
+  if( !map_status_set )
   {
-    tex_unit = pass->getTextureUnitState(0);
+    setStatus( StatusProperty::Ok, "Map", "Map OK" );
   }
-  else
-  {
-    tex_unit = pass->createTextureUnitState();
-  }
-
-  tex_unit->setTextureName(texture_->getName());
-  tex_unit->setTextureFiltering( Ogre::TFO_NONE );
-
   updatePalette();
 
   resolution_property_->setValue( resolution );
@@ -669,8 +745,6 @@ void MapDisplay::showMap()
   orientation_property_->setQuaternion( orientation );
 
   transformMap();
-  manual_object_->setVisible( true );
-  scene_node_->setScale( resolution * width, resolution * height, 1.0 );
 
   context_->queueRender();
 }
@@ -679,18 +753,20 @@ void MapDisplay::updatePalette()
 {
   int palette_index = color_scheme_property_->getOptionInt();
 
-  Ogre::Pass* pass = material_->getTechnique(0)->getPass(0);
-  Ogre::TextureUnitState* palette_tex_unit = NULL;
-  if( pass->getNumTextureUnitStates() > 1 )
-  {
-    palette_tex_unit = pass->getTextureUnitState( 1 );
+  for (unsigned i=0; i < swatches.size(); i++){
+    Ogre::Pass* pass = swatches[i]->material_->getTechnique(0)->getPass(0);
+    Ogre::TextureUnitState* palette_tex_unit = NULL;
+    if( pass->getNumTextureUnitStates() > 1 )
+    {
+      palette_tex_unit = pass->getTextureUnitState( 1 );
+    }
+    else
+    {
+      palette_tex_unit = pass->createTextureUnitState();
+    }
+    palette_tex_unit->setTextureName( palette_textures_[ palette_index ]->getName() );
+    palette_tex_unit->setTextureFiltering( Ogre::TFO_NONE );
   }
-  else
-  {
-    palette_tex_unit = pass->createTextureUnitState();
-  }
-  palette_tex_unit->setTextureName( palette_textures_[ palette_index ]->getName() );
-  palette_tex_unit->setTextureFiltering( Ogre::TFO_NONE );
 
   updateAlpha();
 }
@@ -702,9 +778,17 @@ void MapDisplay::transformMap()
     return;
   }
 
+  ros::Time transform_time;
+
+  if (transform_timestamp_property_->getBool())
+  {
+    transform_time = current_map_.header.stamp;
+  }
+
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
-  if (!context_->getFrameManager()->transform(frame_, ros::Time(), current_map_.info.origin, position, orientation))
+  if (!context_->getFrameManager()->transform(frame_, transform_time, current_map_.info.origin, position, orientation) &&
+      !context_->getFrameManager()->transform(frame_, ros::Time(0), current_map_.info.origin, position, orientation))
   {
     ROS_DEBUG( "Error transforming map '%s' from frame '%s' to frame '%s'",
                qPrintable( getName() ), frame_.c_str(), qPrintable( fixed_frame_ ));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2017, Ellon Paiva Mendes @ LAAS-CNRS
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include "rviz/properties/color_property.h"
 #include "rviz/properties/enum_property.h"
 #include "rviz/properties/float_property.h"
+#include "rviz/properties/bool_property.h"
 #include "rviz/properties/quaternion_property.h"
 #include "rviz/properties/string_property.h"
 #include "rviz/properties/vector_property.h"
@@ -45,15 +46,19 @@
 #include "rviz/validate_floats.h"
 #include "rviz/validate_quaternions.h"
 
-#include "rviz/default_plugin/pose_display.h"
+#include "pose_with_covariance_display.h"
+#include "covariance_visual.h"
+#include "covariance_property.h"
+
+#include <Eigen/Dense>
 
 namespace rviz
 {
 
-class PoseDisplaySelectionHandler: public SelectionHandler
+class PoseWithCovarianceDisplaySelectionHandler: public SelectionHandler
 {
 public:
-  PoseDisplaySelectionHandler( PoseDisplay* display, DisplayContext* context )
+  PoseWithCovarianceDisplaySelectionHandler( PoseWithCovarianceDisplay* display, DisplayContext* context )
     : SelectionHandler( context )
     , display_( display )
   {}
@@ -71,13 +76,19 @@ public:
 
     orientation_property_ = new QuaternionProperty( "Orientation", Ogre::Quaternion::IDENTITY, "", cat );
     orientation_property_->setReadOnly( true );
+
+    covariance_position_property_ = new VectorProperty( "Covariance Position", Ogre::Vector3::ZERO, "", cat );
+    covariance_position_property_->setReadOnly( true );
+
+    covariance_orientation_property_ = new VectorProperty( "Covariance Orientation", Ogre::Vector3::ZERO, "", cat );
+    covariance_orientation_property_->setReadOnly( true );
   }
 
   void getAABBs( const Picked& obj, V_AABB& aabbs )
   {
     if( display_->pose_valid_ )
     {
-      if( display_->shape_property_->getOptionInt() == PoseDisplay::Arrow )
+      if( display_->shape_property_->getOptionInt() == PoseWithCovarianceDisplay::Arrow )
       {
         aabbs.push_back( display_->arrow_->getHead()->getEntity()->getWorldBoundingBox() );
         aabbs.push_back( display_->arrow_->getShaft()->getEntity()->getWorldBoundingBox() );
@@ -88,10 +99,24 @@ public:
         aabbs.push_back( display_->axes_->getYShape()->getEntity()->getWorldBoundingBox() );
         aabbs.push_back( display_->axes_->getZShape()->getEntity()->getWorldBoundingBox() );
       }
+
+      if( display_->covariance_property_->getBool() )
+      {
+        if(display_->covariance_property_->getPositionBool())
+        {
+          aabbs.push_back( display_->covariance_->getPositionShape()->getEntity()->getWorldBoundingBox() );
+        }
+        if(display_->covariance_property_->getOrientationBool())
+        {
+          aabbs.push_back( display_->covariance_->getOrientationShape(CovarianceVisual::kRoll)->getEntity()->getWorldBoundingBox() );
+          aabbs.push_back( display_->covariance_->getOrientationShape(CovarianceVisual::kPitch)->getEntity()->getWorldBoundingBox() );
+          aabbs.push_back( display_->covariance_->getOrientationShape(CovarianceVisual::kYaw)->getEntity()->getWorldBoundingBox() );
+        }
+      }
     }
   }
 
-  void setMessage(const geometry_msgs::PoseStampedConstPtr& message)
+  void setMessage(const geometry_msgs::PoseWithCovarianceStampedConstPtr& message)
   {
     // properties_.size() should only be > 0 after createProperties()
     // and before destroyProperties(), during which frame_property_,
@@ -100,24 +125,34 @@ public:
     if( properties_.size() > 0 )
     {
       frame_property_->setStdString( message->header.frame_id );
-      position_property_->setVector( Ogre::Vector3( message->pose.position.x,
-                                                    message->pose.position.y,
-                                                    message->pose.position.z ));
-      orientation_property_->setQuaternion( Ogre::Quaternion( message->pose.orientation.w,
-                                                              message->pose.orientation.x,
-                                                              message->pose.orientation.y,
-                                                              message->pose.orientation.z ));
+      position_property_->setVector( Ogre::Vector3( message->pose.pose.position.x,
+                                                    message->pose.pose.position.y,
+                                                    message->pose.pose.position.z ));
+      orientation_property_->setQuaternion( Ogre::Quaternion( message->pose.pose.orientation.w,
+                                                              message->pose.pose.orientation.x,
+                                                              message->pose.pose.orientation.y,
+                                                              message->pose.pose.orientation.z ));
+      covariance_position_property_->setVector( Ogre::Vector3( message->pose.covariance[0+0*6],
+                                                               message->pose.covariance[1+1*6],
+                                                               message->pose.covariance[2+2*6] ));
+
+      covariance_orientation_property_->setVector( Ogre::Vector3( message->pose.covariance[3+3*6],
+                                                                  message->pose.covariance[4+4*6],
+                                                                  message->pose.covariance[5+5*6] ));
     }
   }
 
 private:
-  PoseDisplay* display_;
+  PoseWithCovarianceDisplay* display_;
   StringProperty* frame_property_;
   VectorProperty* position_property_;
   QuaternionProperty* orientation_property_;
+  VectorProperty* covariance_position_property_;
+  VectorProperty* covariance_orientation_property_;
+
 };
 
-PoseDisplay::PoseDisplay()
+PoseWithCovarianceDisplay::PoseWithCovarianceDisplay()
   : pose_valid_( false )
 {
   shape_property_ = new EnumProperty( "Shape", "Arrow", "Shape to display the pose as.",
@@ -139,7 +174,7 @@ PoseDisplay::PoseDisplay()
   // aleeper: default changed from 0.1 to match change in arrow.cpp
   shaft_radius_property_ = new FloatProperty( "Shaft Radius", 0.05, "Radius of the arrow's shaft, in meters.",
                                               this, SLOT( updateArrowGeometry() ));
-  
+
   head_length_property_ = new FloatProperty( "Head Length", 0.3, "Length of the arrow's head, in meters.",
                                              this, SLOT( updateArrowGeometry() ));
 
@@ -152,9 +187,12 @@ PoseDisplay::PoseDisplay()
 
   axes_radius_property_ = new FloatProperty( "Axes Radius", 0.1, "Radius of each axis, in meters.",
                                              this, SLOT( updateAxisGeometry() ));
+
+  covariance_property_ = new CovarianceProperty( "Covariance", true, "Whether or not the covariances of the messages should be shown.",
+                                             this, SLOT( queueRender() ));
 }
 
-void PoseDisplay::onInitialize()
+void PoseWithCovarianceDisplay::onInitialize()
 {
   MFDClass::onInitialize();
 
@@ -171,15 +209,19 @@ void PoseDisplay::onInitialize()
                           axes_length_property_->getFloat(),
                           axes_radius_property_->getFloat() );
 
+  covariance_ = covariance_property_->createAndPushBackVisual(scene_manager_, scene_node_ );
+
   updateShapeChoice();
   updateColorAndAlpha();
 
-  coll_handler_.reset( new PoseDisplaySelectionHandler( this, context_ ));
+  coll_handler_.reset( new PoseWithCovarianceDisplaySelectionHandler( this, context_ ));
   coll_handler_->addTrackedObjects( arrow_->getSceneNode() );
   coll_handler_->addTrackedObjects( axes_->getSceneNode() );
+  coll_handler_->addTrackedObjects( covariance_->getPositionSceneNode() );
+  coll_handler_->addTrackedObjects( covariance_->getOrientationSceneNode() );
 }
 
-PoseDisplay::~PoseDisplay()
+PoseWithCovarianceDisplay::~PoseWithCovarianceDisplay()
 {
   if ( initialized() )
   {
@@ -188,13 +230,13 @@ PoseDisplay::~PoseDisplay()
   }
 }
 
-void PoseDisplay::onEnable()
+void PoseWithCovarianceDisplay::onEnable()
 {
   MFDClass::onEnable();
   updateShapeVisibility();
 }
 
-void PoseDisplay::updateColorAndAlpha()
+void PoseWithCovarianceDisplay::updateColorAndAlpha()
 {
   Ogre::ColourValue color = color_property_->getOgreColor();
   color.a = alpha_property_->getFloat();
@@ -204,7 +246,7 @@ void PoseDisplay::updateColorAndAlpha()
   context_->queueRender();
 }
 
-void PoseDisplay::updateArrowGeometry()
+void PoseWithCovarianceDisplay::updateArrowGeometry()
 {
   arrow_->set( shaft_length_property_->getFloat(),
                shaft_radius_property_->getFloat(),
@@ -213,14 +255,14 @@ void PoseDisplay::updateArrowGeometry()
   context_->queueRender();
 }
 
-void PoseDisplay::updateAxisGeometry()
+void PoseWithCovarianceDisplay::updateAxisGeometry()
 {
   axes_->set( axes_length_property_->getFloat(),
               axes_radius_property_->getFloat() );
   context_->queueRender();
 }
 
-void PoseDisplay::updateShapeChoice()
+void PoseWithCovarianceDisplay::updateShapeChoice()
 {
   bool use_arrow = ( shape_property_->getOptionInt() == Arrow );
 
@@ -239,30 +281,32 @@ void PoseDisplay::updateShapeChoice()
   context_->queueRender();
 }
 
-void PoseDisplay::updateShapeVisibility()
+void PoseWithCovarianceDisplay::updateShapeVisibility()
 {
   if( !pose_valid_ )
   {
     arrow_->getSceneNode()->setVisible( false );
     axes_->getSceneNode()->setVisible( false );
+    covariance_->setVisible( false );
   }
   else
   {
     bool use_arrow = (shape_property_->getOptionInt() == Arrow);
     arrow_->getSceneNode()->setVisible( use_arrow );
     axes_->getSceneNode()->setVisible( !use_arrow );
+    covariance_property_->updateVisibility();
   }
 }
 
-void PoseDisplay::processMessage( const geometry_msgs::PoseStamped::ConstPtr& message )
+void PoseWithCovarianceDisplay::processMessage( const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& message )
 {
-  if( !validateFloats( *message ))
+  if( !validateFloats( message->pose.pose ) || !validateFloats( message->pose.covariance ))
   {
     setStatus( StatusProperty::Error, "Topic", "Message contained invalid floating point values (nans or infs)" );
     return;
   }
 
-  if( !validateQuaternions( *message ))
+  if( !validateQuaternions( message->pose.pose ))
   {
     setStatus( StatusProperty::Error, "Topic", "Message contained invalid quaternions (length not equal to 1)" );
     return;
@@ -270,7 +314,7 @@ void PoseDisplay::processMessage( const geometry_msgs::PoseStamped::ConstPtr& me
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
-  if( !context_->getFrameManager()->transform( message->header, message->pose, position, orientation ))
+  if( !context_->getFrameManager()->transform( message->header, message->pose.pose, position, orientation ))
   {
     ROS_ERROR( "Error transforming pose '%s' from frame '%s' to frame '%s'",
                qPrintable( getName() ), message->header.frame_id.c_str(), qPrintable( fixed_frame_ ));
@@ -280,15 +324,22 @@ void PoseDisplay::processMessage( const geometry_msgs::PoseStamped::ConstPtr& me
   pose_valid_ = true;
   updateShapeVisibility();
 
-  scene_node_->setPosition( position );
-  scene_node_->setOrientation( orientation );
+  axes_->setPosition( position );
+  axes_->setOrientation( orientation );
+
+  arrow_->setPosition( position );
+  arrow_->setOrientation( orientation * Ogre::Quaternion( Ogre::Degree( -90 ), Ogre::Vector3::UNIT_Y ) );
+
+  covariance_->setPosition( position );
+  covariance_->setOrientation( orientation );
+  covariance_->setCovariance( message->pose );
 
   coll_handler_->setMessage( message );
 
   context_->queueRender();
 }
 
-void PoseDisplay::reset()
+void PoseWithCovarianceDisplay::reset()
 {
   MFDClass::reset();
   pose_valid_ = false;
@@ -298,4 +349,4 @@ void PoseDisplay::reset()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS( rviz::PoseDisplay, rviz::Display )
+PLUGINLIB_EXPORT_CLASS( rviz::PoseWithCovarianceDisplay, rviz::Display )
