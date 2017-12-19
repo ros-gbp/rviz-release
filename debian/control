@@ -1,0 +1,12 @@
+Source: ros-lunar-rviz
+Section: misc
+Priority: extra
+Maintainer: D. Hood <dhood@osrfoundation.org>
+Build-Depends: debhelper (>= 9.0.0), libassimp-dev, libeigen3-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libqt5opengl5-dev, libtinyxml-dev, liburdfdom-headers-dev, libyaml-cpp-dev, qtbase5-dev, ros-lunar-catkin, ros-lunar-cmake-modules, ros-lunar-geometry-msgs, ros-lunar-image-transport, ros-lunar-interactive-markers, ros-lunar-laser-geometry, ros-lunar-map-msgs, ros-lunar-message-filters, ros-lunar-nav-msgs, ros-lunar-pluginlib, ros-lunar-python-qt-binding, ros-lunar-resource-retriever, ros-lunar-rosbag, ros-lunar-rosconsole, ros-lunar-roscpp, ros-lunar-roslib, ros-lunar-rospy, ros-lunar-sensor-msgs, ros-lunar-std-msgs, ros-lunar-std-srvs, ros-lunar-tf, ros-lunar-urdf, ros-lunar-visualization-msgs
+Homepage: http://ros.org/wiki/rviz
+Standards-Version: 3.9.2
+
+Package: ros-lunar-rviz
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libassimp-dev, libeigen3-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libqt5core5a, libqt5gui5, libqt5opengl5, libqt5widgets5, libtinyxml-dev, liburdfdom-headers-dev, libyaml-cpp-dev, ros-lunar-geometry-msgs, ros-lunar-image-transport, ros-lunar-interactive-markers, ros-lunar-laser-geometry, ros-lunar-map-msgs, ros-lunar-media-export, ros-lunar-message-filters, ros-lunar-nav-msgs, ros-lunar-pluginlib, ros-lunar-python-qt-binding, ros-lunar-resource-retriever, ros-lunar-rosbag, ros-lunar-rosconsole, ros-lunar-roscpp, ros-lunar-roslib, ros-lunar-rospy, ros-lunar-sensor-msgs, ros-lunar-std-msgs, ros-lunar-std-srvs, ros-lunar-tf, ros-lunar-urdf, ros-lunar-visualization-msgs
+Description: 3D visualization tool for ROS.
