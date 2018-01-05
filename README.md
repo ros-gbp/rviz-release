@@ -1,3 +1,26 @@
+## rviz (lunar) - 1.12.15-0
+
+The packages in the `rviz` repository were released into the `lunar` distro by running `/usr/bin/bloom-release rviz --track lunar --rosdistro lunar` on `Fri, 05 Jan 2018 08:19:15 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.12.14-0`
+- old version: `1.12.14-0`
+- new version: `1.12.15-0`
+
+Versions of tools used:
+
+- bloom version: `0.6.1`
+- catkin_pkg version: `0.3.9`
+- rosdep version: `0.11.8`
+- rosdistro version: `0.6.2`
+- vcstools version: `0.1.39`
+
+
 ## rviz (kinetic) - 1.12.15-0
 
 The packages in the `rviz` repository were released into the `kinetic` distro by running `/usr/bin/bloom-release rviz --track kinetic --rosdistro kinetic` on `Fri, 05 Jan 2018 08:16:26 -0000`
