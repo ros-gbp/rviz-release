@@ -65,7 +65,9 @@ namespace
 
   Ogre::Quaternion quaternionRosToOgre( geometry_msgs::Quaternion const & quaternion )
   {
-    return Ogre::Quaternion( quaternion.w, quaternion.x, quaternion.y, quaternion.z );
+    Ogre::Quaternion q;
+    normalizeQuaternion( quaternion, q );
+    return q;
   }
 }
 
@@ -144,8 +146,12 @@ void PoseArrayDisplay::processMessage( const geometry_msgs::PoseArray::ConstPtr&
 
   if( !validateQuaternions( msg->poses ))
   {
-    setStatus( StatusProperty::Error, "Topic", "Message contained invalid quaternions (length not equal to 1)" );
-    return;
+    ROS_WARN_ONCE_NAMED( "quaternions", "PoseArray msg received on topic '%s' contains unnormalized quaternions. "
+                         "This warning will only be output once but may be true for others; "
+                         "enable DEBUG messages for ros.rviz.quaternions to see more details.",
+                         topic_property_->getTopicStd().c_str() );
+    ROS_DEBUG_NAMED( "quaternions", "PoseArray msg received on topic '%s' contains unnormalized quaternions.", 
+                     topic_property_->getTopicStd().c_str() );
   }
 
   if( !setTransform( msg->header ) )
