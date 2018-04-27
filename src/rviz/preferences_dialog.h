@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,83 +27,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RVIZ_IMAGE_DISPLAY_H
-#define RVIZ_IMAGE_DISPLAY_H
+#ifndef RVIZ_PREFERENCES_DIALOG_H
+#define RVIZ_PREFERENCES_DIALOG_H
 
-#ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
-# include <QObject>
+#include <QDialog>
 
-# include <OgreMaterial.h>
-# include <OgreRenderTargetListener.h>
-# include <OgreSharedPtr.h>
+#include "rviz/factory.h"
 
-# include "rviz/image/image_display_base.h"
-# include "rviz/image/ros_image_texture.h"
-# include "rviz/render_panel.h"
-
-# include "rviz/properties/bool_property.h"
-# include "rviz/properties/float_property.h"
-# include "rviz/properties/int_property.h"
-#endif
-
-
-namespace Ogre
-{
-class SceneNode;
-class Rectangle2D;
-}
+class QCheckBox;
+class QDialogButtonBox;
 
 namespace rviz
 {
 
-/**
- * \class ImageDisplay
- *
- */
-class ImageDisplay: public ImageDisplayBase
+class Preferences;
+
+class PreferencesDialog : public QDialog
 {
 Q_OBJECT
 public:
-  ImageDisplay();
-  virtual ~ImageDisplay();
+  /** Dialog for setting preferences.
+   *
+   * @param preferences_output Pointer to Preferences struct where
+   *        preferences chosen by the user will be put.
+   */
+  PreferencesDialog( Factory* factory,
+                   Preferences* preferences_output,
+                   QWidget* parent = 0 );
 
-  // Overrides from Display
-  virtual void onInitialize();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void reset();
+  virtual QSize sizeHint () const;
 
 public Q_SLOTS:
-  virtual void updateNormalizeOptions();
-
-protected:
-  // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
-
-  /* This is called by incomingMessage(). */
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
-
-  Ogre::SceneManager* img_scene_manager_;
-
-  ROSImageTexture texture_;
-
-  RenderPanel* render_panel_;
+  virtual void accept();
 
 private:
-  void clear();
-  void updateStatus();
+  /** Returns true if entered display name is non-empty and unique and
+   * if lookup name is non-empty. */
+  bool isValid();
 
-  Ogre::SceneNode* img_scene_node_;
-  Ogre::Rectangle2D* screen_rect_;
-  Ogre::MaterialPtr material_;
+  /** Display an error message to the user, or clear the previous
+   * error message if error_text is empty. */
+  void setError( const QString& error_text );
 
-  BoolProperty* normalize_property_;
-  FloatProperty* min_property_;
-  FloatProperty* max_property_;
-  IntProperty* median_buffer_size_property_;
-  bool got_float_image_;
+  Factory* factory_;
+
+  QCheckBox* prompt_save_on_exit_checkbox_;
+  Preferences* preferences_;
+
+  /** Widget with OK and CANCEL buttons. */
+  QDialogButtonBox* button_box_;
 };
 
-} // namespace rviz
+} //namespace rviz
 
-#endif
+#endif // RVIZ_NEW_OBJECT_DIALOG_H
