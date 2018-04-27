@@ -210,7 +210,7 @@ void Swatch::updateData()
                                                                  pixel_stream, width_, height_, Ogre::PF_L8, Ogre::TEX_TYPE_2D,
                                                                  0);
 
-  delete pixels;
+  delete[] pixels;
 }
 
 
@@ -833,5 +833,5 @@ void MapDisplay::update( float wall_dt, float ros_dt ) {
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS( rviz::MapDisplay, rviz::Display )
