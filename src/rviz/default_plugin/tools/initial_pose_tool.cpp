@@ -82,5 +82,5 @@ void InitialPoseTool::onPoseSet(double x, double y, double theta)
 
 } // end namespace rviz
 
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::InitialPoseTool, rviz::Tool )

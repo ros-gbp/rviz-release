@@ -172,7 +172,7 @@ bool VisualizerApp::init( int argc, char** argv )
       if (vm.count("display-config"))
       {
         display_config = vm["display-config"].as<std::string>();
-        if (display_config.size() >= 4 && display_config.substr( display_config.size() - 4, 4 ) == ".vcg")
+        if( display_config.substr( display_config.size() - 4, 4 ) == ".vcg" )
         {
           std::cerr << "ERROR: the config file '" << display_config << "' is a .vcg file, which is the old rviz config format." << std::endl;
           std::cerr << "       New config files have a .rviz extension and use YAML formatting.  The format changed" << std::endl;
@@ -274,7 +274,7 @@ bool VisualizerApp::init( int argc, char** argv )
       frame_->setHelpPath( QString::fromStdString( help_path ));
     }
     frame_->setShowChooseNewMaster( in_mc_wrapper );
-    if( vm.count("splash-screen") )
+    if( splash_path != "" )
     {
       frame_->setSplashPath( QString::fromStdString( splash_path ));
     }

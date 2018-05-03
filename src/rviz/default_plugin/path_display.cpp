@@ -45,7 +45,6 @@
 #include "rviz/properties/int_property.h"
 #include "rviz/properties/vector_property.h"
 #include "rviz/validate_floats.h"
-#include "rviz/validate_quaternions.h"
 
 #include "rviz/ogre_helpers/billboard_line.h"
 #include "rviz/default_plugin/path_display.h"
@@ -424,16 +423,6 @@ void PathDisplay::processMessage( const nav_msgs::Path::ConstPtr& msg )
     return;
   }
 
-  if( !validateQuaternions( msg->poses ))
-  {
-    ROS_WARN_ONCE_NAMED( "quaternions", "Path '%s' contains unnormalized quaternions. "
-                         "This warning will only be output once but may be true for others; "
-                         "enable DEBUG messages for ros.rviz.quaternions to see more details.",
-                         qPrintable( getName() ) );
-    ROS_DEBUG_NAMED( "quaternions", "Path '%s' contains unnormalized quaternions.", 
-                     qPrintable( getName() ) );
-  }
-
   // Lookup transform into fixed frame
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
@@ -542,5 +531,5 @@ void PathDisplay::processMessage( const nav_msgs::Path::ConstPtr& msg )
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::PathDisplay, rviz::Display )

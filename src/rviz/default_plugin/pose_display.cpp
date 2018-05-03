@@ -43,7 +43,6 @@
 #include "rviz/properties/vector_property.h"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/validate_floats.h"
-#include "rviz/validate_quaternions.h"
 
 #include "rviz/default_plugin/pose_display.h"
 
@@ -262,16 +261,6 @@ void PoseDisplay::processMessage( const geometry_msgs::PoseStamped::ConstPtr& me
     return;
   }
 
-  if( !validateQuaternions( *message ))
-  {
-    ROS_WARN_ONCE_NAMED( "quaternions", "Pose '%s' contains unnormalized quaternions. "
-                          "This warning will only be output once but may be true for others; "
-                          "enable DEBUG messages for ros.rviz.quaternions to see more details.",
-                          qPrintable( getName() ) );
-    ROS_DEBUG_NAMED( "quaternions", "Pose '%s' contains unnormalized quaternions.",
-                     qPrintable( getName() ) );
-  }
-
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
   if( !context_->getFrameManager()->transform( message->header, message->pose, position, orientation ))
@@ -301,5 +290,5 @@ void PoseDisplay::reset()
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::PoseDisplay, rviz::Display )

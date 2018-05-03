@@ -30,7 +30,6 @@
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 
-#include <tinyxml.h>
 #include <urdf/model.h>
 
 #include <tf/transform_listener.h>
@@ -248,5 +247,5 @@ void RobotModelDisplay::reset()
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::RobotModelDisplay, rviz::Display )

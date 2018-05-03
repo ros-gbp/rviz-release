@@ -138,14 +138,14 @@ void WrenchStampedDisplay::processMessage( const geometry_msgs::WrenchStamped::C
 
     // We are keeping a circular buffer of visual pointers.  This gets
     // the next one, or creates and stores it if the buffer is not full
-    boost::shared_ptr<WrenchVisual> visual;
+    boost::shared_ptr<WrenchStampedVisual> visual;
     if( visuals_.full() )
     {
         visual = visuals_.front();
     }
     else
     {
-        visual.reset(new WrenchVisual( context_->getSceneManager(), scene_node_ ));
+        visual.reset(new WrenchStampedVisual( context_->getSceneManager(), scene_node_ ));
     }
 
     // Now set or update the contents of the chosen visual.
@@ -172,5 +172,5 @@ void WrenchStampedDisplay::processMessage( const geometry_msgs::WrenchStamped::C
 
 // Tell pluginlib about this class.  It is important to do this in
 // global scope, outside our package's namespace.
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::WrenchStampedDisplay, rviz::Display )

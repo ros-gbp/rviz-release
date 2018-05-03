@@ -304,17 +304,13 @@ void MovableText::_setupGeometry()
   {
     if (*i == '\n')
     {
-      total_height += mCharHeight + mLineSpacing;
+      total_height += mCharHeight + 0.01;
 
       if ( current_width > total_width )
       {
         total_width = current_width;
+        current_width = 0.0;
       }
-      current_width = 0.0;
-    }
-    else if (*i == ' ')
-    {
-      current_width += spaceWidth;
     }
     else
     {
@@ -378,7 +374,7 @@ void MovableText::_setupGeometry()
     if (*i == '\n')
     {
       left = starting_left;
-      top -= (mCharHeight + mLineSpacing) * 2.0;
+      top -= mCharHeight * 2.0;
       newLine = true;
       continue;
     }
@@ -387,10 +383,6 @@ void MovableText::_setupGeometry()
     {
       // Just leave a gap, no tris
       left += spaceWidth;
-      currPos = Ogre::Vector3(left, top, 0.0);
-      min.makeFloor(currPos);
-      max.makeCeil(currPos);
-      maxSquaredRadius = std::max(maxSquaredRadius, currPos.squaredLength());
       continue;
     }
 
@@ -506,15 +498,7 @@ void MovableText::_setupGeometry()
     if (currentWidth > largestWidth)
       largestWidth = currentWidth;
   }
-  // Taking empty last line into account for the AABB
-  if(newLine)
-  {
-    top -= mCharHeight * 2.0;
-    currPos = Ogre::Vector3(left, top, 0.0);
-    min.makeFloor(currPos);
-    max.makeCeil(currPos);
-    maxSquaredRadius = std::max(maxSquaredRadius, currPos.squaredLength());
-  }
+
   // Unlock vertex buffer
   ptbuf->unlock();
 

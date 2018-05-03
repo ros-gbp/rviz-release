@@ -48,7 +48,6 @@
 #include "rviz/frame_manager.h"
 #include "rviz/render_panel.h"
 #include "rviz/geometry.h"
-#include "rviz/validate_quaternions.h"
 
 #include "rviz/default_plugin/interactive_markers/integer_action.h"
 #include "rviz/default_plugin/interactive_markers/interactive_marker.h"
@@ -120,7 +119,11 @@ bool InteractiveMarker::processMessage( const visualization_msgs::InteractiveMar
       message.pose.position.y,
       message.pose.position.z );
 
-  normalizeQuaternion(message.pose.orientation, orientation_);
+  orientation_ = Ogre::Quaternion(
+      message.pose.orientation.w,
+      message.pose.orientation.x,
+      message.pose.orientation.y,
+      message.pose.orientation.z );
 
   pose_changed_ =false;
   time_since_last_feedback_ = 0;

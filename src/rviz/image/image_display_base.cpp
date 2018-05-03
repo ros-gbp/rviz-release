@@ -31,7 +31,7 @@
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <pluginlib/class_loader.hpp>
+#include <pluginlib/class_loader.h>
 
 #include <image_transport/subscriber_plugin.h>
 

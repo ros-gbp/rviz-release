@@ -31,8 +31,14 @@
 
 #include <tf/transform_listener.h>
 
-#include "rviz/default_plugin/markers/marker_base.h"
-#include "rviz/default_plugin/marker_utils.h"
+#include "rviz/default_plugin/markers/arrow_marker.h"
+#include "rviz/default_plugin/markers/line_list_marker.h"
+#include "rviz/default_plugin/markers/line_strip_marker.h"
+#include "rviz/default_plugin/markers/mesh_resource_marker.h"
+#include "rviz/default_plugin/markers/points_marker.h"
+#include "rviz/default_plugin/markers/shape_marker.h"
+#include "rviz/default_plugin/markers/text_view_facing_marker.h"
+#include "rviz/default_plugin/markers/triangle_list_marker.h"
 #include "rviz/display_context.h"
 #include "rviz/frame_manager.h"
 #include "rviz/ogre_helpers/arrow.h"
@@ -43,7 +49,6 @@
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/validate_floats.h"
-#include "rviz/validate_quaternions.h"
 
 #include "rviz/default_plugin/marker_display.h"
 
@@ -288,21 +293,10 @@ bool validateFloats(const visualization_msgs::Marker& msg)
 
 void MarkerDisplay::processMessage( const visualization_msgs::Marker::ConstPtr& message )
 {
-  if ( !validateFloats( *message ))
+  if (!validateFloats(*message))
   {
-    setMarkerStatus( MarkerID( message->ns, message->id ), StatusProperty::Error,
-                     "Contains invalid floating point values (nans or infs)" );
+    setMarkerStatus(MarkerID(message->ns, message->id), StatusProperty::Error, "Contains invalid floating point values (nans or infs)");
     return;
-  }
-
-  if( !validateQuaternions( message->pose ))
-  {
-    ROS_WARN_ONCE_NAMED( "quaternions", "Marker '%s/%d' contains unnormalized quaternions. "
-                         "This warning will only be output once but may be true for others; "
-                         "enable DEBUG messages for ros.rviz.quaternions to see more details.",
-                         message->ns.c_str(), message->id );
-    ROS_DEBUG_NAMED( "quaternions", "Marker '%s/%d' contains unnormalized quaternions.", 
-                     message->ns.c_str(), message->id );
   }
 
   switch ( message->action )
@@ -367,10 +361,59 @@ void MarkerDisplay::processAdd( const visualization_msgs::Marker::ConstPtr& mess
 
   if ( create )
   {
-    marker.reset(createMarker(message->type, this, context_, scene_node_));
-    if (!marker) {
+    switch ( message->type )
+    {
+    case visualization_msgs::Marker::CUBE:
+    case visualization_msgs::Marker::CYLINDER:
+    case visualization_msgs::Marker::SPHERE:
+      {
+        marker.reset(new ShapeMarker(this, context_, scene_node_));
+      }
+      break;
+
+    case visualization_msgs::Marker::ARROW:
+      {
+        marker.reset(new ArrowMarker(this, context_, scene_node_));
+      }
+      break;
+
+    case visualization_msgs::Marker::LINE_STRIP:
+      {
+        marker.reset(new LineStripMarker(this, context_, scene_node_));
+      }
+      break;
+    case visualization_msgs::Marker::LINE_LIST:
+      {
+        marker.reset(new LineListMarker(this, context_, scene_node_));
+      }
+      break;
+    case visualization_msgs::Marker::SPHERE_LIST:
+    case visualization_msgs::Marker::CUBE_LIST:
+    case visualization_msgs::Marker::POINTS:
+      {
+        marker.reset(new PointsMarker(this, context_, scene_node_));
+      }
+      break;
+    case visualization_msgs::Marker::TEXT_VIEW_FACING:
+      {
+        marker.reset(new TextViewFacingMarker(this, context_, scene_node_));
+      }
+      break;
+    case visualization_msgs::Marker::MESH_RESOURCE:
+      {
+        marker.reset(new MeshResourceMarker(this, context_, scene_node_));
+      }
+      break;
+
+    case visualization_msgs::Marker::TRIANGLE_LIST:
+    {
+      marker.reset(new TriangleListMarker(this, context_, scene_node_));
+    }
+    break;
+    default:
       ROS_ERROR( "Unknown marker type: %d", message->type );
     }
+
     markers_.insert(std::make_pair(MarkerID(message->ns, message->id), marker));
   }
 
@@ -496,5 +539,5 @@ void MarkerNamespace::onEnableChanged()
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS( rviz::MarkerDisplay, rviz::Display )
