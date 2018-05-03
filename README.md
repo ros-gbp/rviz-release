@@ -1,3 +1,26 @@
+## rviz (indigo) - 1.11.19-0
+
+The packages in the `rviz` repository were released into the `indigo` distro by running `/usr/bin/bloom-release rviz --track indigo --rosdistro indigo` on `Thu, 03 May 2018 16:55:28 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.11.18-0`
+- old version: `1.11.18-0`
+- new version: `1.11.19-0`
+
+Versions of tools used:
+
+- bloom version: `0.6.2`
+- catkin_pkg version: `0.3.9`
+- rosdep version: `0.11.8`
+- rosdistro version: `0.6.4`
+- vcstools version: `0.1.40`
+
+
 ## rviz (melodic) - 1.13.0-0
 
 The packages in the `rviz` repository were released into the `melodic` distro by running `/usr/bin/bloom-release rviz --track melodic --rosdistro melodic` on `Fri, 27 Apr 2018 23:44:11 -0000`
