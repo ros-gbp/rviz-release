@@ -29,8 +29,19 @@
 #ifndef RENDER_SYSTEM_H
 #define RENDER_SYSTEM_H
 
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# ifdef __clang__
+#  pragma clang diagnostic ignored "-W#warnings"
+# endif
+#endif
+
 #include <OgreRoot.h>
 #include <stdint.h>
+
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
 
 namespace Ogre
 {
@@ -44,9 +55,20 @@ namespace rviz
 class RenderSystem
 {
 public:
+
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+  typedef size_t WindowIDType;
+#else
+  typedef unsigned long WindowIDType;
+#endif
+
   static RenderSystem* get();
 
-  Ogre::RenderWindow* makeRenderWindow( intptr_t window_id, unsigned int width, unsigned int height, double pixel_ratio = 1.0 );
+  Ogre::RenderWindow* makeRenderWindow(
+    WindowIDType window_id,
+    unsigned int width,
+    unsigned int height,
+    double pixel_ratio = 1.0);
 
   Ogre::Root* root() { return ogre_root_; }
 
@@ -92,7 +114,7 @@ private:
   static RenderSystem* instance_;
 
   // ID for a dummy window of size 1x1, used to keep Ogre happy.
-  unsigned long dummy_window_id_;
+  WindowIDType dummy_window_id_;
 
   Ogre::Root* ogre_root_;
   Ogre::OverlaySystem* ogre_overlay_system_;

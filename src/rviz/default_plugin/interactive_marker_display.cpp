@@ -34,6 +34,7 @@
 #include "rviz/properties/ros_topic_property.h"
 #include "rviz/selection/selection_manager.h"
 #include "rviz/validate_floats.h"
+#include "rviz/validate_quaternions.h"
 #include "rviz/display_context.h"
 
 #include "rviz/default_plugin/interactive_marker_display.h"
@@ -60,6 +61,20 @@ bool validateFloats(const visualization_msgs::InteractiveMarker& msg)
     }
   }
   return valid;
+}
+
+bool validateQuaternions(const visualization_msgs::InteractiveMarker &marker)
+{
+  if ( !validateQuaternions( marker.pose.orientation )) return false;
+  for ( int c = 0; c < marker.controls.size(); ++c )
+  {
+    if ( !validateQuaternions( marker.controls[c].orientation )) return false;
+    for ( int m = 0; m < marker.controls[c].markers.size(); ++m )
+    {
+      if ( !validateQuaternions( marker.controls[c].markers[m].pose.orientation )) return false;
+    }
+  }
+  return true;
 }
 /////////////
 
@@ -91,7 +106,17 @@ InteractiveMarkerDisplay::InteractiveMarkerDisplay()
 
 void InteractiveMarkerDisplay::onInitialize()
 {
+  // TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   tf::Transformer* tf = context_->getFrameManager()->getTFClient();
+
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
   im_client_.reset( new interactive_markers::InteractiveMarkerClient( *tf, fixed_frame_.toStdString() ) );
 
   im_client_->setInitCb( boost::bind( &InteractiveMarkerDisplay::initCb, this, _1 ) );
@@ -214,6 +239,16 @@ void InteractiveMarkerDisplay::updateMarkers(
       //setStatusStd( StatusProperty::Error, "General", "Marker " + marker.name + " contains invalid floats!" );
       continue;
     }
+
+    if( !validateQuaternions( marker ))
+    {
+      ROS_WARN_ONCE_NAMED( "quaternions", "Interactive marker '%s' contains unnormalized quaternions. "
+                           "This warning will only be output once but may be true for others; "
+                           "enable DEBUG messages for ros.rviz.quaternions to see more details.",
+                           marker.name.c_str() );
+      ROS_DEBUG_NAMED( "quaternions", "Interactive marker '%s' contains unnormalized quaternions.",
+                       marker.name.c_str() );
+    }
     ROS_DEBUG("Processing interactive marker '%s'. %d", marker.name.c_str(), (int)marker.controls.size() );
 
     std::map< std::string, IMPtr >::iterator int_marker_entry = im_map.find( marker.name );
@@ -271,6 +306,13 @@ void InteractiveMarkerDisplay::updatePoses(
     if ( !validateFloats( marker_pose.pose ) )
     {
       setStatusStd( StatusProperty::Error, marker_pose.name, "Pose message contains invalid floats!" );
+      return;
+    }
+
+    if( !validateQuaternions( marker_pose.pose ))
+    {
+      setStatusStd( StatusProperty::Error, marker_pose.name,
+                    "Pose message contains invalid quaternions (length not equal to 1)!" );
       return;
     }
 
@@ -385,5 +427,5 @@ void InteractiveMarkerDisplay::updateEnableTransparency()
 
 } // namespace rviz
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS( rviz::InteractiveMarkerDisplay, rviz::Display )

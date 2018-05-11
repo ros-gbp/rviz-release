@@ -3,6 +3,8 @@ include_directories(.)
 set(SOURCE_FILES
   axes_display.cpp
   camera_display.cpp
+  covariance_visual.cpp
+  covariance_property.cpp
   depth_cloud_display.cpp
   depth_cloud_mld.cpp
   effort_display.cpp
@@ -20,6 +22,7 @@ set(SOURCE_FILES
   map_display.cpp
   marker_array_display.cpp
   marker_display.cpp
+  marker_utils.cpp
   markers/arrow_marker.cpp
   markers/line_list_marker.cpp
   markers/line_strip_marker.cpp
@@ -42,6 +45,7 @@ set(SOURCE_FILES
   polygon_display.cpp
   pose_array_display.cpp
   pose_display.cpp
+  pose_with_covariance_display.cpp
   range_display.cpp
   relative_humidity_display.cpp
   robot_model_display.cpp
@@ -63,10 +67,13 @@ set(SOURCE_FILES
   view_controllers/fps_view_controller.cpp
   wrench_display.cpp
   wrench_visual.cpp
-  ${MOC_FILES}
 )
 
 add_library(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME} ${SOURCE_FILES})
+if(NOT WIN32)
+  set_target_properties(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
+    PROPERTIES COMPILE_FLAGS "-std=c++11")
+endif()
 target_link_libraries(${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
   ${PROJECT_NAME}
   ${Boost_LIBRARIES}
@@ -80,19 +87,10 @@ install(TARGETS ${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 # Generate to the devel space so the extras file can include it from the devel space.
-add_custom_target(create_default_plugin_location_file ALL
-  COMMAND
-    ${CMAKE_COMMAND}
-    -DPATH_TO_FILE="${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
-    -DDEFAULT_PLUGIN_FILE_NAME=$<TARGET_FILE_NAME:${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}>
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/file_generate_helper.cmake
+file(GENERATE
+  OUTPUT "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
+  CONTENT "set(rviz_DEFAULT_PLUGIN_FILE_NAME $<TARGET_FILE_NAME:${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}>)"
 )
-# TODO(wjwwood): remove the solution above (including the file_generate_helper.cmake file) when we can
-# depend on cmake >= 2.8.12 (after dropping Saucy) and use the snippet below.
-# file(GENERATE
-#   OUTPUT "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
-#   CONTENT "set(rviz_DEFAULT_PLUGIN_FILE_NAME $<TARGET_FILE_NAME:${rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME}>)"
-# )
 # Install from the devel space to the install space.
 install(FILES "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake/default_plugin_location.cmake"
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake

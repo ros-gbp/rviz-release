@@ -35,9 +35,7 @@
 
 #include <ros/time.h>
 
-#include <tf/transform_listener.h>
-
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 #include "rviz/default_plugin/point_cloud_transformer.h"
 #include "rviz/default_plugin/point_cloud_transformers.h"
@@ -590,8 +588,8 @@ void PointCloudCommon::update(float wall_dt, float ros_dt)
         bool per_point_alpha = findChannelIndex(cloud_info->message_, "rgba") != -1;
 
         cloud_info->cloud_.reset( new PointCloud() );
-        cloud_info->cloud_->addPoints( &(cloud_info->transformed_points_.front()), cloud_info->transformed_points_.size() );
         cloud_info->cloud_->setRenderMode( mode );
+        cloud_info->cloud_->addPoints( &(cloud_info->transformed_points_.front()), cloud_info->transformed_points_.size() );
         cloud_info->cloud_->setAlpha( alpha_property_->getFloat(), per_point_alpha);
         cloud_info->cloud_->setDimensions( size, size, size );
         cloud_info->cloud_->setAutoSize(auto_size_);

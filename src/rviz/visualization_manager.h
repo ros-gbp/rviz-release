@@ -69,6 +69,7 @@ class DisplayFactory;
 class DisplayGroup;
 class FrameManager;
 class Property;
+class BoolProperty;
 class IntProperty;
 class PropertyTreeModel;
 class RenderPanel;
@@ -108,7 +109,25 @@ public:
    *        VisualizationFrame, the top-level container widget of rviz).
    * @param tf a pointer to tf::TransformListener which will be internally used by FrameManager.
    */
-  VisualizationManager( RenderPanel* render_panel, WindowManagerInterface* wm = 0, boost::shared_ptr<tf::TransformListener> tf = boost::shared_ptr<tf::TransformListener>() );
+  explicit VisualizationManager(
+    RenderPanel* render_panel,
+    WindowManagerInterface* wm = 0);
+
+  [[deprecated(
+    "This constructor signature will be removed in the next version. "
+    "If you still need to pass a boost::shared_ptr<tf::TransformListener>, "
+    "disable the warning explicitly. "
+    "When this constructor is removed, a new optional argument will added to "
+    "the other constructor and it will take a std::pair<> containing a "
+    "std::shared_ptr<tf2_ros::Buffer> and a "
+    "std::shared_ptr<tf2_ros::TransformListener>. "
+    "However, that cannot occur until the use of tf::TransformListener is "
+    "removed internally."
+  )]]
+  VisualizationManager(
+    RenderPanel* render_panel,
+    WindowManagerInterface* wm,
+    boost::shared_ptr<tf::TransformListener> tf);
 
   /**
    * \brief Destructor
@@ -186,7 +205,13 @@ public:
   /**
    * @brief Convenience function: returns getFrameManager()->getTFClient().
    */
+  [[deprecated("use getTF2BufferPtr() instead")]]
   tf::TransformListener* getTFClient() const;
+
+  /**
+   * @brief Convenience function: returns getFrameManager()->getTF2BufferPtr().
+   */
+  std::shared_ptr<tf2_ros::Buffer> getTF2BufferPtr() const;
 
   /**
    * @brief Returns the Ogre::SceneManager used for the main RenderPanel.
@@ -368,6 +393,7 @@ protected:
   TfFrameProperty* fixed_frame_property_;          ///< Frame to transform fixed data to
   StatusList* global_status_;
   IntProperty* fps_property_;
+  BoolProperty* default_light_enabled_property_;
 
   RenderPanel* render_panel_;
 
@@ -396,6 +422,7 @@ private Q_SLOTS:
   void updateFixedFrame();
   void updateBackgroundColor();
   void updateFps();
+  void updateDefaultLightVisible();
 
 private:
   DisplayFactory* display_factory_;

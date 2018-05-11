@@ -72,16 +72,11 @@ RenderWidget::RenderWidget( RenderSystem* render_system, QWidget *parent )
   this->setLayout(mainLayout);
 #endif
 
-#ifdef Q_OS_MAC
-  uintptr_t win_id = winId();
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  rviz::RenderSystem::WindowIDType win_id = this->renderFrame->winId();
 #else
-# if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-  unsigned int win_id = renderFrame->winId();
-# else
-  unsigned int win_id = winId();
-# endif
+  rviz::RenderSystem::WindowIDType win_id = this->winId();
 #endif
-
   QApplication::flush();
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -91,7 +86,7 @@ RenderWidget::RenderWidget( RenderSystem* render_system, QWidget *parent )
   QWindow* window = windowHandle();
   double pixel_ratio = window ? window->devicePixelRatio() : 1.0;
 #endif
-  render_window_ = render_system_->makeRenderWindow( win_id, width(), height(), pixel_ratio );
+  render_window_ = render_system_->makeRenderWindow(win_id, width(), height(), pixel_ratio);
 }
 
 RenderWidget::~RenderWidget()

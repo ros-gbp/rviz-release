@@ -24,7 +24,7 @@ class IntProperty;
 namespace rviz
 {
 
-class WrenchStampedVisual;
+class WrenchVisual;
 
 class WrenchStampedDisplay: public rviz::MessageFilterDisplay<geometry_msgs::WrenchStamped>
 {
@@ -41,8 +41,8 @@ protected:
     virtual void reset();
 
 private Q_SLOTS:
-    // Helper function to apply color and alpha to all visuals.
-    void updateColorAndAlpha();
+    // Helper function to properties for all visuals.
+    void updateProperties();
     void updateHistoryLength();
 
 private:
@@ -52,12 +52,13 @@ private:
     // Storage for the list of visuals par each joint intem
     // Storage for the list of visuals.  It is a circular buffer where
     // data gets popped from the front (oldest) and pushed to the back (newest)
-    boost::circular_buffer<boost::shared_ptr<WrenchStampedVisual> > visuals_;
+    boost::circular_buffer<boost::shared_ptr<WrenchVisual> > visuals_;
 
     // Property objects for user-editable properties.
     rviz::ColorProperty *force_color_property_, *torque_color_property_;
     rviz::FloatProperty *alpha_property_, *force_scale_property_, *torque_scale_property_, *width_property_;
     rviz::IntProperty *history_length_property_;
+    rviz::BoolProperty *hide_small_values_property_;
 };
 } // end namespace rviz_plugin_tutorials
 

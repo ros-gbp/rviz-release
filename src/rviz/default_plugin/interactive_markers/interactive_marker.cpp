@@ -48,6 +48,7 @@
 #include "rviz/frame_manager.h"
 #include "rviz/render_panel.h"
 #include "rviz/geometry.h"
+#include "rviz/validate_quaternions.h"
 
 #include "rviz/default_plugin/interactive_markers/integer_action.h"
 #include "rviz/default_plugin/interactive_markers/interactive_marker.h"
@@ -119,11 +120,7 @@ bool InteractiveMarker::processMessage( const visualization_msgs::InteractiveMar
       message.pose.position.y,
       message.pose.position.z );
 
-  orientation_ = Ogre::Quaternion(
-      message.pose.orientation.w,
-      message.pose.orientation.x,
-      message.pose.orientation.y,
-      message.pose.orientation.z );
+  normalizeQuaternion(message.pose.orientation, orientation_);
 
   pose_changed_ =false;
   time_since_last_feedback_ = 0;
@@ -318,8 +315,18 @@ void InteractiveMarker::updateReferencePose()
     else
     {
       std::string error;
+      // TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
       int retval = context_->getFrameManager()->getTFClient()->getLatestCommonTime(
           reference_frame_, fixed_frame, reference_time_, &error );
+
+#ifndef _WIN32
+# pragma GCC diagnostic pop
+#endif
       if ( retval != tf::NO_ERROR )
       {
         std::ostringstream s;
