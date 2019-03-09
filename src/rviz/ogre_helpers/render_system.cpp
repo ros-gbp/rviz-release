@@ -34,7 +34,7 @@
 
 #include <QMoveEvent>
 
-#ifndef Q_OS_MAC
+#if !defined(Q_OS_MAC) && !defined(Q_OS_WIN)
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <GL/glx.h>
@@ -141,11 +141,22 @@ void RenderSystem::prepareOverlays(Ogre::SceneManager* scene_manager)
 
 void RenderSystem::setupDummyWindowId()
 {
-#ifdef Q_OS_MAC
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
   dummy_window_id_ = 0;
 #else
   Display *display = XOpenDisplay(0);
-  assert( display );
+
+  if (display == NULL) {
+
+    ROS_WARN("$DISPLAY is invalid, falling back on default :0");
+    display = XOpenDisplay(":0");
+
+    if (display == NULL) {
+      ROS_FATAL("Can't open default or :0 display. Try setting DISPLAY environment variable.");
+      throw std::runtime_error("Can't open default or :0 display!\n");
+    }
+
+  }
 
   int screen = DefaultScreen( display );
 
