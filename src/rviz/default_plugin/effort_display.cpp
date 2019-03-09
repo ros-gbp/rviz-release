@@ -72,7 +72,7 @@ namespace rviz
 
     JointInfo* EffortDisplay::createJoint(const std::string &joint)
     {
-        JointInfo *info = new JointInfo(joint, this);
+        JointInfo *info = new JointInfo(joint, joints_category_);
         joints_.insert( std::make_pair( joint, info ) );
         return info;
     }
@@ -214,8 +214,6 @@ namespace rviz
                 std::string joint_name = it->first;
                 urdf::JointLimitsSharedPtr limit = joint->limits;
                 joints_[joint_name] = createJoint(joint_name);
-                //joints_[joint_name]->max_effort_property_->setFloat(limit->effort);
-                //joints_[joint_name]->max_effort_property_->setReadOnly( true );
                 joints_[joint_name]->setMaxEffort(limit->effort);
             }
         }
@@ -267,6 +265,11 @@ namespace rviz
     // This is our callback to handle an incoming message.
     void EffortDisplay::processMessage( const sensor_msgs::JointState::ConstPtr& msg )
     {
+        // Robot model might not be loaded already
+        if (!robot_model_)
+        {
+            return;
+        }
         // We are keeping a circular buffer of visual pointers.  This gets
         // the next one, or creates and stores it if the buffer is not full
         boost::shared_ptr<EffortVisual> visual;
