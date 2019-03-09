@@ -48,7 +48,8 @@
 #include <OgreSharedPtr.h>
 #include <OgreTechnique.h>
 
-#include <tinyxml2.h>
+#include <tinyxml.h>
+
 
 #include <ros/assert.h>
 
@@ -576,7 +577,7 @@ float getMeshUnitRescale(const std::string& resource_path)
    
 
   // Try to read unit to meter conversion ratio from mesh. Only valid in Collada XML formats. 
-  tinyxml2::XMLDocument xmlDoc;
+  TiXmlDocument xmlDoc;
   float unit_scale(1.0);
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
@@ -598,32 +599,27 @@ float getMeshUnitRescale(const std::string& resource_path)
 
   // Use the resource retriever to get the data.
   const char * data = reinterpret_cast<const char * > (res.data.get());
-  // As the data pointer provided by resource retriever is not null-terminated, also pass res.size
-  xmlDoc.Parse(data, res.size);
+  xmlDoc.Parse(data);
 
   // Find the appropriate element if it exists
   if(!xmlDoc.Error())
   {
-    tinyxml2::XMLElement * colladaXml = xmlDoc.FirstChildElement("COLLADA");
+    TiXmlElement * colladaXml = xmlDoc.FirstChildElement("COLLADA");
     if(colladaXml)
     {
-      tinyxml2::XMLElement *assetXml = colladaXml->FirstChildElement("asset");
+      TiXmlElement *assetXml = colladaXml->FirstChildElement("asset");
       if(assetXml)
       {
-        tinyxml2::XMLElement *unitXml = assetXml->FirstChildElement("unit");
+        TiXmlElement *unitXml = assetXml->FirstChildElement("unit");
         if (unitXml && unitXml->Attribute("meter"))
         {
           // Failing to convert leaves unit_scale as the default.
           if(unitXml->QueryFloatAttribute("meter", &unit_scale) != 0)
             ROS_WARN_STREAM("getMeshUnitRescale::Failed to convert unit element meter attribute to determine scaling. unit element: "
-                            << unitXml->GetText());
+                            << *unitXml);
         }
       }
     }
-  }
-  else
-  {
-    ROS_ERROR("XML parse error [%s]: %s", resource_path.c_str(), xmlDoc.ErrorStr());
   }
   return unit_scale;
 }

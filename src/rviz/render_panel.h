@@ -100,12 +100,6 @@ public:
 
   virtual void sceneManagerDestroyed( Ogre::SceneManager* source );
 
-  /** Return true if moving the mouse within this widget should set keyboard focus */
-  bool getFocusOnMouseMove() const;
-
-  /** Set to true if moving the mouse within this widget should set keyboard focus, default true */
-  void setFocusOnMouseMove( bool enabled );
-
 protected:
   // Override from QWidget
   void contextMenuEvent( QContextMenuEvent* event );
@@ -130,7 +124,6 @@ protected:
   // Mouse handling
   int mouse_x_;                                           ///< X position of the last mouse event
   int mouse_y_;                                           ///< Y position of the last mouse event
-  bool focus_on_mouse_move_;                              ///< a moving the mouse catches keyboard focus
 
   DisplayContext* context_;
   Ogre::SceneManager* scene_manager_;

@@ -30,8 +30,6 @@
 #ifndef RVIZ_VISUALIZATION_FRAME_H
 #define RVIZ_VISUALIZATION_FRAME_H
 
-#include <boost/shared_ptr.hpp>
-
 #include <QMainWindow>
 #include <QList>
 
@@ -41,7 +39,6 @@
 #include "rviz/config.h"
 #include "rviz/window_manager_interface.h"
 #include "rviz/panel.h"
-#include "rviz/rviz_export.h"
 
 #include <ros/time.h>
 
@@ -57,7 +54,6 @@ namespace rviz
 {
 
 class PanelFactory;
-class Preferences;
 class RenderPanel;
 class VisualizationManager;
 class Tool;
@@ -72,7 +68,7 @@ class WidgetGeometryChangeDetector;
  * the top is a toolbar with "Move Camera", "Select", etc.  There is
  * also a menu bar with file/open, etc.
  */
-class RVIZ_EXPORT VisualizationFrame : public QMainWindow, public WindowManagerInterface
+class VisualizationFrame : public QMainWindow, public WindowManagerInterface
 {
 Q_OBJECT
 public:
@@ -190,7 +186,6 @@ protected Q_SLOTS:
   void onHelpAbout();
   void openNewPanelDialog();
   void openNewToolDialog();
-  void openPreferencesDialog();
   void showHelpPanel();
   void onDockPanelChange();
 
@@ -294,9 +289,6 @@ protected:
   /** @brief Saves custom panels to the given config node. */
   void savePanels( Config config );
 
-  void loadPreferences( const Config& config );
-  void savePreferences( Config config );
-
   void loadWindowGeometry( const Config& config );
   void saveWindowGeometry( Config config );
 
@@ -321,8 +313,6 @@ protected:
   std::string last_config_dir_;
   std::string last_image_dir_;
   std::string home_dir_;
-
-  boost::shared_ptr<Preferences> preferences_;
 
   QMenu* file_menu_;
   QMenu* recent_configs_menu_;
