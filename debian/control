@@ -1,0 +1,12 @@
+Source: ros-kinetic-rviz
+Section: misc
+Priority: extra
+Maintainer: D. Hood <dhood@osrfoundation.org>
+Build-Depends: debhelper (>= 9.0.0), libassimp-dev, libeigen3-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libqt5opengl5-dev, libtinyxml-dev, liburdfdom-headers-dev, libyaml-cpp-dev, qtbase5-dev, ros-kinetic-catkin, ros-kinetic-cmake-modules, ros-kinetic-geometry-msgs, ros-kinetic-image-transport, ros-kinetic-interactive-markers, ros-kinetic-laser-geometry, ros-kinetic-map-msgs, ros-kinetic-message-filters, ros-kinetic-nav-msgs, ros-kinetic-pluginlib (>= 1.11.2), ros-kinetic-python-qt-binding, ros-kinetic-resource-retriever, ros-kinetic-rosbag, ros-kinetic-rosconsole, ros-kinetic-roscpp, ros-kinetic-roslib, ros-kinetic-rospy, ros-kinetic-sensor-msgs, ros-kinetic-std-msgs, ros-kinetic-std-srvs, ros-kinetic-tf, ros-kinetic-urdf, ros-kinetic-visualization-msgs
+Homepage: http://ros.org/wiki/rviz
+Standards-Version: 3.9.2
+
+Package: ros-kinetic-rviz
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libassimp-dev, libeigen3-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libqt5core5a, libqt5gui5, libqt5opengl5, libqt5widgets5, libtinyxml-dev, liburdfdom-headers-dev, libyaml-cpp-dev, ros-kinetic-geometry-msgs, ros-kinetic-image-transport, ros-kinetic-interactive-markers, ros-kinetic-laser-geometry, ros-kinetic-map-msgs, ros-kinetic-media-export, ros-kinetic-message-filters, ros-kinetic-nav-msgs, ros-kinetic-pluginlib (>= 1.11.2), ros-kinetic-python-qt-binding, ros-kinetic-resource-retriever, ros-kinetic-rosbag, ros-kinetic-rosconsole, ros-kinetic-roscpp, ros-kinetic-roslib, ros-kinetic-rospy, ros-kinetic-sensor-msgs, ros-kinetic-std-msgs, ros-kinetic-std-srvs, ros-kinetic-tf, ros-kinetic-urdf, ros-kinetic-visualization-msgs
+Description: 3D visualization tool for ROS.
