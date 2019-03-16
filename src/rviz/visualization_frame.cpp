@@ -70,6 +70,8 @@
 #include "rviz/help_panel.h"
 #include "rviz/loading_dialog.h"
 #include "rviz/new_object_dialog.h"
+#include "rviz/preferences.h"
+#include "rviz/preferences_dialog.h"
 #include "rviz/panel_dock_widget.h"
 #include "rviz/panel_factory.h"
 #include "rviz/render_panel.h"
@@ -112,6 +114,7 @@ VisualizationFrame::VisualizationFrame( QWidget* parent )
   , app_(NULL)
   , render_panel_(NULL)
   , show_help_action_(NULL)
+  , preferences_( new Preferences() )
   , file_menu_(NULL)
   , recent_configs_menu_(NULL)
   , toolbar_(NULL)
@@ -465,6 +468,7 @@ void VisualizationFrame::initMenus()
     file_menu_->addAction( "Change &Master", this, SLOT( changeMaster() ));
   }
   file_menu_->addSeparator();
+  file_menu_->addAction( "&Preferences", this, SLOT( openPreferencesDialog() ), QKeySequence( "Ctrl+P" ));
 
   QAction * file_menu_quit_action = file_menu_->addAction( "&Quit", this, SLOT( close() ), QKeySequence( "Ctrl+Q" ));
   this->addAction(file_menu_quit_action);
@@ -512,7 +516,7 @@ void VisualizationFrame::initToolbars()
   toolbar_->addWidget( add_tool_button );
   connect(add_tool_button, SIGNAL(clicked()), this, SLOT(openNewToolDialog()));
 
-  remove_tool_menu_ = new QMenu();
+  remove_tool_menu_ = new QMenu(toolbar_);
   QToolButton* remove_tool_button = new QToolButton();
   remove_tool_button->setMenu( remove_tool_menu_ );
   remove_tool_button->setPopupMode( QToolButton::InstantPopup );
@@ -606,6 +610,20 @@ void VisualizationFrame::onDockPanelVisibilityChange( bool visible )
     }
   }
 
+}
+
+void VisualizationFrame::openPreferencesDialog()
+{
+  Preferences temp_preferences( *preferences_.get() );
+  PreferencesDialog* dialog = new PreferencesDialog( panel_factory_,
+                                                 &temp_preferences,
+                                                 this );
+  manager_->stopUpdate();
+  if( dialog->exec() == QDialog::Accepted ) {
+    // Apply preferences.
+    preferences_ = boost::make_shared<Preferences>( temp_preferences );
+  }
+  manager_->startUpdate();
 }
 
 void VisualizationFrame::openNewPanelDialog()
@@ -814,6 +832,7 @@ void VisualizationFrame::save( Config config )
   manager_->save( config.mapMakeChild( "Visualization Manager" ));
   savePanels( config.mapMakeChild( "Panels" ));
   saveWindowGeometry( config.mapMakeChild( "Window Geometry" ));
+  savePreferences( config.mapMakeChild( "Preferences" ));
   saveToolbars( config.mapMakeChild( "Toolbars" ));
 }
 
@@ -822,6 +841,7 @@ void VisualizationFrame::load( const Config& config )
   manager_->load( config.mapGetChild( "Visualization Manager" ));
   loadPanels( config.mapGetChild( "Panels" ));
   loadWindowGeometry( config.mapGetChild( "Window Geometry" ));
+  loadPreferences( config.mapGetChild( "Preferences" ));
   configureToolbars( config.mapGetChild( "Toolbars" ));
 }
 
@@ -954,6 +974,16 @@ void VisualizationFrame::savePanels( Config config )
   }
 }
 
+void VisualizationFrame::loadPreferences( const Config& config )
+{
+  config.mapGetBool( "PromptSaveOnExit", &(preferences_->prompt_save_on_exit) );
+}
+
+void VisualizationFrame::savePreferences( Config config )
+{
+  config.mapSetValue( "PromptSaveOnExit", preferences_->prompt_save_on_exit );
+}
+
 bool VisualizationFrame::prepareToExit()
 {
   if( !initialized_ )
@@ -963,7 +993,7 @@ bool VisualizationFrame::prepareToExit()
 
   savePersistentSettings();
 
-  if( isWindowModified() )
+  if( isWindowModified() && preferences_->prompt_save_on_exit )
   {
     QMessageBox box( this );
     box.setText( "There are unsaved changes." );
@@ -1224,7 +1254,7 @@ void VisualizationFrame::onHelpDestroyed()
 
 void VisualizationFrame::onHelpWiki()
 {
-  QDesktopServices::openUrl( QUrl( "http://www.ros.org/wiki/rviz" ));
+  QDesktopServices::openUrl( QUrl( "http://wiki.ros.org/rviz" ));
 }
 
 void VisualizationFrame::onHelpAbout()

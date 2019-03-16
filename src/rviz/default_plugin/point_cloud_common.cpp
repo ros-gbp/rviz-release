@@ -35,8 +35,6 @@
 
 #include <ros/time.h>
 
-#include <tf/transform_listener.h>
-
 #include <pluginlib/class_loader.hpp>
 
 #include "rviz/default_plugin/point_cloud_transformer.h"
@@ -313,12 +311,12 @@ void PointCloudCommon::CloudInfo::clear()
 
 PointCloudCommon::PointCloudCommon( Display* display )
 : spinner_(1, &cbqueue_)
+, auto_size_(false)
 , new_xyz_transformer_(false)
 , new_color_transformer_(false)
 , needs_retransform_(false)
 , transformer_class_loader_(NULL)
 , display_( display )
-, auto_size_(false)
 {
   selectable_property_ = new BoolProperty( "Selectable", true,
                                            "Whether or not the points in this point cloud are selectable.",

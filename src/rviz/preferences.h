@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2018, Open Source Robotics Foundation, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <QColor>
-
-#include "rviz/properties/status_property.h"
-#include "rviz/display_context.h"
-#include "rviz/load_resource.h"
-
-#include "failed_display.h"
+#ifndef RVIZ_PREFERENCES_H
+#define RVIZ_PREFERENCES_H
 
 namespace rviz
 {
 
-FailedDisplay::FailedDisplay( const QString& desired_class_id, const QString& error_message )
-  : error_message_( error_message )
+struct Preferences
 {
-  setClassId( desired_class_id );
-  setIcon( loadPixmap( "package://rviz/icons/failed_display.png" ) );
-}
+  bool prompt_save_on_exit = true;
+};
 
-QVariant FailedDisplay::getViewData( int column, int role ) const
-{
-  if( column == 0 )
-  {
-    switch( role )
-    {
-    case Qt::ForegroundRole: return StatusProperty::statusColor( StatusProperty::Error );
-    default: break;
-    }
-  }
-  return Display::getViewData( column, role );
-}
+} //namespace rviz
 
-QString FailedDisplay::getDescription() const
-{
-  return "The class required for this display, '" + getClassId() + "', could not be loaded.<br><b>Error:</b><br>" + error_message_;
-}
-
-void FailedDisplay::load( const Config& config )
-{
-  saved_config_ = config;
-  Display::load( config );
-}
-
-void FailedDisplay::save( Config config )
-{
-  if( saved_config_.isValid() )
-  {
-    config.copy( saved_config_ );
-  }
-}
-
-} // end namespace rviz
+#endif // RVIZ_PREFERENCES_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <QColor>
+#ifndef RVIZ_PREFERENCES_DIALOG_H
+#define RVIZ_PREFERENCES_DIALOG_H
 
-#include "rviz/properties/status_property.h"
-#include "rviz/display_context.h"
-#include "rviz/load_resource.h"
+#include <QDialog>
 
-#include "failed_display.h"
+#include "rviz/factory.h"
+
+class QCheckBox;
+class QDialogButtonBox;
 
 namespace rviz
 {
 
-FailedDisplay::FailedDisplay( const QString& desired_class_id, const QString& error_message )
-  : error_message_( error_message )
-{
-  setClassId( desired_class_id );
-  setIcon( loadPixmap( "package://rviz/icons/failed_display.png" ) );
-}
+class Preferences;
 
-QVariant FailedDisplay::getViewData( int column, int role ) const
+class PreferencesDialog : public QDialog
 {
-  if( column == 0 )
-  {
-    switch( role )
-    {
-    case Qt::ForegroundRole: return StatusProperty::statusColor( StatusProperty::Error );
-    default: break;
-    }
-  }
-  return Display::getViewData( column, role );
-}
+Q_OBJECT
+public:
+  /** Dialog for setting preferences.
+   *
+   * @param preferences_output Pointer to Preferences struct where
+   *        preferences chosen by the user will be put.
+   */
+  PreferencesDialog( Factory* factory,
+                   Preferences* preferences_output,
+                   QWidget* parent = 0 );
 
-QString FailedDisplay::getDescription() const
-{
-  return "The class required for this display, '" + getClassId() + "', could not be loaded.<br><b>Error:</b><br>" + error_message_;
-}
+  virtual QSize sizeHint () const;
 
-void FailedDisplay::load( const Config& config )
-{
-  saved_config_ = config;
-  Display::load( config );
-}
+public Q_SLOTS:
+  virtual void accept();
 
-void FailedDisplay::save( Config config )
-{
-  if( saved_config_.isValid() )
-  {
-    config.copy( saved_config_ );
-  }
-}
+private:
+  /** Returns true if entered display name is non-empty and unique and
+   * if lookup name is non-empty. */
+  bool isValid();
 
-} // end namespace rviz
+  /** Display an error message to the user, or clear the previous
+   * error message if error_text is empty. */
+  void setError( const QString& error_text );
+
+  Factory* factory_;
+
+  QCheckBox* prompt_save_on_exit_checkbox_;
+  Preferences* preferences_;
+
+  /** Widget with OK and CANCEL buttons. */
+  QDialogButtonBox* button_box_;
+};
+
+} //namespace rviz
+
+#endif // RVIZ_NEW_OBJECT_DIALOG_H
