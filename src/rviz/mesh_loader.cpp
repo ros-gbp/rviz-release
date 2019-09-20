@@ -31,8 +31,7 @@
 #include <resource_retriever/retriever.h>
 
 #include <boost/filesystem.hpp>
-
-#include "ogre_helpers/stl_loader.h"
+#include <boost/algorithm/string.hpp>
 
 #include <OgreMeshManager.h>
 #include <OgreTextureManager.h>
@@ -437,6 +436,18 @@ void loadMaterials(const std::string& resource_path,
                    const aiScene* scene,
                    std::vector<Ogre::MaterialPtr>& material_table_out )
 {
+#if BOOST_FILESYSTEM_VERSION == 3
+  std::string ext = fs::path(resource_path).extension().string();
+#else
+  std::string ext = fs::path(resource_path).extension();
+#endif
+  boost::algorithm::to_lower(ext);
+  if (ext == ".stl" || ext == ".stlb")  // STL meshes don't support proper materials: use Ogre's default material
+  {
+    material_table_out.push_back(Ogre::MaterialManager::getSingleton().getByName("BaseWhiteNoLighting"));
+    return;
+  }
+
   for (uint32_t i = 0; i < scene->mNumMaterials; i++)
   {
     std::stringstream ss;
@@ -571,13 +582,10 @@ void loadMaterials(const std::string& resource_path,
 
 float getMeshUnitRescale(const std::string& resource_path)
 {
-  static std::map<std::string, float> rescale_cache;
-
-   
+  float unit_scale(1.0);
 
   // Try to read unit to meter conversion ratio from mesh. Only valid in Collada XML formats. 
   tinyxml2::XMLDocument xmlDoc;
-  float unit_scale(1.0);
   resource_retriever::Retriever retriever;
   resource_retriever::MemoryResource res;
   try
@@ -620,10 +628,6 @@ float getMeshUnitRescale(const std::string& resource_path)
         }
       }
     }
-  }
-  else
-  {
-    ROS_ERROR("XML parse error [%s]: %s", resource_path.c_str(), xmlDoc.ErrorName());
   }
   return unit_scale;
 }
@@ -671,7 +675,8 @@ Ogre::MeshPtr loadMeshFromResource(const std::string& resource_path)
 #else
     std::string ext = model_path.extension();
 #endif
-    if (ext == ".mesh" || ext == ".MESH")
+    boost::algorithm::to_lower(ext);
+    if (ext == ".mesh")
     {
       resource_retriever::Retriever retriever;
       resource_retriever::MemoryResource res;
@@ -692,38 +697,10 @@ Ogre::MeshPtr loadMeshFromResource(const std::string& resource_path)
 
       Ogre::MeshSerializer ser;
       Ogre::DataStreamPtr stream(new Ogre::MemoryDataStream(res.data.get(), res.size));
-      Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().createManual(resource_path, "rviz");
+      Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().createManual(resource_path, ROS_PACKAGE_NAME);
       ser.importMesh(stream, mesh.get());
 
       return mesh;
-    }
-    else if (ext == ".stl" || ext == ".STL" || ext == ".stlb" || ext == ".STLB")
-    {
-      resource_retriever::Retriever retriever;
-      resource_retriever::MemoryResource res;
-      try
-      {
-        res = retriever.get(resource_path);
-      }
-      catch (resource_retriever::Exception& e)
-      {
-        ROS_ERROR("%s", e.what());
-        return Ogre::MeshPtr();
-      }
-
-      if (res.size == 0)
-      {
-        return Ogre::MeshPtr();
-      }
-
-      ogre_tools::STLLoader loader;
-      if (!loader.load(res.data.get(), res.size, resource_path))
-      {
-        ROS_ERROR("Failed to load file [%s]", resource_path.c_str());
-        return Ogre::MeshPtr();
-      }
-
-      return loader.toMesh(resource_path);
     }
     else
     {
