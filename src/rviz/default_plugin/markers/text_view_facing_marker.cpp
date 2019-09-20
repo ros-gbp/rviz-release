@@ -44,7 +44,7 @@ namespace rviz
 
 TextViewFacingMarker::TextViewFacingMarker(MarkerDisplay* owner, DisplayContext* context, Ogre::SceneNode* parent_node)
 : MarkerBase(owner, context, parent_node)
-, text_(0)
+, text_(nullptr)
 {
 }
 
@@ -80,9 +80,9 @@ void TextViewFacingMarker::onNewMessage(const MarkerConstPtr& old_message, const
 S_MaterialPtr TextViewFacingMarker::getMaterials()
 {
   S_MaterialPtr materials;
-  if ( text_->getMaterial().get() )
+  if ( text_ && text_->getMaterial().get() )
   {
-  materials.insert( text_->getMaterial() );
+    materials.insert( text_->getMaterial() );
   }
   return materials;
 }
