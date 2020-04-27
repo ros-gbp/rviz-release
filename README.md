@@ -1,3 +1,26 @@
+## rviz (melodic) - 1.13.11-1
+
+The packages in the `rviz` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --rosdistro melodic rviz` on `Mon, 27 Apr 2020 13:32:12 -0000`
+
+The `rviz` package was released.
+
+Version of package(s) in repository `rviz`:
+
+- upstream repository: https://github.com/ros-visualization/rviz.git
+- release repository: https://github.com/ros-gbp/rviz-release.git
+- rosdistro version: `1.13.9-2`
+- old version: `1.13.10-1`
+- new version: `1.13.11-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.3`
+- catkin_pkg version: `0.4.17`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.1`
+- vcstools version: `0.1.42`
+
+
 ## rviz (melodic) - 1.13.10-1
 
 The packages in the `rviz` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --rosdistro melodic rviz` on `Mon, 27 Apr 2020 11:07:51 -0000`
