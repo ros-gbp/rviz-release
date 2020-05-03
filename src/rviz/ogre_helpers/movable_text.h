@@ -58,18 +58,20 @@ class Font;
 
 namespace rviz
 {
-
 class MovableText : public Ogre::MovableObject, public Ogre::Renderable
 {
   /******************************** MovableText data ****************************/
 public:
   enum HorizontalAlignment
   {
-    H_LEFT, H_CENTER
+    H_LEFT,
+    H_CENTER
   };
   enum VerticalAlignment
   {
-    V_BELOW, V_ABOVE, V_CENTER
+    V_BELOW,
+    V_ABOVE,
+    V_CENTER
   };
 
 protected:
@@ -99,48 +101,47 @@ protected:
   Ogre::Vector3 mGlobalTranslation;
   Ogre::Vector3 mLocalTranslation;
 
-  Ogre::Camera *mpCam;
-  Ogre::RenderWindow *mpWin;
-  Ogre::Font *mpFont;
+  Ogre::Camera* mpCam;
+  Ogre::RenderWindow* mpWin;
+  Ogre::Font* mpFont;
   Ogre::MaterialPtr mpMaterial;
   Ogre::MaterialPtr mpBackgroundMaterial;
 
   /******************************** public methods ******************************/
 public:
-  MovableText(
-    const Ogre::String &caption,
-    const Ogre::String &fontName = "Liberation Sans",
-    Ogre::Real charHeight = 1.0,
-    const Ogre::ColourValue &color = Ogre::ColourValue::White);
-  virtual ~MovableText();
+  MovableText(const Ogre::String& caption,
+              const Ogre::String& fontName = "Liberation Sans",
+              Ogre::Real charHeight = 1.0,
+              const Ogre::ColourValue& color = Ogre::ColourValue::White);
+  ~MovableText() override;
 
 #if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
-  virtual void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables = false);
+  void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables = false) override;
 #endif
 
   // Set settings
-  void setFontName(const Ogre::String &fontName);
-  void setCaption(const Ogre::String &caption);
-  void setColor(const Ogre::ColourValue &color);
+  void setFontName(const Ogre::String& fontName);
+  void setCaption(const Ogre::String& caption);
+  void setColor(const Ogre::ColourValue& color);
   void setCharacterHeight(Ogre::Real height);
   void setLineSpacing(Ogre::Real height);
   void setSpaceWidth(Ogre::Real width);
   void setTextAlignment(const HorizontalAlignment& horizontalAlignment,
-      const VerticalAlignment& verticalAlignment);
+                        const VerticalAlignment& verticalAlignment);
   void setGlobalTranslation(Ogre::Vector3 trans);
   void setLocalTranslation(Ogre::Vector3 trans);
   void showOnTop(bool show = true);
 
   // Get settings
-  const Ogre::String &getFontName() const
+  const Ogre::String& getFontName() const
   {
     return mFontName;
   }
-  const Ogre::String &getCaption() const
+  const Ogre::String& getCaption() const
   {
     return mCaption;
   }
-  const Ogre::ColourValue &getColor() const
+  const Ogre::ColourValue& getColor() const
   {
     return mColor;
   }
@@ -165,12 +166,12 @@ public:
   {
     return mOnTop;
   }
-  Ogre::AxisAlignedBox GetAABB(void)
+  Ogre::AxisAlignedBox GetAABB()
   {
     return mAABB;
   }
 
-  const Ogre::MaterialPtr &getMaterial(void) const
+  const Ogre::MaterialPtr& getMaterial() const override
   {
     assert(!mpMaterial.isNull());
     return mpMaterial;
@@ -179,52 +180,51 @@ public:
 
   /******************************** protected methods and overload **************/
 protected:
-
   // from MovableText, create the object
   void _setupGeometry();
   void _updateColors();
 
   // from Ogre::MovableObject
-  void getWorldTransforms(Ogre::Matrix4 *xform) const;
-  Ogre::Real getBoundingRadius(void) const
+  void getWorldTransforms(Ogre::Matrix4* xform) const override;
+  Ogre::Real getBoundingRadius() const override
   {
     return mRadius;
   }
 
-  Ogre::Real getSquaredViewDepth(const Ogre::Camera* /*cam*/) const
+  Ogre::Real getSquaredViewDepth(const Ogre::Camera* /*cam*/) const override
   {
     return 0;
   }
 
-  const Ogre::Quaternion &getWorldOrientation(void) const;
-  const Ogre::Vector3 &getWorldPosition(void) const;
-  const Ogre::AxisAlignedBox &getBoundingBox(void) const
+  const Ogre::Quaternion& getWorldOrientation() const;
+  const Ogre::Vector3& getWorldPosition() const;
+  const Ogre::AxisAlignedBox& getBoundingBox() const override
   {
     return mAABB;
   }
 
-  const Ogre::String &getName(void) const
+  const Ogre::String& getName() const override
   {
     return mName;
   }
 
-  const Ogre::String &getMovableType(void) const
+  const Ogre::String& getMovableType() const override
   {
     static Ogre::String movType = "MovableText";
     return movType;
   }
 
-  void _notifyCurrentCamera(Ogre::Camera *cam);
-  void _updateRenderQueue(Ogre::RenderQueue* queue);
+  void _notifyCurrentCamera(Ogre::Camera* cam) override;
+  void _updateRenderQueue(Ogre::RenderQueue* queue) override;
 
   // from renderable
-  void getRenderOperation(Ogre::RenderOperation &op);
-  const Ogre::LightList &getLights(void) const
+  void getRenderOperation(Ogre::RenderOperation& op) override;
+  const Ogre::LightList& getLights() const override
   {
     return mLList;
   }
 };
 
-}
+} // namespace rviz
 
 #endif

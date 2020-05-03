@@ -39,14 +39,14 @@
 #include <OgreRenderTargetListener.h>
 #include <OgreSharedPtr.h>
 
-# include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/CameraInfo.h>
 
-# include <message_filters/subscriber.h>
-# include <tf2_ros/message_filter.h>
+#include <message_filters/subscriber.h>
+#include <tf2_ros/message_filter.h>
 
-# include "rviz/image/image_display_base.h"
-# include "rviz/image/ros_image_texture.h"
-# include "rviz/render_panel.h"
+#include "rviz/image/image_display_base.h"
+#include "rviz/image/ros_image_texture.h"
+#include "rviz/render_panel.h"
 #endif
 
 namespace Ogre
@@ -59,7 +59,6 @@ class Camera;
 
 namespace rviz
 {
-
 class EnumProperty;
 class FloatProperty;
 class IntProperty;
@@ -71,22 +70,22 @@ class DisplayGroupVisibilityProperty;
  * \class CameraDisplay
  *
  */
-class CameraDisplay: public ImageDisplayBase, public Ogre::RenderTargetListener
+class CameraDisplay : public ImageDisplayBase, public Ogre::RenderTargetListener
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   CameraDisplay();
-  virtual ~CameraDisplay();
+  ~CameraDisplay() override;
 
   // Overrides from Display
-  virtual void onInitialize();
-  virtual void fixedFrameChanged();
-  virtual void update( float wall_dt, float ros_dt );
-  virtual void reset();
+  void onInitialize() override;
+  void fixedFrameChanged() override;
+  void update(float wall_dt, float ros_dt) override;
+  void reset() override;
 
   // Overrides from Ogre::RenderTargetListener
-  virtual void preRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
-  virtual void postRenderTargetUpdate( const Ogre::RenderTargetEvent& evt );
+  void preRenderTargetUpdate(const Ogre::RenderTargetEvent& evt) override;
+  void postRenderTargetUpdate(const Ogre::RenderTargetEvent& evt) override;
 
   static const QString BACKGROUND;
   static const QString OVERLAY;
@@ -94,8 +93,8 @@ public:
 
 protected:
   // overrides from Display
-  virtual void onEnable();
-  virtual void onDisable();
+  void onEnable() override;
+  void onDisable() override;
 
   ROSImageTexture texture_;
   RenderPanel* render_panel_;
@@ -104,13 +103,13 @@ private Q_SLOTS:
   void forceRender();
   void updateAlpha();
 
-  virtual void updateQueueSize();
+  void updateQueueSize() override;
 
 private:
-  void subscribe();
-  void unsubscribe();
+  void subscribe() override;
+  void unsubscribe() override;
 
-  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+  void processMessage(const sensor_msgs::Image::ConstPtr& msg) override;
   void caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
 
   bool updateCamera();
@@ -149,4 +148,4 @@ private:
 
 } // namespace rviz
 
- #endif
+#endif
