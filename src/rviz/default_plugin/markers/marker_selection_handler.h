@@ -41,17 +41,17 @@ class QuaternionProperty;
 class VectorProperty;
 typedef std::pair<std::string, int32_t> MarkerID;
 
-class MarkerSelectionHandler: public SelectionHandler
+class MarkerSelectionHandler : public SelectionHandler
 {
 public:
-  MarkerSelectionHandler( const MarkerBase* marker, MarkerID id, DisplayContext* context );
-  virtual ~MarkerSelectionHandler();
+  MarkerSelectionHandler(const MarkerBase* marker, MarkerID id, DisplayContext* context);
+  ~MarkerSelectionHandler() override;
 
   Ogre::Vector3 getPosition();
   Ogre::Quaternion getOrientation();
 
-  virtual void createProperties( const Picked& obj, Property* parent_property );
-  virtual void updateProperties();
+  void createProperties(const Picked& obj, Property* parent_property) override;
+  void updateProperties() override;
 
 private:
   const MarkerBase* marker_;
@@ -63,4 +63,3 @@ private:
 } // end namespace rviz
 
 #endif
-
