@@ -37,7 +37,6 @@
 
 namespace rviz
 {
-
 class IntProperty;
 class PointCloudCommon;
 
@@ -46,26 +45,26 @@ class PointCloudCommon;
  * \brief Displays a Temperature message of type sensor_msgs::Temperature
  *
  */
-class TemperatureDisplay: public MessageFilterDisplay<sensor_msgs::Temperature>
+class TemperatureDisplay : public MessageFilterDisplay<sensor_msgs::Temperature>
 {
-Q_OBJECT
+  Q_OBJECT
 public:
   TemperatureDisplay();
-  ~TemperatureDisplay();
+  ~TemperatureDisplay() override;
 
-  virtual void reset();
+  void reset() override;
 
-  virtual void update( float wall_dt, float ros_dt );
+  void update(float wall_dt, float ros_dt) override;
 
 private Q_SLOTS:
   void updateQueueSize();
 
 protected:
   /** @brief Do initialization. Overridden from MessageFilterDisplay. */
-  virtual void onInitialize();
+  void onInitialize() override;
 
   /** @brief Process a single message.  Overridden from MessageFilterDisplay. */
-  virtual void processMessage( const sensor_msgs::TemperatureConstPtr& msg );
+  void processMessage(const sensor_msgs::TemperatureConstPtr& msg) override;
 
   IntProperty* queue_size_property_;
 
