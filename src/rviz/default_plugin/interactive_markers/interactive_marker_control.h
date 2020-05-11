@@ -45,10 +45,10 @@
 
 #include <visualization_msgs/InteractiveMarkerControl.h>
 
-#include "rviz/default_plugin/markers/marker_base.h"
-#include "rviz/selection/forwards.h"
-#include "rviz/viewport_mouse_event.h"
-#include "rviz/interactive_object.h"
+#include <rviz/default_plugin/markers/marker_base.h>
+#include <rviz/selection/forwards.h>
+#include <rviz/viewport_mouse_event.h>
+#include <rviz/interactive_object.h>
 
 namespace Ogre
 {
@@ -304,7 +304,7 @@ protected:
                      Ogre::Vector2& screen_pos);
 
   /// take all the materials, add a highlight pass and store a pointer to the pass for later use
-  void addHighlightPass(S_MaterialPtr materials);
+  void addHighlightPass(const S_MaterialPtr& materials);
 
   // set the highlight color to (a,a,a)
   void setHighlight(float a);
@@ -347,7 +347,7 @@ protected:
 
   CollObjectHandle coll_object_handle_;
 
-  /** Node representing reference frame in tf, like /map, /base_link,
+  /** Node representing reference frame in tf, like map, base_link,
    * /head, etc.  Same as the field in InteractiveMarker. */
   Ogre::SceneNode* reference_node_;
 

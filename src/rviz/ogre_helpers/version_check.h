@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2019, Bielefeld University
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *     * Neither the name of Bielefeld University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
@@ -26,61 +26,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef OGRE_HELPERS_VERSION_CHECK_H
+#define OGRE_HELPERS_VERSION_CHECK_H
 
-#include <QVBoxLayout>
-#include <QTextBrowser>
-#include <QUrl>
+// For use like #if (OGRE_VERSION >= OGRE_VERSION_CHECK(1, 9, 0))
+#define OGRE_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
-#include <boost/filesystem.hpp>
-
-#include <rviz/visualization_manager.h>
-
-#include <rviz/help_panel.h>
-
-namespace fs = boost::filesystem;
-
-namespace rviz
-{
-HelpPanel::HelpPanel(QWidget* parent) : Panel(parent), browser_(nullptr)
-{
-  QVBoxLayout* layout = new QVBoxLayout(this);
-  browser_ = new QTextBrowser();
-  layout->addWidget(browser_);
-}
-
-HelpPanel::~HelpPanel()
-{
-}
-
-void HelpPanel::onInitialize()
-{
-  setHelpFile(vis_manager_->getHelpPath());
-}
-
-void HelpPanel::setHelpFile(const QString& qfile_path)
-{
-  std::string file_path = qfile_path.toStdString();
-
-  if (!fs::exists(file_path))
-  {
-    browser_->setText("Help file '" + qfile_path + "' does not exist.");
-  }
-  else if (fs::is_directory(file_path))
-  {
-    browser_->setText("Help file '" + qfile_path + "' is a directory, not a file.");
-  }
-  else
-  {
-    QUrl url = QUrl::fromLocalFile(qfile_path);
-    if (browser_->source() == url)
-    {
-      browser_->reload();
-    }
-    else
-    {
-      browser_->setSource(url);
-    }
-  }
-}
-
-} // end namespace rviz
+#endif // OGRE_HELPERS_VERSION_CHECK_H

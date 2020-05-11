@@ -14,13 +14,14 @@ env:
   global:
     - ROS_DISTRO=melodic
     - ROS_REPO=ros
-    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-strict-aliasing -Wno-sign-compare"
-    - WARNINGS_OK=true
+    - UPSTREAM_WORKSPACE="https://github.com/ros-visualization/interactive_markers#noetic-devel, https://github.com/rhaschke/python_qt_binding"
+    - CXXFLAGS="-Wall -Wextra -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wno-strict-aliasing"
+    - WARNINGS_OK=false
     - ABI_BASE_URL=https://ni.www.techfak.uni-bielefeld.de/abicheck/rviz-${ROS_DISTRO}.tar.gz
 
   jobs:
     - TEST=catkin_lint,clang-format
-    - TEST=abi,clang-tidy-fix
+    - TEST=clang-tidy-fix
 
 before_script:
   - git clone -q --depth=1 https://github.com/ros-planning/moveit_ci.git .moveit_ci
