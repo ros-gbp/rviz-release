@@ -56,7 +56,7 @@ class RenderQueue;
 class Camera;
 class RenderSystem;
 class Matrix4;
-}
+} // namespace Ogre
 
 namespace rviz
 {
@@ -66,6 +66,8 @@ class PointCloudRenderable : public Ogre::SimpleRenderable
 public:
   PointCloudRenderable(PointCloud* parent, int num_points, bool use_tex_coords);
   ~PointCloudRenderable() override;
+
+  using Ogre::SimpleRenderable::getRenderOperation;
 
   Ogre::RenderOperation* getRenderOperation()
   {
