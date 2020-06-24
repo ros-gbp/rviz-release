@@ -31,13 +31,9 @@
 #define RVIZ_ROBOT_LINK_UPDATER_H
 
 #include <string>
-#include "rviz/properties/status_property.h"
+#include <rviz/properties/status_property.h>
 
-namespace Ogre
-{
-class Vector3;
-class Quaternion;
-}
+#include <OgrePrerequisites.h>
 
 namespace rviz
 {

@@ -43,19 +43,20 @@
 
 #include <tf2_ros/message_filter.h>
 
-#include "rviz/bit_allocator.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/properties/ros_topic_property.h"
-#include "rviz/render_panel.h"
-#include "rviz/uniform_string_stream.h"
-#include "rviz/validate_floats.h"
-#include "rviz/display_context.h"
-#include "rviz/properties/display_group_visibility_property.h"
-#include "rviz/load_resource.h"
+#include <rviz/bit_allocator.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/axes.h>
+#include <rviz/ogre_helpers/compatibility.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/render_panel.h>
+#include <rviz/uniform_string_stream.h>
+#include <rviz/validate_floats.h>
+#include <rviz/display_context.h>
+#include <rviz/properties/display_group_visibility_property.h>
+#include <rviz/load_resource.h>
 
 #include <image_transport/camera_common.h>
 
@@ -115,8 +116,8 @@ CameraDisplay::~CameraDisplay()
     delete bg_screen_rect_;
     delete fg_screen_rect_;
 
-    bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName());
-    fg_scene_node_->getParentSceneNode()->removeAndDestroyChild(fg_scene_node_->getName());
+    removeAndDestroyChildNode(bg_scene_node_->getParentSceneNode(), bg_scene_node_);
+    removeAndDestroyChildNode(fg_scene_node_->getParentSceneNode(), fg_scene_node_);
 
     context_->visibilityBits()->freeBits(vis_bit_);
   }
@@ -160,7 +161,7 @@ void CameraDisplay::onInitialize()
 
     bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND);
     bg_screen_rect_->setBoundingBox(aabInf);
-    bg_screen_rect_->setMaterial(bg_material_->getName());
+    setMaterial(*bg_screen_rect_, bg_material_);
 
     bg_scene_node_->attachObject(bg_screen_rect_);
     bg_scene_node_->setVisible(false);
@@ -171,7 +172,7 @@ void CameraDisplay::onInitialize()
 
     fg_material_ = bg_material_->clone(ss.str() + "fg");
     fg_screen_rect_->setBoundingBox(aabInf);
-    fg_screen_rect_->setMaterial(fg_material_->getName());
+    setMaterial(*fg_screen_rect_, fg_material_);
 
     fg_material_->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     fg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
@@ -194,8 +195,6 @@ void CameraDisplay::onInitialize()
   render_panel_->setAutoRender(false);
   render_panel_->setOverlaysEnabled(false);
   render_panel_->getCamera()->setNearClipDistance(0.01f);
-
-  caminfo_sub_.registerCallback(boost::bind(&CameraDisplay::caminfoCallback, this, _1));
 
   vis_bit_ = context_->visibilityBits()->allocBit();
   render_panel_->getViewport()->setVisibilityMask(vis_bit_);
@@ -254,7 +253,7 @@ void CameraDisplay::subscribe()
   {
     const std::string caminfo_topic =
         image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
-    caminfo_sub_.subscribe(update_nh_, caminfo_topic, 1);
+    caminfo_sub_ = update_nh_.subscribe(caminfo_topic, 1, &CameraDisplay::processCamInfoMessage, this);
   }
   catch (ros::Exception& e)
   {
@@ -265,7 +264,7 @@ void CameraDisplay::subscribe()
 void CameraDisplay::unsubscribe()
 {
   ImageDisplayBase::unsubscribe();
-  caminfo_sub_.unsubscribe();
+  caminfo_sub_.shutdown();
 
   boost::mutex::scoped_lock lock(caminfo_mutex_);
   current_caminfo_.reset();
@@ -300,15 +299,6 @@ void CameraDisplay::forceRender()
 void CameraDisplay::updateQueueSize()
 {
   ImageDisplayBase::updateQueueSize();
-}
-
-// TODO: In Noetic remove and integrate into reset()
-void CameraDisplay::clear()
-{
-  texture_.clear();
-  force_render_ = true;
-  context_->queueRender();
-  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 void CameraDisplay::update(float /*wall_dt*/, float /*ros_dt*/)
@@ -400,9 +390,9 @@ bool CameraDisplay::updateCamera()
 
   if (img_height == 0.0 || img_width == 0.0)
   {
-    setStatus(StatusProperty::Error, "Camera Info", "Could not determine width/height of image due to "
-                                                    "malformed CameraInfo (either width or height is "
-                                                    "0)");
+    setStatus(StatusProperty::Error, "Camera Info",
+              "Could not determine width/height of image due to malformed CameraInfo "
+              "(either width or height is 0)");
     return false;
   }
 
@@ -516,7 +506,7 @@ void CameraDisplay::processMessage(const sensor_msgs::Image::ConstPtr& msg)
   texture_.addMessage(msg);
 }
 
-void CameraDisplay::caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg)
+void CameraDisplay::processCamInfoMessage(const sensor_msgs::CameraInfo::ConstPtr& msg)
 {
   boost::mutex::scoped_lock lock(caminfo_mutex_);
   current_caminfo_ = msg;
@@ -530,7 +520,6 @@ void CameraDisplay::fixedFrameChanged()
 
 void CameraDisplay::reset()
 {
-  clear();
   ImageDisplayBase::reset();
   // We explicitly do not reset current_caminfo_ here: If we are subscribed to a latched caminfo topic,
   // we will not receive another message after reset, i.e. the caminfo could not be recovered.
@@ -542,11 +531,14 @@ void CameraDisplay::reset()
     const std::string caminfo_topic = image_transport::getCameraInfoTopic(topic);
     boost::mutex::scoped_lock lock(caminfo_mutex_);
     if (!current_caminfo_)
-      setStatus(StatusProperty::Warn, "Camera Info", "No CameraInfo received on [" +
-                                                         QString::fromStdString(caminfo_topic) +
-                                                         "].\n"
-                                                         "Topic may not exist.");
+      setStatus(StatusProperty::Warn, "Camera Info",
+                "No CameraInfo received on [" + QString::fromStdString(caminfo_topic) +
+                    "].\nTopic may not exist.");
   }
+  texture_.clear();
+  force_render_ = true;
+  context_->queueRender();
+  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 } // namespace rviz

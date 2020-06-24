@@ -34,13 +34,13 @@
 
 #include <OgreColourValue.h>
 
-#include "rviz/properties/bool_property.h"
+#include <rviz/properties/bool_property.h>
 
 namespace Ogre
 {
 class SceneManager;
 class SceneNode;
-}
+} // namespace Ogre
 
 namespace rviz
 {

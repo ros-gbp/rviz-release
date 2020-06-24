@@ -33,13 +33,13 @@
 #include <OgreMaterial.h>
 #include <OgreSharedPtr.h>
 
-#include "rviz/default_plugin/markers/marker_base.h"
+#include <rviz/default_plugin/markers/marker_base.h>
 
 namespace Ogre
 {
 class SceneNode;
 class ManualObject;
-}
+} // namespace Ogre
 
 namespace rviz
 {

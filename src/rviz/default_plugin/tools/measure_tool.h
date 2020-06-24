@@ -27,16 +27,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /*
-* measure_tool.h
-*
-*  Created on: Aug 8, 2012
-*      Author: gossow
-*/
+ * measure_tool.h
+ *
+ *  Created on: Aug 8, 2012
+ *      Author: gossow
+ */
 
 #ifndef MEASURE_TOOL_H_
 #define MEASURE_TOOL_H_
 
-#include "rviz/tool.h"
+#include <rviz/tool.h>
 
 #include <OgreVector3.h>
 

@@ -47,7 +47,7 @@ class Root;
 class Camera;
 class RaySceneQuery;
 class ParticleSystem;
-}
+} // namespace Ogre
 
 namespace ros
 {
@@ -164,13 +164,9 @@ protected:
   Display* display_;
 
 private Q_SLOTS:
-  // TODO(simonschmeisser) remove this in noetic
-  void sendMouseMoveEvent();
   void onContextMenuHide();
 
 private:
-  // TODO(simonschmeisser) remove this in noetic
-  QTimer* fake_mouse_move_event_timer_;
   Ogre::Camera* default_camera_; ///< A default camera created in initialize().
 };
 

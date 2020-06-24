@@ -42,10 +42,11 @@
 #include <OgreTechnique.h>
 #include <OgreCamera.h>
 
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/render_panel.h"
-#include "rviz/validate_floats.h"
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/compatibility.h>
+#include <rviz/render_panel.h>
+#include <rviz/validate_floats.h>
 
 #include <sensor_msgs/image_encodings.h>
 
@@ -111,7 +112,7 @@ void ImageDisplay::onInitialize()
     Ogre::AxisAlignedBox aabInf;
     aabInf.setInfinite();
     screen_rect_->setBoundingBox(aabInf);
-    screen_rect_->setMaterial(material_->getName());
+    setMaterial(*screen_rect_, material_);
     img_scene_node_->attachObject(screen_rect_);
   }
 
@@ -137,7 +138,7 @@ ImageDisplay::~ImageDisplay()
   {
     delete render_panel_;
     delete screen_rect_;
-    img_scene_node_->getParentSceneNode()->removeAndDestroyChild(img_scene_node_->getName());
+    removeAndDestroyChildNode(img_scene_node_->getParentSceneNode(), img_scene_node_);
   }
 }
 
@@ -175,15 +176,6 @@ void ImageDisplay::updateNormalizeOptions()
     max_property_->setHidden(true);
     median_buffer_size_property_->setHidden(true);
   }
-}
-
-// TODO: In Noetic remove and integrate into reset()
-void ImageDisplay::clear()
-{
-  texture_.clear();
-
-  if (render_panel_->getCamera())
-    render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 void ImageDisplay::update(float wall_dt, float ros_dt)
@@ -228,8 +220,9 @@ void ImageDisplay::update(float wall_dt, float ros_dt)
 
 void ImageDisplay::reset()
 {
-  clear();
   ImageDisplayBase::reset();
+  texture_.clear();
+  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 /* This is called by incomingMessage(). */

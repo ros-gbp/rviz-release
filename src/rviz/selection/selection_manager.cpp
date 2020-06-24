@@ -56,19 +56,20 @@
 #include <ros/node_handle.h>
 #include <ros/publisher.h>
 
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/ogre_helpers/custom_parameter_indices.h"
-#include "rviz/ogre_helpers/qt_ogre_render_window.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/property_tree_model.h"
-#include "rviz/render_panel.h"
-#include "rviz/view_controller.h"
-#include "rviz/view_manager.h"
-#include "rviz/visualization_manager.h"
+#include <rviz/ogre_helpers/arrow.h>
+#include <rviz/ogre_helpers/axes.h>
+#include <rviz/ogre_helpers/custom_parameter_indices.h>
+#include <rviz/ogre_helpers/compatibility.h>
+#include <rviz/ogre_helpers/qt_ogre_render_window.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/property_tree_model.h>
+#include <rviz/render_panel.h>
+#include <rviz/view_controller.h>
+#include <rviz/view_manager.h>
+#include <rviz/visualization_manager.h>
 
-#include "rviz/selection/selection_manager.h"
+#include <rviz/selection/selection_manager.h>
 #include <vector>
 
 
@@ -99,7 +100,7 @@ SelectionManager::~SelectionManager()
 
   setSelection(M_Picked());
 
-  highlight_node_->getParentSceneNode()->removeAndDestroyChild(highlight_node_->getName());
+  removeAndDestroyChildNode(highlight_node_->getParentSceneNode(), highlight_node_);
   delete highlight_rectangle_;
 
   for (uint32_t i = 0; i < s_num_render_textures_; ++i)
@@ -144,7 +145,7 @@ void SelectionManager::initialize()
       ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   material->setLightingEnabled(false);
   // material->getTechnique(0)->getPass(0)->setPolygonMode(Ogre::PM_WIREFRAME);
-  highlight_rectangle_->setMaterial(material->getName());
+  setMaterial(*highlight_rectangle_, material);
   Ogre::AxisAlignedBox aabInf;
   aabInf.setInfinite();
   highlight_rectangle_->setBoundingBox(aabInf);
@@ -626,13 +627,13 @@ void SelectionManager::renderAndUnpack(Ogre::Viewport* viewport,
 
 
 bool SelectionManager::render(Ogre::Viewport* viewport,
-                              Ogre::TexturePtr tex,
+                              const Ogre::TexturePtr& tex,
                               int x1,
                               int y1,
                               int x2,
                               int y2,
                               Ogre::PixelBox& dst_box,
-                              std::string material_scheme,
+                              const std::string& material_scheme,
                               unsigned texture_width,
                               unsigned texture_height)
 {
@@ -767,6 +768,7 @@ bool SelectionManager::render(Ogre::Viewport* viewport,
   ros::WallTime end = ros::WallTime::now();
   ros::WallDuration d = end - start;
   //  ROS_DEBUG("Render took [%f] msec", d.toSec() * 1000.0f);
+  Q_UNUSED(d);
 
   Ogre::MaterialManager::getSingleton().removeListener(this);
 

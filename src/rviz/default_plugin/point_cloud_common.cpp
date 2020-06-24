@@ -37,20 +37,20 @@
 
 #include <pluginlib/class_loader.hpp>
 
-#include "rviz/default_plugin/point_cloud_transformer.h"
-#include "rviz/default_plugin/point_cloud_transformers.h"
-#include "rviz/display.h"
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/point_cloud.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/uniform_string_stream.h"
-#include "rviz/validate_floats.h"
+#include <rviz/default_plugin/point_cloud_transformer.h>
+#include <rviz/default_plugin/point_cloud_transformers.h>
+#include <rviz/display.h>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/point_cloud.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/uniform_string_stream.h>
+#include <rviz/validate_floats.h>
 
-#include "rviz/default_plugin/point_cloud_common.h"
+#include <rviz/default_plugin/point_cloud_common.h>
 
 namespace rviz
 {
@@ -336,10 +336,10 @@ PointCloudCommon::PointCloudCommon(Display* display)
                                                  SLOT(updateBillboardSize()), this);
   point_pixel_size_property_->setMin(1);
 
-  alpha_property_ =
-      new FloatProperty("Alpha", 1.0, "Amount of transparency to apply to the points.  Note that this "
-                                      "is experimental and does not always look correct.",
-                        display_, SLOT(updateAlpha()), this);
+  alpha_property_ = new FloatProperty("Alpha", 1.0,
+                                      "Amount of transparency to apply to the points. "
+                                      "Note that this is experimental and does not always look correct.",
+                                      display_, SLOT(updateAlpha()), this);
   alpha_property_->setMin(0);
   alpha_property_->setMax(1);
 

@@ -32,13 +32,13 @@
 #include <OgreRoot.h>
 #include <stdint.h>
 
-#include "rviz/rviz_export.h"
+#include <rviz/rviz_export.h>
 
 namespace Ogre
 {
 class OverlaySystem;
 class SceneManager;
-}
+} // namespace Ogre
 
 namespace rviz
 {

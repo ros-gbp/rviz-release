@@ -30,14 +30,14 @@
 #include "robot.h"
 #include "robot_link.h"
 #include "robot_joint.h"
-#include "properties/property.h"
-#include "properties/enum_property.h"
-#include "properties/bool_property.h"
-#include "display_context.h"
+#include <rviz/properties/property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/display_context.h>
 
-#include "ogre_helpers/object.h"
-#include "ogre_helpers/shape.h"
-#include "ogre_helpers/axes.h"
+#include <rviz/ogre_helpers/object.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/ogre_helpers/axes.h>
 
 #include <urdf_model/model.h>
 
@@ -101,9 +101,9 @@ Robot::~Robot()
 {
   clear();
 
-  scene_manager_->destroySceneNode(root_visual_node_->getName());
-  scene_manager_->destroySceneNode(root_collision_node_->getName());
-  scene_manager_->destroySceneNode(root_other_node_->getName());
+  scene_manager_->destroySceneNode(root_visual_node_);
+  scene_manager_->destroySceneNode(root_collision_node_);
+  scene_manager_->destroySceneNode(root_other_node_);
   delete link_factory_;
   delete link_tree_;
 }
@@ -440,7 +440,7 @@ void Robot::changedEnableAllLinks()
   inChangedEnableAllLinks = false;
 }
 
-void Robot::setEnableAllLinksCheckbox(QVariant val)
+void Robot::setEnableAllLinksCheckbox(const QVariant& val)
 {
   // doing_set_checkbox_ prevents changedEnableAllLinks from turning all
   // links off when we modify the enable_all_links_ property.
@@ -716,8 +716,9 @@ void Robot::update(const LinkUpdater& updater)
       // NaN.
       if (visual_orientation.isNaN())
       {
-        ROS_ERROR_THROTTLE(1.0, "visual orientation of %s contains NaNs. Skipping render as long as the "
-                                "orientation is invalid.",
+        ROS_ERROR_THROTTLE(1.0,
+                           "visual orientation of %s contains NaNs. "
+                           "Skipping render as long as the orientation is invalid.",
                            link->getName().c_str());
         continue;
       }
@@ -731,15 +732,17 @@ void Robot::update(const LinkUpdater& updater)
       }
       if (collision_orientation.isNaN())
       {
-        ROS_ERROR_THROTTLE(1.0, "collision orientation of %s contains NaNs. Skipping render as long as "
-                                "the orientation is invalid.",
+        ROS_ERROR_THROTTLE(1.0,
+                           "collision orientation of %s contains NaNs. "
+                           "Skipping render as long as the orientation is invalid.",
                            link->getName().c_str());
         continue;
       }
       if (collision_position.isNaN())
       {
-        ROS_ERROR_THROTTLE(1.0, "collision position of %s contains NaNs. Skipping render as long as the "
-                                "position is invalid.",
+        ROS_ERROR_THROTTLE(1.0,
+                           "collision position of %s contains NaNs. "
+                           "Skipping render as long as the position is invalid.",
                            link->getName().c_str());
         continue;
       }

@@ -51,7 +51,7 @@ namespace Ogre
 {
 class SceneNode;
 class Rectangle2D;
-}
+} // namespace Ogre
 
 namespace rviz
 {
@@ -89,9 +89,6 @@ protected:
   RenderPanel* render_panel_;
 
 private:
-  void clear();
-  void updateStatus();
-
   Ogre::SceneNode* img_scene_node_;
   Ogre::Rectangle2D* screen_rect_;
   Ogre::MaterialPtr material_;

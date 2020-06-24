@@ -32,7 +32,7 @@
 
 #include <cmath>
 
-#include "rviz/ogre_helpers/object.h"
+#include <rviz/ogre_helpers/object.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -48,7 +48,7 @@ namespace Ogre
 class SceneManager;
 class SceneNode;
 class Any;
-}
+} // namespace Ogre
 
 namespace Eigen
 {

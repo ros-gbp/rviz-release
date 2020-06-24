@@ -42,19 +42,18 @@
 #ifndef OGRE_TOOLS_MOVABLE_TEXT_H
 #define OGRE_TOOLS_MOVABLE_TEXT_H
 
+#include <rviz/ogre_helpers/version_check.h>
+#include <OgrePrerequisites.h>
 #include <OgreMovableObject.h>
 #include <OgreRenderable.h>
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-#include <OgreSharedPtr.h>
-
+#include <rviz/ogre_helpers/version_check.h>
 
 namespace Ogre
 {
 class RenderQueue;
 class Camera;
 class Font;
-}
+} // namespace Ogre
 
 namespace rviz
 {
@@ -85,6 +84,7 @@ protected:
   Ogre::ColourValue mColor;
   Ogre::RenderOperation mRenderOp;
   Ogre::AxisAlignedBox mAABB;
+  Ogre::AxisAlignedBox mCamFacingAABB;
   Ogre::LightList mLList;
 
   Ogre::Real mCharHeight;
@@ -115,9 +115,7 @@ public:
               const Ogre::ColourValue& color = Ogre::ColourValue::White);
   ~MovableText() override;
 
-#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
   void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables = false) override;
-#endif
 
   // Set settings
   void setFontName(const Ogre::String& fontName);
@@ -200,10 +198,14 @@ protected:
   const Ogre::Vector3& getWorldPosition() const;
   const Ogre::AxisAlignedBox& getBoundingBox() const override
   {
-    return mAABB;
+    return mCamFacingAABB;
   }
 
+#if OGRE_VERSION >= OGRE_VERSION_CHECK(1, 10, 4)
+  const Ogre::String& getName() const
+#else
   const Ogre::String& getName() const override
+#endif
   {
     return mName;
   }

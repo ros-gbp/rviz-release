@@ -35,9 +35,9 @@
 #include <ros/ros.h>
 #endif
 
-#include "rviz/properties/status_property.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/rviz_export.h"
+#include <rviz/properties/status_property.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/rviz_export.h>
 
 #include <QIcon>
 #include <QSet>
@@ -49,7 +49,7 @@ namespace Ogre
 {
 class SceneManager;
 class SceneNode;
-}
+} // namespace Ogre
 
 // needed for timeSignal
 Q_DECLARE_METATYPE(ros::Time);
@@ -328,6 +328,7 @@ private:
   uint32_t visibility_bits_;
   QWidget* associated_widget_;
   PanelDockWidget* associated_widget_panel_;
+  bool associated_widget_visible_;
 };
 
 } // end namespace rviz

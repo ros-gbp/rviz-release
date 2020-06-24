@@ -33,12 +33,12 @@
 
 #include <urdf/model.h>
 
-#include "rviz/display_context.h"
-#include "rviz/robot/robot.h"
-#include "rviz/robot/tf_link_updater.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/string_property.h"
+#include <rviz/display_context.h>
+#include <rviz/robot/robot.h>
+#include <rviz/robot/tf_link_updater.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/string_property.h>
 
 #include "robot_model_display.h"
 
@@ -64,10 +64,10 @@ RobotModelDisplay::RobotModelDisplay()
                    "Whether to display the collision representation of the robot.", this,
                    SLOT(updateCollisionVisible()));
 
-  update_rate_property_ =
-      new FloatProperty("Update Interval", 0, "Interval at which to update the links, in seconds. "
-                                              " 0 means to update every update cycle.",
-                        this);
+  update_rate_property_ = new FloatProperty("Update Interval", 0,
+                                            "Interval at which to update the links, in seconds. "
+                                            "0 means to update every update cycle.",
+                                            this);
   update_rate_property_->setMin(0);
 
   alpha_property_ = new FloatProperty("Alpha", 1, "Amount of transparency to apply to the links.", this,
