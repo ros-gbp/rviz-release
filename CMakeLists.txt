@@ -25,48 +25,40 @@ find_package(Boost REQUIRED
 
 find_package(urdfdom_headers REQUIRED)
 
-find_package(ASSIMP REQUIRED)
-include_directories(${ASSIMP_INCLUDE_DIRS})
-
-# OGRE doesn't come with correctly installed cmake files.
-# We need both, OGRE and OGRE-Overlay. Look for both simulatenously and use prefix X_
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(X OGRE OGRE-Overlay)
 
-# TODO: adapt version for Noetic release
-# Disable deprecation warnings for OGRE >= 1.10
-if(NOT X_OGRE_VERSION VERSION_LESS "1.10.0" AND NOT MSVC)
-  add_compile_options(-Wno-deprecated-declarations)
+find_package(ASSIMP QUIET)
+if (NOT ASSIMP_FOUND)
+  pkg_check_modules(ASSIMP assimp)
+endif()
+if (ASSIMP_FOUND)
+  if( NOT ${ASSIMP_VERSION} VERSION_LESS "2.0.1150" )
+    add_definitions(-DASSIMP_UNIFIED_HEADER_NAMES)
+    message(STATUS "Assimp version has unified headers")
+  else()
+    message(STATUS "Assimp version does not have unified headers")
+  endif()
+  include_directories(${ASSIMP_INCLUDE_DIRS})
+  #catkin_lint: ignore_once link_directory
+  link_directories(${ASSIMP_LIBRARY_DIRS})
+else()
+  message(STATUS "could not find assimp (perhaps available thorugh ROS package?), so assimping assimp v2")
+  set(ASSIMP_LIBRARIES assimp)
+  set(ASSIMP_LIBRARY_DIRS)
+  set(ASSIMP_CXX_FLAGS)
+  set(ASSIMP_CFLAGS_OTHER)
+  set(ASSIMP_LINK_FLAGS)
+  set(ASSIMP_INCLUDE_DIRS)
 endif()
 
-# find absolute path of ogre libraries.
-# This is stored in the cache to save time on cmake re-run.
-# Using absolute paths is necessary if pkg-config finds Ogre in a different
-# location than the default.  This can happen when Ogre is built from source,
-# or when 2 versions of Ogre are installed.  Using absolute paths ensures that
-# components that link against Ogre (rviz and any packages depending on rviz)
-# all find the same Ogre shared library.
-if(NOT DEFINED OGRE_LIBRARIES)
-  set(_OGRE_LIBRARIES)
-  foreach(_lib ${X_LIBRARIES})
-    set(_lib_tag "OGRE_RVIZ_${_lib}")
+pkg_check_modules(OGRE_OV OGRE OGRE-Overlay)
 
-    find_library(${_lib_tag}
-            NAMES ${_lib}
-            HINTS ${X_LIBRARY_DIRS}
-            PATHS ${X_LIBRARY_DIRS}
-    )
-
-    list(APPEND _OGRE_LIBRARIES ${${_lib_tag}})
-  endforeach(_lib)
-
-  set(OGRE_LIBRARIES ${_OGRE_LIBRARIES} CACHE STRING "Absolute paths to OGRE libs")
-endif(NOT DEFINED OGRE_LIBRARIES)
-message(STATUS "OGRE_LIBRARIES=${OGRE_LIBRARIES}")
-
-# Define OGRE_INCLUDE_DIRS as find_package would do
-set(OGRE_INCLUDE_DIRS ${X_INCLUDE_DIRS})
-message(STATUS "OGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}")
+# Old versions of OGRE (pre 1.9) included OGRE-Overlay in the main package
+# (i.e. there was no OGRE-Overlay component).  So if the above
+# pkg_check_modules() failed, try looking for just OGRE.
+if(NOT OGRE_OV_FOUND)
+  pkg_check_modules(OGRE_OV REQUIRED OGRE)
+endif(NOT OGRE_OV_FOUND)
 
 ## Find OGRE Plugin path (not necessarily platform-independent, I guess)
 if(NOT DEFINED OGRE_PLUGIN_PATH)
@@ -76,7 +68,32 @@ if(NOT DEFINED OGRE_PLUGIN_PATH)
     OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif(NOT DEFINED OGRE_PLUGIN_PATH)
-message(STATUS "OGRE_PLUGIN_PATH=${OGRE_PLUGIN_PATH}")
+message(STATUS OGRE_PLUGIN_PATH=${OGRE_PLUGIN_PATH})
+
+# find absolute path of ogre libraries.
+# This is stored in the cache to save time on cmake re-run.
+# Using absolute paths is necessary if pkg-config finds Ogre in a different
+# location than the default.  This can happen when Ogre is built from source,
+# or when 2 versions of Ogre are installed.  Using absolute paths ensures that
+# components that link against Ogre (rviz and any packages depending on rviz)
+# all find the same Ogre shared library.
+if(NOT DEFINED OGRE_OV_LIBRARIES_ABS)
+  unset(OGRE_OV_LIBRARIES_ABS_TMP)
+  foreach(_lib ${OGRE_OV_LIBRARIES})
+    set(OGRE_OV_LIB_TAG "OGRE_OV_RVIZ_LIB_${_lib}")
+
+    find_library(${OGRE_OV_LIB_TAG}
+            NAMES ${_lib}
+            HINTS ${OGRE_OV_LIBRARY_DIRS}
+            PATHS ${OGRE_OV_LIBRARY_DIRS}
+    )
+
+    set(OGRE_OV_LIBRARIES_ABS_TMP ${OGRE_OV_LIBRARIES_ABS_TMP} ${${OGRE_OV_LIB_TAG}})
+  endforeach(_lib)
+
+  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES_ABS_TMP}
+        CACHE FILEPATH "Pathname of library ${_lib}")
+endif(NOT DEFINED OGRE_OV_LIBRARIES_ABS)
 
 if(APPLE)
   FIND_LIBRARY(Cocoa_LIBRARIES Cocoa)
@@ -88,17 +105,21 @@ if(APPLE)
   add_definitions(-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
 endif()
 
-# Prefer newer vender-specific OpenGL library
-if (POLICY CMP0072)
-  cmake_policy(SET CMP0072 NEW)
-endif()
 find_package(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
-set(QT_LIBRARIES Qt5::Widgets)
-set(QTVERSION ${Qt5Widgets_VERSION})
+option(UseQt5 "UseQt5" ON)
+if (UseQt5)
+  find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+  # set variable names already used with Qt4
+  set(QT_LIBRARIES Qt5::Widgets)
+  set(QTVERSION ${Qt5Widgets_VERSION})
+else()
+  find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
+  include(${QT_USE_FILE})
+endif()
 add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED
@@ -123,8 +144,7 @@ find_package(catkin REQUIRED
   sensor_msgs
   std_msgs
   std_srvs
-  tf2_ros
-  tf2_geometry_msgs
+  tf
   urdf
   visualization_msgs
 )
@@ -145,6 +165,10 @@ endif()
 find_package(TinyXML2 REQUIRED)
 
 catkin_python_setup()
+
+if(NOT OGRE_OV_LIBRARIES_ABS)
+  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES})
+endif()
 
 # Set the Qt version for use in the extras file.
 set(rviz_QT_VERSION ${QTVERSION})
@@ -176,11 +200,11 @@ catkin_package(
     src
     ${EXPORT_HEADER_DIR}
     ${EIGEN3_INCLUDE_DIRS}
-    ${OGRE_INCLUDE_DIRS}
+    ${OGRE_OV_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIR}
   LIBRARIES
     rviz
-    ${OGRE_LIBRARIES}
+    ${OGRE_OV_LIBRARIES_ABS}
     ${rviz_ADDITIONAL_LIBRARIES}
     ${OPENGL_LIBRARIES}
   CATKIN_DEPENDS
@@ -199,18 +223,14 @@ catkin_package(
     sensor_msgs
     std_msgs
     std_srvs
-    tf2_ros
+    tf
     urdf
     visualization_msgs
 )
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14.0")
-    set(SYSTEM "SYSTEM")
-endif()
-
-include_directories(${SYSTEM}
+include_directories(SYSTEM
   ${EIGEN3_INCLUDE_DIRS}
-  ${OGRE_INCLUDE_DIRS}
+  ${OGRE_OV_INCLUDE_DIRS}
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
   ${TinyXML2_INCLUDE_DIRS}
@@ -218,7 +238,7 @@ include_directories(${SYSTEM}
 )
 #catkin_lint: ignore_once external_directory
 include_directories(src ${EXPORT_HEADER_DIR})
-include_directories(${SYSTEM} ${catkin_INCLUDE_DIRS})
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 
 #### If gtk ends up being the best way to get the correct window
 #### position under X11, this is how to compile it in.

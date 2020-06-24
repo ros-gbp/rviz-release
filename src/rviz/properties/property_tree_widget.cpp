@@ -31,12 +31,12 @@
 #include <QHash>
 #include <QSet>
 
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_delegate.h>
-#include <rviz/properties/splitter_handle.h>
-#include <rviz/properties/status_list.h>
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_delegate.h"
+#include "rviz/properties/splitter_handle.h"
+#include "rviz/properties/status_list.h"
 
-#include <rviz/properties/property_tree_widget.h>
+#include "rviz/properties/property_tree_widget.h"
 
 namespace rviz
 {
@@ -103,11 +103,12 @@ void PropertyTreeWidget::setModel(PropertyTreeModel* model)
   }
   model_ = model;
   QTreeView::setModel(model_);
-  QItemSelectionModel* m = selectionModel();
-  setSelectionModel(new PropertySelectionModel(model_));
-  m->deleteLater();
   if (model_)
   {
+    QItemSelectionModel* m = selectionModel();
+    setSelectionModel(new PropertySelectionModel(model_));
+    m->deleteLater();
+
     connect(model_, SIGNAL(propertyHiddenChanged(const Property*)), this,
             SLOT(propertyHiddenChanged(const Property*)), Qt::QueuedConnection);
     connect(model_, SIGNAL(expand(const QModelIndex&)), this, SLOT(expand(const QModelIndex&)));

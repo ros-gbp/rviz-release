@@ -76,6 +76,7 @@ public:
 
   Ogre::Real getBoundingRadius() const override;
   Ogre::Real getSquaredViewDepth(const Ogre::Camera* cam) const override;
+  void _notifyCurrentCamera(Ogre::Camera* camera) override;
   unsigned short getNumWorldTransforms() const override
   {
     return 1;
@@ -200,8 +201,11 @@ public:
     return 1;
   }
   void _updateRenderQueue(Ogre::RenderQueue* queue) override;
+  void _notifyCurrentCamera(Ogre::Camera* camera) override;
   void _notifyAttached(Ogre::Node* parent, bool isTagPoint = false) override;
+#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
   void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables) override;
+#endif
 
   virtual void setName(const std::string& name)
   {

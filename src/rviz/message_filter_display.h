@@ -34,13 +34,12 @@
 #include <tf2_ros/message_filter.h>
 #endif
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/ros_topic_property.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/properties/ros_topic_property.h"
 
-#include <rviz/display.h>
-#include <rviz/rviz_export.h>
+#include "rviz/display.h"
+#include "rviz/rviz_export.h"
 
 namespace rviz
 {
@@ -56,23 +55,14 @@ public:
     topic_property_ = new RosTopicProperty("Topic", "", "", "", this, SLOT(updateTopic()));
     unreliable_property_ =
         new BoolProperty("Unreliable", false, "Prefer UDP topic transport", this, SLOT(updateTopic()));
-    queue_size_property_ =
-        new IntProperty("Queue Size", 10,
-                        "Size of TF message filter queue.\n"
-                        "Increasing this is useful if your TF data is delayed significantly "
-                        "w.r.t. your data, but it can greatly increase memory usage as well.",
-                        this, SLOT(updateQueueSize()));
-    queue_size_property_->setMin(0);
   }
 
 protected Q_SLOTS:
   virtual void updateTopic() = 0;
-  virtual void updateQueueSize() = 0;
 
 protected:
   RosTopicProperty* topic_property_;
   BoolProperty* unreliable_property_;
-  IntProperty* queue_size_property_;
 };
 
 /** @brief Display subclass using a tf2_ros::MessageFilter, templated on the ROS message type.
@@ -99,10 +89,8 @@ public:
 
   void onInitialize() override
   {
-    tf_filter_ =
-        new tf2_ros::MessageFilter<MessageType>(*context_->getTF2BufferPtr(), fixed_frame_.toStdString(),
-                                                static_cast<uint32_t>(queue_size_property_->getInt()),
-                                                update_nh_);
+    tf_filter_ = new tf2_ros::MessageFilter<MessageType>(*context_->getTF2BufferPtr(),
+                                                         fixed_frame_.toStdString(), 10, update_nh_);
 
     tf_filter_->connectInput(sub_);
     tf_filter_->registerCallback(
@@ -141,12 +129,6 @@ protected:
     context_->queueRender();
   }
 
-  void updateQueueSize() override
-  {
-    tf_filter_->setQueueSize(static_cast<uint32_t>(queue_size_property_->getInt()));
-    subscribe();
-  }
-
   virtual void subscribe()
   {
     if (!isEnabled())
@@ -162,8 +144,7 @@ protected:
       {
         transport_hint = ros::TransportHints().unreliable();
       }
-      sub_.subscribe(update_nh_, topic_property_->getTopicStd(),
-                     static_cast<uint32_t>(queue_size_property_->getInt()), transport_hint);
+      sub_.subscribe(update_nh_, topic_property_->getTopicStd(), 10, transport_hint);
       setStatus(StatusProperty::Ok, "Topic", "OK");
     }
     catch (ros::Exception& e)

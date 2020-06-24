@@ -28,10 +28,8 @@
  */
 
 #include <QLocale>
-#include <utility>
 
-
-#include <rviz/config.h>
+#include "rviz/config.h"
 
 namespace rviz
 {
@@ -60,9 +58,7 @@ public:
   } data_;
 };
 
-// The default constructor should create an invalid node.
-// This allows Property::save() to validate whether anything was actually saved.
-Config::Node::Node() : type_(Invalid)
+Config::Node::Node() : type_(Empty)
 {
   data_.map = nullptr;
 }
@@ -127,17 +123,23 @@ Config::Config(const Config& source) : node_(source.node_)
 {
 }
 
-Config::Config(const QVariant& value) : node_(new Config::Node())
+Config::Config(QVariant value) : node_(new Config::Node())
 {
   setValue(value);
 }
 
-Config::Config(NodePtr node) : node_(std::move(node))
+Config::Config(NodePtr node) : node_(node)
 {
 }
 
 void Config::copy(const Config& source)
 {
+  if (!source.isValid())
+  {
+    node_ = NodePtr();
+    return;
+  }
+
   setType(source.getType());
   switch (source.getType())
   {
@@ -180,11 +182,18 @@ Config::Type Config::getType() const
 
 void Config::setType(Type new_type)
 {
-  makeValid();
-  node_->setType(new_type);
+  if (new_type == Invalid)
+  {
+    node_ = NodePtr();
+  }
+  else
+  {
+    makeValid();
+    node_->setType(new_type);
+  }
 }
 
-void Config::mapSetValue(const QString& key, const QVariant& value)
+void Config::mapSetValue(const QString& key, QVariant value)
 {
   mapMakeChild(key).setValue(value);
 }
@@ -198,14 +207,6 @@ Config Config::mapMakeChild(const QString& key)
   (*node_->data_.map)[key] = child.node_;
 
   return child;
-}
-
-void Config::mapRemoveChild(const QString& key)
-{
-  if (getType() != Map)
-    return;
-
-  (*node_->data_.map).remove(key);
 }
 
 Config Config::mapGetChild(const QString& key) const

@@ -27,13 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <tf/transform_listener.h>
+
 #include <geometry_msgs/PoseStamped.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <rviz/display_context.h>
-#include <rviz/properties/string_property.h>
+#include "rviz/display_context.h"
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/properties/string_property.h"
 
-#include <rviz/default_plugin/tools/goal_tool.h>
+#include "rviz/default_plugin/tools/goal_tool.h"
 
 namespace rviz
 {
@@ -49,6 +51,7 @@ GoalTool::GoalTool()
 void GoalTool::onInitialize()
 {
   PoseTool::onInitialize();
+  arrow_->setColor(1.0f, 0.0f, 1.0f, 1.0f);
   setName("2D Nav Goal");
   updateTopic();
 }
@@ -68,14 +71,12 @@ void GoalTool::updateTopic()
 void GoalTool::onPoseSet(double x, double y, double theta)
 {
   std::string fixed_frame = context_->getFixedFrame().toStdString();
-  tf2::Quaternion quat;
+  tf::Quaternion quat;
   quat.setRPY(0.0, 0.0, theta);
+  tf::Stamped<tf::Pose> p =
+      tf::Stamped<tf::Pose>(tf::Pose(quat, tf::Point(x, y, 0.0)), ros::Time::now(), fixed_frame);
   geometry_msgs::PoseStamped goal;
-  tf2::convert(goal.pose.orientation, quat);
-  goal.pose.position.x = x;
-  goal.pose.position.y = y;
-  goal.header.frame_id = fixed_frame;
-  goal.header.stamp = ros::Time::now();
+  tf::poseStampedTFToMsg(p, goal);
   ROS_INFO("Setting goal: Frame:%s, Position(%.3f, %.3f, %.3f), Orientation(%.3f, %.3f, %.3f, %.3f) = "
            "Angle: %.3f\n",
            fixed_frame.c_str(), goal.pose.position.x, goal.pose.position.y, goal.pose.position.z,

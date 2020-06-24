@@ -35,18 +35,18 @@
 #include <OgreBillboardSet.h>
 #include <OgreMatrix4.h>
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/validate_floats.h>
-#include <rviz/validate_quaternions.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/color_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/validate_floats.h"
+#include "rviz/validate_quaternions.h"
 
-#include <rviz/ogre_helpers/billboard_line.h>
-#include <rviz/default_plugin/path_display.h>
+#include "rviz/ogre_helpers/billboard_line.h"
+#include "rviz/default_plugin/path_display.h"
 
 namespace rviz
 {
@@ -130,11 +130,11 @@ void PathDisplay::reset()
 }
 
 
-void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t num)
+void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, int num)
 {
   if (num > axes_vect.size())
   {
-    for (size_t i = axes_vect.size(); i < num; ++i)
+    for (size_t i = axes_vect.size(); i < num; i++)
     {
       rviz::Axes* axes =
           new rviz::Axes(scene_manager_, scene_node_, pose_axes_length_property_->getFloat(),
@@ -144,7 +144,7 @@ void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t
   }
   else if (num < axes_vect.size())
   {
-    for (size_t i = axes_vect.size() - 1; num <= i; --i)
+    for (int i = axes_vect.size() - 1; num <= i; i--)
     {
       delete axes_vect[i];
     }
@@ -152,11 +152,11 @@ void PathDisplay::allocateAxesVector(std::vector<rviz::Axes*>& axes_vect, size_t
   }
 }
 
-void PathDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, size_t num)
+void PathDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, int num)
 {
   if (num > arrow_vect.size())
   {
-    for (size_t i = arrow_vect.size(); i < num; ++i)
+    for (size_t i = arrow_vect.size(); i < num; i++)
     {
       rviz::Arrow* arrow = new rviz::Arrow(scene_manager_, scene_node_);
       arrow_vect.push_back(arrow);
@@ -164,7 +164,7 @@ void PathDisplay::allocateArrowVector(std::vector<rviz::Arrow*>& arrow_vect, siz
   }
   else if (num < arrow_vect.size())
   {
-    for (size_t i = arrow_vect.size() - 1; num <= i; --i)
+    for (int i = arrow_vect.size() - 1; num <= i; i--)
     {
       delete arrow_vect[i];
     }
@@ -451,8 +451,7 @@ void PathDisplay::processMessage(const nav_msgs::Path::ConstPtr& msg)
   {
   case LINES:
     manual_object->estimateVertexCount(num_points);
-    manual_object->begin("BaseWhiteNoLighting", Ogre::RenderOperation::OT_LINE_STRIP,
-                         Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
+    manual_object->begin("BaseWhiteNoLighting", Ogre::RenderOperation::OT_LINE_STRIP);
     for (uint32_t i = 0; i < num_points; ++i)
     {
       const geometry_msgs::Point& pos = msg->poses[i].pose.position;
