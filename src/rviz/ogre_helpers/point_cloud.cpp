@@ -67,13 +67,13 @@ static float g_billboard_sphere_vertices[3 * 3] = {
 };
 
 static float g_box_vertices[6 * 6 * 3] = {
+    // clang-format off
     // front
     -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
     0.5f, -0.5f, -0.5f,
 
     // back
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f,
-    -0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
 
     // right
     0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5,
@@ -86,6 +86,7 @@ static float g_box_vertices[6 * 6 * 3] = {
 
     // bottom
     -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5,
+    // clang-format on
 };
 
 Ogre::String PointCloud::sm_Type = "PointCloud";
@@ -412,7 +413,14 @@ void PointCloud::addPoints(Point* points, uint32_t num_points)
   }
 
   Point* begin = &points_.front() + point_count_;
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
   memcpy(begin, points, sizeof(Point) * num_points);
+#if defined(__GNUC__) && (__GNUC__ >= 8)
+#pragma GCC diagnostic pop
+#endif
 
   uint32_t vpp = getVerticesPerPoint();
   Ogre::RenderOperation::OperationType op_type;
