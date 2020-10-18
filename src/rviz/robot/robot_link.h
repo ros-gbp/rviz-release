@@ -46,20 +46,15 @@
 #include <urdf/model.h> // can be replaced later by urdf_model/types.h
 #include <urdf_model/pose.h>
 
-#include "rviz/ogre_helpers/object.h"
-#include "rviz/selection/forwards.h"
+#include <rviz/ogre_helpers/object.h>
+#include <rviz/selection/forwards.h>
+
+#include <OgrePrerequisites.h>
 
 namespace Ogre
 {
-class SceneManager;
-class Entity;
-class SubEntity;
-class SceneNode;
-class Vector3;
-class Quaternion;
 class Any;
-class RibbonTrail;
-} // namespace Ogre
+}
 
 namespace rviz
 {
