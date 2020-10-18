@@ -8,7 +8,7 @@ if (POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -25,58 +25,66 @@ find_package(Boost REQUIRED
 
 find_package(urdfdom_headers REQUIRED)
 
+set(CMAKE_POLICY_DEFAULT_CMP0012 NEW)  # required due to a bug in assimp 5.0
 find_package(ASSIMP REQUIRED)
-include_directories(${ASSIMP_INCLUDE_DIRS})
-
-# OGRE doesn't come with correctly installed cmake files.
-# We need both, OGRE and OGRE-Overlay. Look for both simulatenously and use prefix X_
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(X OGRE OGRE-Overlay)
-
-# TODO: adapt version for Noetic release
-# Disable deprecation warnings for OGRE >= 1.10
-if(NOT X_OGRE_VERSION VERSION_LESS "1.10.0" AND NOT MSVC)
-  add_compile_options(-Wno-deprecated-declarations)
+if(NOT DEFINED ASSIMP_LIBRARIES AND TARGET assimp::assimp)
+  # ASSIMP >= 5.0 no longer defines ASSIMP_LIBRARIES
+  set(ASSIMP_LIBRARIES assimp::assimp)
 endif()
 
-# find absolute path of ogre libraries.
-# This is stored in the cache to save time on cmake re-run.
-# Using absolute paths is necessary if pkg-config finds Ogre in a different
-# location than the default.  This can happen when Ogre is built from source,
-# or when 2 versions of Ogre are installed.  Using absolute paths ensures that
-# components that link against Ogre (rviz and any packages depending on rviz)
-# all find the same Ogre shared library.
-if(NOT DEFINED OGRE_LIBRARIES)
-  set(_OGRE_LIBRARIES)
-  foreach(_lib ${X_LIBRARIES})
-    set(_lib_tag "OGRE_RVIZ_${_lib}")
+find_package(OGRE QUIET COMPONENTS Overlay)
+if(NOT OGRE_FOUND)
+  # OGRE doesn't come with correctly installed cmake files on Linux. Use pkg-config instead.
+  # We need both, OGRE and OGRE-Overlay. Look for both simulatenously and use prefix X_
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(X REQUIRED OGRE OGRE-Overlay)
 
-    find_library(${_lib_tag}
-            NAMES ${_lib}
-            HINTS ${X_LIBRARY_DIRS}
-            PATHS ${X_LIBRARY_DIRS}
-    )
+  # Set OGRE_* variables as cmake-based find_package would do
+  set(OGRE_VERSION ${X_OGRE_VERSION})
+  set(OGRE_INCLUDE_DIRS ${X_INCLUDE_DIRS})
+  message(STATUS "OGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}")
 
-    list(APPEND _OGRE_LIBRARIES ${${_lib_tag}})
-  endforeach(_lib)
+  # Find absolute path of OGRE libraries.
+  # This is stored in the cache to save time on cmake re-run.
+  # Using absolute paths is necessary if pkg-config finds Ogre in a different
+  # location than the default.  This can happen when Ogre is built from source,
+  # or when 2 versions of Ogre are installed.  Using absolute paths ensures that
+  # components that link against Ogre (rviz and any packages depending on rviz)
+  # all find the same Ogre shared library.
+  if(NOT DEFINED OGRE_LIBRARIES)
+    set(_OGRE_LIBRARIES)
+    foreach(_lib ${X_LIBRARIES})
+      set(_lib_tag "OGRE_RVIZ_${_lib}")
 
-  set(OGRE_LIBRARIES ${_OGRE_LIBRARIES} CACHE STRING "Absolute paths to OGRE libs")
-endif(NOT DEFINED OGRE_LIBRARIES)
-message(STATUS "OGRE_LIBRARIES=${OGRE_LIBRARIES}")
+      find_library(${_lib_tag}
+              NAMES ${_lib}
+              HINTS ${X_LIBRARY_DIRS}
+              PATHS ${X_LIBRARY_DIRS}
+      )
 
-# Define OGRE_INCLUDE_DIRS as find_package would do
-set(OGRE_INCLUDE_DIRS ${X_INCLUDE_DIRS})
-message(STATUS "OGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}")
+      list(APPEND _OGRE_LIBRARIES ${${_lib_tag}})
+    endforeach(_lib)
 
-## Find OGRE Plugin path (not necessarily platform-independent, I guess)
-if(NOT DEFINED OGRE_PLUGIN_PATH)
-  execute_process(COMMAND
-    ${PKG_CONFIG_EXECUTABLE} --variable=plugindir OGRE
-    OUTPUT_VARIABLE OGRE_PLUGIN_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-endif(NOT DEFINED OGRE_PLUGIN_PATH)
-message(STATUS "OGRE_PLUGIN_PATH=${OGRE_PLUGIN_PATH}")
+    set(OGRE_LIBRARIES ${_OGRE_LIBRARIES} CACHE STRING "Absolute paths to OGRE libs")
+  endif(NOT DEFINED OGRE_LIBRARIES)
+  message(STATUS "OGRE_LIBRARIES=${OGRE_LIBRARIES}")
+
+  ## Fetch OGRE_PLUGIN_DIR variable from pkg-config
+  if(NOT DEFINED OGRE_PLUGIN_DIR)
+    execute_process(COMMAND
+      ${PKG_CONFIG_EXECUTABLE} --variable=plugindir OGRE
+      OUTPUT_VARIABLE OGRE_PLUGIN_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+  endif(NOT DEFINED OGRE_PLUGIN_DIR)
+  message(STATUS "OGRE_PLUGIN_DIR=${OGRE_PLUGIN_DIR}")
+endif()
+
+# TODO: adapt version after upgrade to newer OGRE release
+# Disable deprecation warnings for OGRE >= 1.10
+if(NOT OGRE_VERSION VERSION_LESS "1.10.0" AND NOT MSVC)
+  add_compile_options(-Wno-deprecated-declarations)
+endif()
 
 if(APPLE)
   FIND_LIBRARY(Cocoa_LIBRARIES Cocoa)
@@ -204,21 +212,18 @@ catkin_package(
     visualization_msgs
 )
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14.0")
-    set(SYSTEM "SYSTEM")
-endif()
-
-include_directories(${SYSTEM}
+#catkin_lint: ignore_once external_directory
+include_directories(src ${EXPORT_HEADER_DIR})
+include_directories(SYSTEM
   ${EIGEN3_INCLUDE_DIRS}
   ${OGRE_INCLUDE_DIRS}
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
   ${TinyXML2_INCLUDE_DIRS}
   ${urdfdom_headers_INCLUDE_DIRS}
+  ${ASSIMP_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
-#catkin_lint: ignore_once external_directory
-include_directories(src ${EXPORT_HEADER_DIR})
-include_directories(${SYSTEM} ${catkin_INCLUDE_DIRS})
 
 #### If gtk ends up being the best way to get the correct window
 #### position under X11, this is how to compile it in.
@@ -229,8 +234,15 @@ include_directories(${SYSTEM} ${catkin_INCLUDE_DIRS})
 
 add_subdirectory(src)
 
+if(OGRE_VERSION VERSION_LESS "1.10")
+  set(EXCLUDE_PATTERN "ogre1.10.*")
+else()
+  set(EXCLUDE_PATTERN "ogre1.9.*")
+endif()
+
 install(DIRECTORY ogre_media
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  PATTERN "${EXCLUDE_PATTERN}" EXCLUDE
 )
 install(DIRECTORY icons
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
