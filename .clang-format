@@ -58,8 +58,8 @@ BreakBeforeBraces: Custom
 
 # Control of individual brace wrapping cases
 BraceWrapping:
-    AfterClass: true
     AfterCaseLabel: true
+    AfterClass: true
     AfterControlStatement: true
     AfterEnum: true
     AfterFunction: true

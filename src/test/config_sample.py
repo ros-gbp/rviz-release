@@ -2,12 +2,13 @@
 
 import roslib
 import sys
-setattr(sys, 'SELECT_QT_BINDING', 'pyqt')
-from python_qt_binding import QT_BINDING
+#setattr(sys, 'SELECT_QT_BINDING', 'pyside') # Shiboken
+setattr(sys, 'SELECT_QT_BINDING', 'pyqt') # SIP
+import python_qt_binding.QtBindingHelper # @UnusedImport
 
 from QtGui import *
 from QtCore import *
-from rviz import bindings as rviz
+import rviz
 
 c = rviz.Config()
 c.mapSetValue( "foo", 17 )

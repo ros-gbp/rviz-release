@@ -45,15 +45,20 @@
 #include <urdf/model.h>
 #include <urdf_model/pose.h>
 
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/selection/forwards.h>
-
-#include <OgrePrerequisites.h>
+#include "rviz/ogre_helpers/object.h"
+#include "rviz/selection/forwards.h"
 
 namespace Ogre
 {
+class SceneManager;
+class Entity;
+class SubEntity;
+class SceneNode;
+class Vector3;
+class Quaternion;
 class Any;
-}
+class RibbonTrail;
+} // namespace Ogre
 
 namespace rviz
 {
@@ -117,7 +122,7 @@ public:
   Ogre::Vector3 getPosition();
   Ogre::Quaternion getOrientation();
 
-  void setRobotAlpha(float /*unused*/)
+  void setRobotAlpha(float /*alpha*/)
   {
   }
 
@@ -165,7 +170,7 @@ private:
                     bool recursive) const; // True: all descendant links.  False: just single child link.
 
   // set the value of the enable checkbox without touching child joints/links
-  void setJointCheckbox(const QVariant& val);
+  void setJointCheckbox(QVariant val);
 
 
 protected:

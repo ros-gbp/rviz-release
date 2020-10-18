@@ -32,27 +32,29 @@
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/movable_text.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/quaternion_property.h>
-#include <rviz/properties/string_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/selection/forwards.h>
-#include <rviz/selection/selection_manager.h>
+#include <tf/transform_listener.h>
 
-#include <rviz/default_plugin/tf_display.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/ogre_helpers/movable_text.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/quaternion_property.h"
+#include "rviz/properties/string_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/selection/forwards.h"
+#include "rviz/selection/selection_manager.h"
+
+#include "rviz/default_plugin/tf_display.h"
 
 namespace rviz
 {
 class FrameSelectionHandler : public SelectionHandler
 {
 public:
-  FrameSelectionHandler(FrameInfo* frame, DisplayContext* context);
+  FrameSelectionHandler(FrameInfo* frame, TFDisplay* display, DisplayContext* context);
   ~FrameSelectionHandler() override
   {
   }
@@ -62,12 +64,13 @@ public:
 
   bool getEnabled();
   void setEnabled(bool enabled);
-  void setParentName(const std::string& parent_name);
+  void setParentName(std::string parent_name);
   void setPosition(const Ogre::Vector3& position);
   void setOrientation(const Ogre::Quaternion& orientation);
 
 private:
   FrameInfo* frame_;
+  TFDisplay* display_;
   Property* category_property_;
   BoolProperty* enabled_property_;
   StringProperty* parent_property_;
@@ -75,9 +78,12 @@ private:
   QuaternionProperty* orientation_property_;
 };
 
-FrameSelectionHandler::FrameSelectionHandler(FrameInfo* frame, DisplayContext* context)
+FrameSelectionHandler::FrameSelectionHandler(FrameInfo* frame,
+                                             TFDisplay* display,
+                                             DisplayContext* context)
   : SelectionHandler(context)
   , frame_(frame)
+  , display_(display)
   , category_property_(nullptr)
   , enabled_property_(nullptr)
   , parent_property_(nullptr)
@@ -132,7 +138,7 @@ void FrameSelectionHandler::setEnabled(bool enabled)
   }
 }
 
-void FrameSelectionHandler::setParentName(const std::string& parent_name)
+void FrameSelectionHandler::setParentName(std::string parent_name)
 {
   if (parent_property_)
   {
@@ -175,15 +181,10 @@ TFDisplay::TFDisplay() : Display(), update_timer_(0.0f), changing_single_frame_e
   scale_property_ =
       new FloatProperty("Marker Scale", 1, "Scaling factor for all names, axes and arrows.", this);
 
-  alpha_property_ = new FloatProperty("Marker Alpha", 1, "Alpha channel value for all axes.", this);
-  alpha_property_->setMin(0);
-  alpha_property_->setMax(1);
-
-  update_rate_property_ =
-      new FloatProperty("Update Interval", 0,
-                        "The interval, in seconds, at which to update the frame transforms. "
-                        "0 means to do so every update cycle.",
-                        this);
+  update_rate_property_ = new FloatProperty("Update Interval", 0,
+                                            "The interval, in seconds, at which to update the frame "
+                                            "transforms. 0 means to do so every update cycle.",
+                                            this);
   update_rate_property_->setMin(0);
 
   frame_timeout_property_ = new FloatProperty(
@@ -365,7 +366,17 @@ void TFDisplay::updateFrames()
 {
   typedef std::vector<std::string> V_string;
   V_string frames;
-  context_->getTF2BufferPtr()->_getFrameStrings(frames);
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+  context_->getTFClient()->getFrameStrings(frames);
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
   std::sort(frames.begin(), frames.end());
 
   S_FrameInfo current_frames;
@@ -423,7 +434,7 @@ FrameInfo* TFDisplay::createFrame(const std::string& frame)
   info->last_update_ = ros::Time::now();
   info->axes_ = new Axes(scene_manager_, axes_node_, 0.2, 0.02);
   info->axes_->getSceneNode()->setVisible(show_axes_property_->getBool());
-  info->selection_handler_.reset(new FrameSelectionHandler(info, context_));
+  info->selection_handler_.reset(new FrameSelectionHandler(info, this, context_));
   info->selection_handler_->addTrackedObjects(info->axes_->getSceneNode());
 
   info->name_text_ = new MovableText(frame, "Liberation Sans", 0.1);
@@ -488,13 +499,21 @@ Ogre::ColourValue lerpColor(const Ogre::ColourValue& start, const Ogre::ColourVa
 
 void TFDisplay::updateFrame(FrameInfo* frame)
 {
-  auto tf = context_->getTF2BufferPtr();
-  tf2::CompactFrameID target_id = tf->_lookupFrameNumber(fixed_frame_.toStdString());
-  tf2::CompactFrameID source_id = tf->_lookupFrameNumber(frame->name_);
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+  tf::TransformListener* tf = context_->getTFClient();
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
 
   // Check last received time so we can grey out/fade out frames that have stopped being published
   ros::Time latest_time;
-  tf->_getLatestCommonTime(target_id, source_id, latest_time, nullptr);
+  tf->getLatestCommonTime(fixed_frame_.toStdString(), frame->name_, latest_time, nullptr);
 
   if ((latest_time != frame->last_time_to_fixed_) || (latest_time == ros::Time()))
   {
@@ -574,8 +593,6 @@ void TFDisplay::updateFrame(FrameInfo* frame)
   frame->axes_->getSceneNode()->setVisible(show_axes_property_->getBool() && frame_enabled);
   float scale = scale_property_->getFloat();
   frame->axes_->setScale(Ogre::Vector3(scale, scale, scale));
-  float alpha = alpha_property_->getFloat();
-  frame->axes_->updateAlpha(alpha);
 
   frame->name_node_->setPosition(position);
   frame->name_node_->setVisible(show_names_property_->getBool() && frame_enabled);
@@ -586,7 +603,7 @@ void TFDisplay::updateFrame(FrameInfo* frame)
 
   std::string old_parent = frame->parent_;
   frame->parent_.clear();
-  bool has_parent = tf->_getParent(frame->name_, ros::Time(), frame->parent_);
+  bool has_parent = tf->getParent(frame->name_, ros::Time(), frame->parent_);
   if (has_parent)
   {
     // If this frame has no tree property or the parent has changed,
@@ -617,23 +634,33 @@ void TFDisplay::updateFrame(FrameInfo* frame)
       }
     }
 
-    geometry_msgs::TransformStamped transform;
+    tf::StampedTransform transform;
     try
     {
-      transform = tf->lookupTransform(frame->parent_, frame->name_, ros::Time());
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+      auto tf_client = context_->getFrameManager()->getTFClientPtr();
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
+      tf_client->lookupTransform(frame->parent_, frame->name_, ros::Time(0), transform);
     }
-    catch (tf2::TransformException& e)
+    catch (tf::TransformException& e)
     {
       ROS_DEBUG("Error transforming frame '%s' (parent of '%s') to frame '%s'", frame->parent_.c_str(),
                 frame->name_.c_str(), qPrintable(fixed_frame_));
-      transform.transform.rotation.w = 1.0;
     }
 
     // get the position/orientation relative to the parent frame
-    const auto& translation = transform.transform.translation;
-    const auto& quat = transform.transform.rotation;
-    Ogre::Vector3 relative_position(translation.x, translation.y, translation.z);
-    Ogre::Quaternion relative_orientation(quat.w, quat.x, quat.y, quat.z);
+    Ogre::Vector3 relative_position(transform.getOrigin().x(), transform.getOrigin().y(),
+                                    transform.getOrigin().z());
+    Ogre::Quaternion relative_orientation(transform.getRotation().w(), transform.getRotation().x(),
+                                          transform.getRotation().y(), transform.getRotation().z());
     frame->rel_position_property_->setVector(relative_position);
     frame->rel_orientation_property_->setQuaternion(relative_orientation);
 
@@ -713,7 +740,7 @@ TFDisplay::M_FrameInfo::iterator TFDisplay::deleteFrame(M_FrameInfo::iterator it
   context_->getSelectionManager()->removeObject(frame->axes_coll_);
   delete frame->parent_arrow_;
   delete frame->name_text_;
-  scene_manager_->destroySceneNode(frame->name_node_);
+  scene_manager_->destroySceneNode(frame->name_node_->getName());
   if (delete_properties)
   {
     delete frame->enabled_property_;

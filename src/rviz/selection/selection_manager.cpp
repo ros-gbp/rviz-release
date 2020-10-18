@@ -56,20 +56,19 @@
 #include <ros/node_handle.h>
 #include <ros/publisher.h>
 
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/custom_parameter_indices.h>
-#include <rviz/ogre_helpers/compatibility.h>
-#include <rviz/ogre_helpers/qt_ogre_render_window.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_model.h>
-#include <rviz/render_panel.h>
-#include <rviz/view_controller.h>
-#include <rviz/view_manager.h>
-#include <rviz/visualization_manager.h>
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/ogre_helpers/custom_parameter_indices.h"
+#include "rviz/ogre_helpers/qt_ogre_render_window.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_model.h"
+#include "rviz/render_panel.h"
+#include "rviz/view_controller.h"
+#include "rviz/view_manager.h"
+#include "rviz/visualization_manager.h"
 
-#include <rviz/selection/selection_manager.h>
+#include "rviz/selection/selection_manager.h"
 #include <vector>
 
 
@@ -100,7 +99,7 @@ SelectionManager::~SelectionManager()
 
   setSelection(M_Picked());
 
-  removeAndDestroyChildNode(highlight_node_->getParentSceneNode(), highlight_node_);
+  highlight_node_->getParentSceneNode()->removeAndDestroyChild(highlight_node_->getName());
   delete highlight_rectangle_;
 
   for (uint32_t i = 0; i < s_num_render_textures_; ++i)
@@ -145,7 +144,7 @@ void SelectionManager::initialize()
       ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   material->setLightingEnabled(false);
   // material->getTechnique(0)->getPass(0)->setPolygonMode(Ogre::PM_WIREFRAME);
-  setMaterial(*highlight_rectangle_, material);
+  highlight_rectangle_->setMaterial(material->getName());
   Ogre::AxisAlignedBox aabInf;
   aabInf.setInfinite();
   highlight_rectangle_->setBoundingBox(aabInf);
@@ -589,14 +588,10 @@ void SelectionManager::unpackColors(Ogre::PixelBox& box, V_CollObject& pixels)
   {
     for (int x = 0; x < w; x++)
     {
-      if (size == 4) // In case of a 4-byte color format, we can directly process the 32-bit values
-      {
-        uint32_t pos = (x + y * w) * 4;
-        uint32_t pix_val = *(uint32_t*)((uint8_t*)box.data + pos);
-        pixels.push_back(colorToHandle(box.format, pix_val));
-      }
-      else // otherwise perform "official" transformation into float-based Ogre::ColourValue and back
-        pixels.push_back(colorToHandle(box.getColourAt(x, y, 1)));
+      uint32_t pos = (x + y * w) * size;
+      uint32_t pix_val = 0;
+      memcpy((uint8_t*)&pix_val, (uint8_t*)box.data + pos, size);
+      pixels.push_back(colorToHandle(box.format, pix_val));
     }
   }
 }
@@ -627,13 +622,13 @@ void SelectionManager::renderAndUnpack(Ogre::Viewport* viewport,
 
 
 bool SelectionManager::render(Ogre::Viewport* viewport,
-                              const Ogre::TexturePtr& tex,
+                              Ogre::TexturePtr tex,
                               int x1,
                               int y1,
                               int x2,
                               int y2,
                               Ogre::PixelBox& dst_box,
-                              const std::string& material_scheme,
+                              std::string material_scheme,
                               unsigned texture_width,
                               unsigned texture_height)
 {
@@ -768,7 +763,6 @@ bool SelectionManager::render(Ogre::Viewport* viewport,
   ros::WallTime end = ros::WallTime::now();
   ros::WallDuration d = end - start;
   //  ROS_DEBUG("Render took [%f] msec", d.toSec() * 1000.0f);
-  Q_UNUSED(d);
 
   Ogre::MaterialManager::getSingleton().removeListener(this);
 
