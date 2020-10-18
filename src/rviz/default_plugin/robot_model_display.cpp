@@ -64,10 +64,10 @@ RobotModelDisplay::RobotModelDisplay()
                    "Whether to display the collision representation of the robot.", this,
                    SLOT(updateCollisionVisible()));
 
-  update_rate_property_ =
-      new FloatProperty("Update Interval", 0, "Interval at which to update the links, in seconds. "
-                                              " 0 means to update every update cycle.",
-                        this);
+  update_rate_property_ = new FloatProperty("Update Interval", 0,
+                                            "Interval at which to update the links, in seconds. "
+                                            "0 means to update every update cycle.",
+                                            this);
   update_rate_property_->setMin(0);
 
   alpha_property_ = new FloatProperty("Alpha", 1, "Amount of transparency to apply to the links.", this,
@@ -140,23 +140,32 @@ void RobotModelDisplay::load()
   context_->queueRender();
 
   std::string content;
-  if (!update_nh_.getParam(robot_description_property_->getStdString(), content))
+  try
   {
-    std::string loc;
-    if (update_nh_.searchParam(robot_description_property_->getStdString(), loc))
+    if (!update_nh_.getParam(robot_description_property_->getStdString(), content))
     {
-      update_nh_.getParam(loc, content);
+      std::string loc;
+      if (update_nh_.searchParam(robot_description_property_->getStdString(), loc))
+        update_nh_.getParam(loc, content);
+      else
+      {
+        clear();
+        setStatus(StatusProperty::Error, "URDF",
+                  QString("Parameter [%1] does not exist, and was not found by searchParam()")
+                      .arg(robot_description_property_->getString()));
+        // try again in a second
+        QTimer::singleShot(1000, this, SLOT(updateRobotDescription()));
+        return;
+      }
     }
-    else
-    {
-      clear();
-      setStatus(StatusProperty::Error, "URDF",
-                "Parameter [" + robot_description_property_->getString() +
-                    "] does not exist, and was not found by searchParam()");
-      // try again in a second
-      QTimer::singleShot(1000, this, SLOT(updateRobotDescription()));
-      return;
-    }
+  }
+  catch (const ros::InvalidNameException& e)
+  {
+    clear();
+    setStatus(StatusProperty::Error, "URDF",
+              QString("Invalid parameter name: %1.\n%2")
+                  .arg(robot_description_property_->getString(), e.what()));
+    return;
   }
 
   if (content.empty())
