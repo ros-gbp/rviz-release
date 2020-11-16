@@ -2,27 +2,78 @@
 Changelog for package rviz
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.13.15 (2020-11-16)
---------------------
+1.14.4 (2020-11-16)
+-------------------
+* [fix] MessageFilterDisplay: process messages synchronously (`#1560 <https://github.com/ros-visualization/rviz/issues/1560>`_)
 * [fix] Enforce GLSL 1.4 on Mesa systems (`#1559 <https://github.com/ros-visualization/rviz/issues/1559>`_)
 * [fix] Fix layout of editors in PropertyWidget (`#1558 <https://github.com/ros-visualization/rviz/issues/1558>`_)
 * Contributors: Robert Haschke
 
-1.13.14 (2020-10-18)
---------------------
-* [fix]   SplitterHandle: Consider scrollbar width. Fixes `#1545 <https://github.com/ros-visualization/rviz/issues/1545>`_.
-* [fix]   Handle InvalidNameException when loading robot description
-* [fix]   WrenchVisual: Add missing initialization of ``hide_small_values_``
-* [fix]   Fixup `#1519 <https://github.com/ros-visualization/rviz/issues/1519>`_: Correctly (and efficiently) handle 3-byte pixel formats
-* [maint] Adapt to clang-format-10
-* Contributors: Robert Haschke, Wolf Vollprecht
+1.14.3 (2020-10-20)
+-------------------
+* Fixed linking issue on Debian Buster: missing ~ScrewDisplay
+* Contributors: Robert Haschke
 
-1.13.13 (2020-06-24)
---------------------
-* [feature] Make the goal pose tool magenta (`#1520 <https://github.com/ros-visualization/rviz/issues/1520>`_)
-* [bugfix]  Fix memory access in case of 3-byte pixel formats (`#1519 <https://github.com/ros-visualization/rviz/issues/1519>`_)
-* [bugfix]  PropertyTree: set custom SelectionModel only with valid model (`#1504 <https://github.com/ros-visualization/rviz/issues/1504>`_)
-* Contributors: Ivor Wanders, Michael Görner, Robert Haschke
+1.14.2 (2020-10-19)
+-------------------
+* Merged melodic-devel improvements
+  * [fix]   SplitterHandle: Consider scrollbar width. Fixes `#1545 <https://github.com/ros-visualization/rviz/issues/1545>`_.
+  * [fix]   Handle InvalidNameException when loading robot description
+  * [fix]   WrenchVisual: Add missing initialization of ``hide_small_values_``
+  * [fix]   Fixup `#1519 <https://github.com/ros-visualization/rviz/issues/1519>`_: Correctly (and efficiently) handle 3-byte pixel formats
+  * [maint] Adapt to clang-format-10
+* [fix]     Selectively install font definition file, suppressing Ogre runtime warning
+* [fix]     Suppress cmake warning from libassimp
+* [feature] Generic ScrewDisplay for TwistStamped, AccelStamped, and WrenchStamped
+* [maint]   Find OGRE based on cmake config and fallback to pkg-config
+* [maint]   Correctly link against libassimp for version >= 5.0
+* Contributors: Chris Lalancette, Markus Vieth, Robert Haschke, Sean Yen, Wolf Vollprecht
+
+1.14.1 (2020-06-24)
+-------------------
+* Merged melodic-devel improvements
+  * [feature] Make the goal pose tool magenta (`#1520 <https://github.com/ros-visualization/rviz/issues/1520>`_)
+  * [bugfix]  Fix memory access in case of 3-byte pixel formats (`#1519 <https://github.com/ros-visualization/rviz/issues/1519>`_)
+  * [bugfix]  PropertyTree: set custom SelectionModel only with valid model (`#1504 <https://github.com/ros-visualization/rviz/issues/1504>`_)
+* [bugfix] Fix initial pose and goal pose tools (`#1510 <https://github.com/ros-visualization/rviz/issues/1510>`_)
+* [bugfix] Fix cutoff in LaserScanDisplay (`#1512 <https://github.com/ros-visualization/rviz/issues/1512>`_)
+* [maint]  Added test/send_point_cloud_2.py (`#1514 <https://github.com/ros-visualization/rviz/issues/1514>`_)
+* [maint]  Fix (or silence) warnings of newer gcc / clang
+* [maint]  clang-format-10
+* PropertyTree: set custom SelectionModel only with valid model (`#1504 <https://github.com/ros-visualization/rviz/issues/1504>`_)
+* Contributors: Evan Flynn, G.Doisy, Ivor Wanders, Michael Görner, Robert Haschke
+
+1.14.0 (2020-05-11)
+-------------------
+* [feature] Added scale and color properties to Marker selection panel (`#1436 <https://github.com/ros-visualization/rviz/issues/1436>`_)
+* [feature] `queue-size` property to `MessageFilterDisplay` (`#1428 <https://github.com/ros-visualization/rviz/issues/1428>`_)
+* [feature] Added ability to set Orbit camera's field of view (`#1362 <https://github.com/ros-visualization/rviz/issues/1362>`_)
+* [feature] Added ability to set alpha of Axes and TF displays (`#1357 <https://github.com/ros-visualization/rviz/issues/1357>`_)
+* [maint] Finalize `tf2` migration (`#1497 <https://github.com/ros-visualization/rviz/issues/1497>`_)
+  Support for `tf1` is dropped. The old `getTFClient()` needs to be replaced by `getTF2BufferPtr()`.
+* [maint] clang-tidy fixes
+* [maint] Modified Python API to allow import rviz.srv (for service messages provided by rviz)
+  In your python scripts, replace `import rviz` with: `from rviz import bindings as rviz`
+* [maint] Dropped support for outdated upstream libraries
+  * OGRE < 1.9
+  * boost::filesystem < 3
+  * assimp <= 2.0
+  * Qt < 5
+* [maint] API cleanup + fix of several warnings (requiring ABI changes)
+  - provide virtual constructors were required
+  - fix signed/unsigned API params
+  - Removed redundant forward of _notifyCurrentCamera()
+  - Renamed `add_tool_action_` -> `toolbar_separator_`
+  - MarkerSelection: fixed constness of methods
+  - Removed deprecated `STLLoader`
+* [maint] Ogre 1.9 ... 1.12+ compatibility (Merge pull request `#1434 <https://github.com/ros-visualization/rviz/issues/1434>`_)
+  - Ogre compatibility header `ogre_helpers/compatibility.h` to mitigate API differences
+  - Avoid referring to anonymous scene nodes by name
+* [maint] Prefer vendor-specific OpenGL library
+* [maint] Changed semantics of saving
+  - When `is_read_only_` is false, the property doesn't need to be saved as its value is computed
+  - When `save_` is false, the property and all its children are not saved
+* Contributors: Alex Spitzer, Fan Jiang, Hans Gaiser, Maarten de Vries, Micho Radovnikovich, Robert Haschke, Sean Yen, Simon Schmeisser, dkaznacheev
 
 1.13.12 (2020-05-03)
 --------------------

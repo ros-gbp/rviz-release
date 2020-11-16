@@ -27,8 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <QWidget>
 #include <QPainter>
+#include <QWidget>
+#include <utility>
+
 
 #include "scaled_image_widget.h"
 
@@ -40,7 +42,7 @@ ScaledImageWidget::ScaledImageWidget(float scale, QWidget* parent) : QWidget(par
 
 void ScaledImageWidget::setImage(QPixmap image)
 {
-  image_ = image;
+  image_ = std::move(image);
   update();
 }
 
