@@ -12,7 +12,7 @@ y = 0
 while not rospy.is_shutdown():
 
    odo = Odometry()
-   odo.header.frame_id = "base_link"
+   odo.header.frame_id = "/base_link"
    odo.header.stamp = rospy.Time.now()
 
    odo.pose.pose.position.x = 0

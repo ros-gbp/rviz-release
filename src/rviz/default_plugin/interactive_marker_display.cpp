@@ -27,15 +27,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rviz/frame_manager.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/validate_floats.h>
-#include <rviz/validate_quaternions.h>
-#include <rviz/display_context.h>
+#include <tf/transform_listener.h>
 
-#include <rviz/default_plugin/interactive_marker_display.h>
+#include "rviz/frame_manager.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/ros_topic_property.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/validate_floats.h"
+#include "rviz/validate_quaternions.h"
+#include "rviz/display_context.h"
+
+#include "rviz/default_plugin/interactive_marker_display.h"
 
 
 namespace rviz
@@ -106,7 +108,17 @@ InteractiveMarkerDisplay::InteractiveMarkerDisplay() : Display()
 
 void InteractiveMarkerDisplay::onInitialize()
 {
-  auto tf = context_->getFrameManager()->getTF2BufferPtr();
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+  tf::Transformer* tf = context_->getFrameManager()->getTFClient();
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
   im_client_.reset(new interactive_markers::InteractiveMarkerClient(*tf, fixed_frame_.toStdString()));
 
   im_client_->setInitCb(boost::bind(&InteractiveMarkerDisplay::initCb, this, _1));
@@ -202,8 +214,7 @@ void InteractiveMarkerDisplay::update(float wall_dt, float /*ros_dt*/)
   }
 }
 
-InteractiveMarkerDisplay::M_StringToIMPtr&
-InteractiveMarkerDisplay::getImMap(const std::string& server_id)
+InteractiveMarkerDisplay::M_StringToIMPtr& InteractiveMarkerDisplay::getImMap(std::string server_id)
 {
   M_StringToStringToIMPtr::iterator im_map_it = interactive_markers_.find(server_id);
 
@@ -326,20 +337,20 @@ void InteractiveMarkerDisplay::updatePoses(
   }
 }
 
-void InteractiveMarkerDisplay::initCb(const visualization_msgs::InteractiveMarkerInitConstPtr& msg)
+void InteractiveMarkerDisplay::initCb(visualization_msgs::InteractiveMarkerInitConstPtr msg)
 {
   resetCb(msg->server_id);
   updateMarkers(msg->server_id, msg->markers);
 }
 
-void InteractiveMarkerDisplay::updateCb(const visualization_msgs::InteractiveMarkerUpdateConstPtr& msg)
+void InteractiveMarkerDisplay::updateCb(visualization_msgs::InteractiveMarkerUpdateConstPtr msg)
 {
   updateMarkers(msg->server_id, msg->markers);
   updatePoses(msg->server_id, msg->poses);
   eraseMarkers(msg->server_id, msg->erases);
 }
 
-void InteractiveMarkerDisplay::resetCb(const std::string& server_id)
+void InteractiveMarkerDisplay::resetCb(std::string server_id)
 {
   interactive_markers_.erase(server_id);
   deleteStatusStd(server_id);

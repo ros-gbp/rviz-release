@@ -86,9 +86,10 @@ Grid::~Grid()
 {
   delete billboard_line_;
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
   scene_manager_->destroyManualObject(manual_object_);
-  Ogre::MaterialManager::getSingleton().remove(material_->getName());
+
+  material_->unload();
 }
 
 void Grid::setCellCount(uint32_t count)

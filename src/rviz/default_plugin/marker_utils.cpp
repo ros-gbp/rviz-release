@@ -28,22 +28,22 @@
  */
 
 #include "marker_utils.h"
-#include <rviz/default_plugin/markers/shape_marker.h>
-#include <rviz/default_plugin/markers/arrow_marker.h>
-#include <rviz/default_plugin/markers/line_list_marker.h>
-#include <rviz/default_plugin/markers/line_strip_marker.h>
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/default_plugin/markers/points_marker.h>
-#include <rviz/default_plugin/markers/text_view_facing_marker.h>
-#include <rviz/default_plugin/markers/mesh_resource_marker.h>
-#include <rviz/default_plugin/markers/triangle_list_marker.h>
-#include <rviz/display_context.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_model.h>
-#include <rviz/properties/status_property.h>
-#include <rviz/properties/status_list.h>
-#include <rviz/validate_quaternions.h>
-#include <rviz/validate_floats.h>
+#include "rviz/default_plugin/markers/shape_marker.h"
+#include "rviz/default_plugin/markers/arrow_marker.h"
+#include "rviz/default_plugin/markers/line_list_marker.h"
+#include "rviz/default_plugin/markers/line_strip_marker.h"
+#include "rviz/default_plugin/marker_display.h"
+#include "rviz/default_plugin/markers/points_marker.h"
+#include "rviz/default_plugin/markers/text_view_facing_marker.h"
+#include "rviz/default_plugin/markers/mesh_resource_marker.h"
+#include "rviz/default_plugin/markers/triangle_list_marker.h"
+#include "rviz/display_context.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_model.h"
+#include "rviz/properties/status_property.h"
+#include "rviz/properties/status_list.h"
+#include "rviz/validate_quaternions.h"
+#include "rviz/validate_floats.h"
 
 namespace rviz
 {
@@ -82,39 +82,6 @@ createMarker(int marker_type, MarkerDisplay* owner, DisplayContext* context, Ogr
 
   default:
     return nullptr;
-  }
-}
-
-QString getMarkerTypeName(unsigned int type)
-{
-  switch (type)
-  {
-  case visualization_msgs::Marker::ARROW:
-    return "Arrow";
-  case visualization_msgs::Marker::CUBE:
-    return "Cube";
-  case visualization_msgs::Marker::CUBE_LIST:
-    return "Cube List";
-  case visualization_msgs::Marker::TRIANGLE_LIST:
-    return "Triangle List";
-  case visualization_msgs::Marker::SPHERE:
-    return "Sphere";
-  case visualization_msgs::Marker::SPHERE_LIST:
-    return "Sphere List";
-  case visualization_msgs::Marker::CYLINDER:
-    return "Cylinder";
-  case visualization_msgs::Marker::LINE_STRIP:
-    return "Line Strip";
-  case visualization_msgs::Marker::LINE_LIST:
-    return "Line List";
-  case visualization_msgs::Marker::POINTS:
-    return "Points";
-  case visualization_msgs::Marker::TEXT_VIEW_FACING:
-    return "Text View Facing";
-  case visualization_msgs::Marker::MESH_RESOURCE:
-    return "Mesh";
-  default:
-    return "Unknown";
   }
 }
 
@@ -216,12 +183,6 @@ void checkScaleLineStripAndList(const visualization_msgs::Marker& marker,
     ss << "Width LINE_LIST or LINE_STRIP is 0.0 (scale.x).";
     increaseLevel(::ros::console::levels::Warn, level);
   }
-  else if (marker.scale.y != 0.0 || marker.scale.z != 0.0)
-  {
-    addSeparatorIfRequired(ss);
-    ss << "scale.y and scale.z of LINE_LIST or LINE_STRIP are ignored.";
-    increaseLevel(::ros::console::levels::Warn, level);
-  }
 }
 
 void checkScalePoints(const visualization_msgs::Marker& marker,
@@ -232,12 +193,6 @@ void checkScalePoints(const visualization_msgs::Marker& marker,
   {
     addSeparatorIfRequired(ss);
     ss << "Width and/or height of POINTS is 0.0 (scale.x, scale.y).";
-    increaseLevel(::ros::console::levels::Warn, level);
-  }
-  else if (marker.scale.z != 0.0)
-  {
-    addSeparatorIfRequired(ss);
-    ss << "scale.z of POINTS is ignored.";
     increaseLevel(::ros::console::levels::Warn, level);
   }
 }
@@ -251,12 +206,6 @@ void checkScaleText(const visualization_msgs::Marker& marker,
     addSeparatorIfRequired(ss);
     ss << "Text height of TEXT_VIEW_FACING is 0.0 (scale.z).";
     increaseLevel(::ros::console::levels::Warn, level);
-  }
-  else if (marker.scale.x != 0.0 || marker.scale.y != 0.0)
-  {
-    addSeparatorIfRequired(ss);
-    ss << "scale.x and scale.y of TEXT_VIEW_FACING are ignored.";
-    increaseLevel(::ros::console::levels::Debug, level);
   }
 }
 

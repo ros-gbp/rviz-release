@@ -29,8 +29,8 @@
 
 #include "selection_handler.h"
 
-#include <rviz/properties/property.h>
-#include <rviz/visualization_manager.h>
+#include "properties/property.h"
+#include "visualization_manager.h"
 
 #include <ros/assert.h>
 
@@ -41,10 +41,7 @@
 #include <OgreEntity.h>
 #include <OgreSubEntity.h>
 
-#include <rviz/selection/selection_manager.h>
-#include <rviz/ogre_helpers/compatibility.h>
-
-#include <utility>
+#include "rviz/selection/selection_manager.h"
 
 namespace rviz
 {
@@ -202,7 +199,7 @@ void SelectionHandler::createBox(const std::pair<CollObjectHandle, uint64_t>& ha
     box = it->second.second;
   }
 
-  setMaterial(*box, material_name);
+  box->setMaterial(material_name);
 
   box->setupBoundingBox(aabb);
   node->detachAllObjects();
@@ -218,9 +215,10 @@ void SelectionHandler::destroyBox(const std::pair<CollObjectHandle, uint64_t>& h
     Ogre::WireBoundingBox* box = it->second.second;
 
     node->detachAllObjects();
-    removeAndDestroyChildNode(node->getParentSceneNode(), node);
+    node->getParentSceneNode()->removeAndDestroyChild(node->getName());
 
     delete box;
+
     boxes_.erase(it);
   }
 }
@@ -255,7 +253,7 @@ void SelectionHandler::onDeselect(const Picked& obj)
 
 void SelectionHandler::setInteractiveObject(InteractiveObjectWPtr object)
 {
-  interactive_object_ = std::move(object);
+  interactive_object_ = object;
 }
 
 InteractiveObjectWPtr SelectionHandler::getInteractiveObject()

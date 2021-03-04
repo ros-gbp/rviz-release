@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Bielefeld University
+ * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Bielefeld University nor the names of its
+ *     * Neither the name of the Willow Garage, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
@@ -27,20 +27,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma once
-#include <string>
+#ifndef OGRE_TOOLS_STL_LOADER_H
+#define OGRE_TOOLS_STL_LOADER_H
 
-namespace rviz
+#include <OgreVector3.h>
+#include <OgreMesh.h>
+
+#include <vector>
+#include <stdint.h>
+
+namespace ogre_tools
 {
-std::string concat(const std::string& prefix, const std::string& frame)
+// TODO: remove in noetic
+// Please use assimp or rviz::loadMeshFromResource directly
+class [[deprecated]] STLLoader
 {
-  if (prefix.empty())
-    return frame;
+public:
+  STLLoader();
+  ~STLLoader();
 
-  std::string composite = prefix;
-  composite.append("/");
-  composite.append(frame);
-  return composite;
-}
+  bool load(const std::string& path);
+  bool load(uint8_t * buffer, const size_t num_bytes, const std::string& origin);
 
-} // namespace rviz
+  Ogre::MeshPtr toMesh(const std::string& name);
+
+  struct Triangle
+  {
+    Ogre::Vector3 vertices_[3];
+    Ogre::Vector3 normal_;
+  };
+
+  typedef std::vector<Triangle> V_Triangle;
+  V_Triangle triangles_;
+
+protected:
+  //! Load a binary STL file
+  bool load_binary(uint8_t * buffer);
+};
+
+} // namespace ogre_tools
+
+#endif // OGRE_TOOLS_STL_LOADER_H

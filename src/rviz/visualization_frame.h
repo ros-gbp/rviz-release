@@ -38,10 +38,10 @@
 #include <string>
 #include <deque>
 
-#include <rviz/config.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/panel.h>
-#include <rviz/rviz_export.h>
+#include "rviz/config.h"
+#include "rviz/window_manager_interface.h"
+#include "rviz/panel.h"
+#include "rviz/rviz_export.h"
 
 #include <ros/time.h>
 
@@ -227,6 +227,9 @@ protected Q_SLOTS:
    * the shortcut key, onToolbarActionTriggered() is called. */
   void addTool(Tool* tool);
 
+  /** @brief React to name changes of a tool, updating the name of the associated QAction */
+  void onToolNameChanged(const QString& name);
+
   /** @brief Remove the given tool from the frame's toolbar. */
   void removeTool(Tool* tool);
 
@@ -374,7 +377,8 @@ protected:
   };
   QList<PanelRecord> custom_panels_;
 
-  QAction* toolbar_separator_;
+  //! @todo Rename to toolbar_button_separator_ in Noetic
+  QAction* add_tool_action_;
   QMenu* remove_tool_menu_;
 
   bool initialized_;

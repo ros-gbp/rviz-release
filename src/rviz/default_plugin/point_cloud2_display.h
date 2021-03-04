@@ -32,7 +32,7 @@
 
 #include <sensor_msgs/PointCloud2.h>
 
-#include <rviz/message_filter_display.h>
+#include "rviz/message_filter_display.h"
 
 namespace rviz
 {
@@ -60,12 +60,17 @@ public:
 
   void update(float wall_dt, float ros_dt) override;
 
+private Q_SLOTS:
+  void updateQueueSize();
+
 protected:
   /** @brief Do initialization. Overridden from MessageFilterDisplay. */
   void onInitialize() override;
 
   /** @brief Process a single message.  Overridden from MessageFilterDisplay. */
   void processMessage(const sensor_msgs::PointCloud2ConstPtr& cloud) override;
+
+  IntProperty* queue_size_property_;
 
   PointCloudCommon* point_cloud_common_;
 };
