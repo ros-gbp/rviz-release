@@ -29,7 +29,7 @@ namespace rviz
 class ScrewVisual;
 
 template <class MessageType>
-class RVIZ_EXPORT ScrewDisplay : public rviz::MessageFilterDisplay<MessageType>
+class ScrewDisplay : public rviz::MessageFilterDisplay<MessageType>
 {
 public:
   // Constructor.  pluginlib::ClassLoader creates instances by calling
@@ -87,6 +87,8 @@ class TwistStampedDisplay : public ScrewDisplay<geometry_msgs::TwistStamped>
 
 class WrenchStampedDisplay : public ScrewDisplay<geometry_msgs::WrenchStamped>
 {
+  Q_OBJECT
+
   // Function to handle an incoming ROS message.
   void processMessage(const geometry_msgs::WrenchStamped::ConstPtr& msg) override
   {
