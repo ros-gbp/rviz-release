@@ -31,12 +31,12 @@
 #include <OgreMatrix4.h>
 #include <OgreVector3.h>
 
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/color_property.h"
-#include "rviz/properties/editable_enum_property.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/validate_floats.h>
 
 #include "point_cloud_transformers.h"
 
@@ -215,11 +215,13 @@ void IntensityPCTransformer::createProperties(Property* parent_property,
         "Min Intensity", 0,
         "Minimum possible intensity value, used to interpolate from Min Color to Max Color for a point.",
         parent_property);
+    min_intensity_property_->setReadOnly(true);
 
     max_intensity_property_ = new FloatProperty(
         "Max Intensity", 4096,
         "Maximum possible intensity value, used to interpolate from Min Color to Max Color for a point.",
         parent_property);
+    max_intensity_property_->setReadOnly(true);
 
     out_props.push_back(channel_name_property_);
     out_props.push_back(use_rainbow_property_);

@@ -30,13 +30,12 @@
 #include "triangle_list_marker.h"
 
 #include "marker_selection_handler.h"
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/uniform_string_stream.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/selection/selection_manager.h>
+#include <rviz/uniform_string_stream.h>
 
-#include "rviz/display_context.h"
-#include "rviz/mesh_loader.h"
-#include "marker_display.h"
+#include <rviz/display_context.h>
+#include <rviz/mesh_loader.h>
 
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -59,7 +58,6 @@ TriangleListMarker::~TriangleListMarker()
   if (manual_object_)
   {
     context_->getSceneManager()->destroyManualObject(manual_object_);
-    material_->unload();
     Ogre::MaterialManager::getSingleton().remove(material_->getName());
   }
 }
@@ -68,6 +66,14 @@ void TriangleListMarker::onNewMessage(const MarkerConstPtr& old_message,
                                       const MarkerConstPtr& new_message)
 {
   ROS_ASSERT(new_message->type == visualization_msgs::Marker::TRIANGLE_LIST);
+
+  Ogre::Vector3 pos, scale;
+  Ogre::Quaternion orient;
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
 
   size_t num_points = new_message->points.size();
   if ((num_points % 3) != 0 || num_points == 0)
@@ -90,22 +96,14 @@ void TriangleListMarker::onNewMessage(const MarkerConstPtr& old_message,
 
     ss << "Material";
     material_name_ = ss.str();
-    material_ = Ogre::MaterialManager::getSingleton().create(material_name_, ROS_PACKAGE_NAME);
+    material_ = Ogre::MaterialManager::getSingleton().create(
+        material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     material_->setReceiveShadows(false);
     material_->getTechnique(0)->setLightingEnabled(true);
     material_->setCullingMode(Ogre::CULL_NONE);
 
     handler_.reset(
         new MarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_));
-  }
-
-  Ogre::Vector3 pos, scale;
-  Ogre::Quaternion orient;
-  if (!transform(new_message, pos, orient, scale))
-  {
-    ROS_DEBUG("Unable to transform marker message");
-    scene_node_->setVisible(false);
-    return;
   }
 
   setPosition(pos);

@@ -39,12 +39,12 @@
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/apply_visibility_bits.h"
-#include "rviz/properties/property_tree_model.h"
-#include "rviz/properties/status_list.h"
-#include "rviz/window_manager_interface.h"
-#include "rviz/panel_dock_widget.h"
+#include <rviz/display_context.h>
+#include <rviz/ogre_helpers/apply_visibility_bits.h>
+#include <rviz/properties/property_tree_model.h>
+#include <rviz/properties/status_list.h>
+#include <rviz/window_manager_interface.h>
+#include <rviz/panel_dock_widget.h>
 
 #include "display.h"
 
@@ -60,6 +60,7 @@ Display::Display()
   , visibility_bits_(0xFFFFFFFF)
   , associated_widget_(nullptr)
   , associated_widget_panel_(nullptr)
+  , associated_widget_visible_(false)
 {
   // Needed for timeSignal (see header) to work across threads
   qRegisterMetaType<ros::Time>();
@@ -190,7 +191,8 @@ void Display::setStatusInternal(int level, const QString& name, const QString& t
   status_->setStatus((StatusProperty::Level)level, name, text);
   if (model_ && old_level != status_->getLevel())
   {
-    model_->emitDataChanged(this);
+    // status changes should not trigger a configChanged() signal
+    model_->emitDataChanged(this, false);
   }
 }
 
@@ -220,7 +222,8 @@ void Display::clearStatusesInternal()
     status_->clear();
     if (model_ && old_level != StatusProperty::Ok)
     {
-      model_->emitDataChanged(this);
+      // status changes should not trigger a configChanged() signal
+      model_->emitDataChanged(this, false);
     }
   }
 }
@@ -289,17 +292,6 @@ void Display::reset()
   clearStatuses();
 }
 
-static std::map<PanelDockWidget*, bool> associated_widgets_visibility;
-inline void setVisible(PanelDockWidget* widget, bool visible)
-{
-  associated_widgets_visibility[widget] = visible;
-}
-inline bool isVisible(PanelDockWidget* widget)
-{
-  auto it = associated_widgets_visibility.find(widget);
-  return it != associated_widgets_visibility.end() && it->second;
-}
-
 void Display::onEnableChanged()
 {
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -320,7 +312,7 @@ void Display::onEnableChanged()
 
     if (associated_widget_panel_)
     {
-      if (!isVisible(associated_widget_panel_))
+      if (!associated_widget_visible_)
         associated_widget_panel_->show();
     }
     else if (associated_widget_)
@@ -335,7 +327,7 @@ void Display::onEnableChanged()
 
     if (associated_widget_panel_)
     {
-      if (isVisible(associated_widget_panel_))
+      if (associated_widget_visible_)
         associated_widget_panel_->hide();
     }
     else if (associated_widget_)
@@ -374,7 +366,7 @@ void Display::setAssociatedWidget(QWidget* widget)
     if (wm)
     {
       associated_widget_panel_ = wm->addPane(getName(), associated_widget_);
-      setVisible(associated_widget_panel_, true);
+      associated_widget_visible_ = true;
       connect(associated_widget_panel_, SIGNAL(visibilityChanged(bool)), this,
               SLOT(associatedPanelVisibilityChange(bool)));
       connect(associated_widget_panel_, SIGNAL(closed()), this, SLOT(disable()));
@@ -394,7 +386,7 @@ void Display::setAssociatedWidget(QWidget* widget)
 
 void Display::associatedPanelVisibilityChange(bool visible)
 {
-  setVisible(associated_widget_panel_, visible);
+  associated_widget_visible_ = visible;
   // If something external makes the panel visible/invisible, make sure to enable/disable the display
   setEnabled(visible);
   // Remark: vice versa, in Display::onEnableChanged(),

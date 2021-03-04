@@ -56,12 +56,7 @@ public:
    * with save() when someone writes this back to a file. */
   void load(const Config& config) override;
 
-  /** @brief Save Config equivalent to the last which was sent to load(). */
-  virtual void save(Config config);
-
-  /** @brief Save Config equivalent to the last which was sent to load().
-   *
-   * Overridden from Display::save(). */
+  /** @brief Save Config equivalent to the last which was sent to load().*/
   void save(Config config) const override;
 
 private:
