@@ -36,15 +36,15 @@
 
 #include <boost/bind.hpp>
 
-#include <rviz/display_factory.h>
-#include <rviz/display.h>
-#include <rviz/add_display_dialog.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_widget.h>
-#include <rviz/properties/property_tree_with_help.h>
-#include <rviz/visualization_manager.h>
+#include "rviz/display_factory.h"
+#include "rviz/display.h"
+#include "rviz/add_display_dialog.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_widget.h"
+#include "rviz/properties/property_tree_with_help.h"
+#include "rviz/visualization_manager.h"
 
-#include <rviz/displays_panel.h>
+#include "rviz/displays_panel.h"
 
 namespace rviz
 {
@@ -109,12 +109,12 @@ void DisplaysPanel::onNewDisplay()
   QStringList empty;
 
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  AddDisplayDialog* dialog = new AddDisplayDialog(vis_manager_->getDisplayFactory(), "Display", empty,
-                                                  empty, &lookup_name, &display_name, &topic, &datatype);
+  AddDisplayDialog dialog(vis_manager_->getDisplayFactory(), "Display", empty, empty, &lookup_name,
+                          &display_name, &topic, &datatype);
   QApplication::restoreOverrideCursor();
 
   vis_manager_->stopUpdate();
-  if (dialog->exec() == QDialog::Accepted)
+  if (dialog.exec() == QDialog::Accepted)
   {
     Display* disp = vis_manager_->createDisplay(lookup_name, display_name, true);
     if (!topic.isEmpty() && !datatype.isEmpty())
@@ -124,7 +124,6 @@ void DisplaysPanel::onNewDisplay()
   }
   vis_manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
-  delete dialog;
 }
 
 void DisplaysPanel::onDuplicateDisplay()

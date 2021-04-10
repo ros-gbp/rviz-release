@@ -36,7 +36,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <rviz/factory.h>
+#include "rviz/factory.h"
 
 class QTextBrowser;
 class QLineEdit;
@@ -184,7 +184,7 @@ private Q_SLOTS:
   void onComboBoxClicked(QTreeWidgetItem* curr);
 
 private:
-  void findPlugins(DisplayFactory* /*factory*/);
+  void findPlugins(DisplayFactory* factory);
 
   /** Insert a topic into the tree
    *

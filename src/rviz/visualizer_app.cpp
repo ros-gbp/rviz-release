@@ -48,15 +48,15 @@
 #include <ros/console.h>
 #include <ros/ros.h>
 
-#include <rviz/selection/selection_manager.h>
-#include <rviz/env_config.h>
-#include <rviz/ogre_helpers/ogre_logging.h>
-#include <rviz/visualization_frame.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/wait_for_master_dialog.h>
-#include <rviz/ogre_helpers/render_system.h>
+#include "rviz/selection/selection_manager.h"
+#include "rviz/env_config.h"
+#include "rviz/ogre_helpers/ogre_logging.h"
+#include "rviz/visualization_frame.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/wait_for_master_dialog.h"
+#include "rviz/ogre_helpers/render_system.h"
 
-#include <rviz/visualizer_app.h>
+#include "rviz/visualizer_app.h"
 
 #define CATCH_EXCEPTIONS 0
 
@@ -177,8 +177,8 @@ bool VisualizerApp::init(int argc, char** argv)
 
     if (!ros::master::check())
     {
-      WaitForMasterDialog* dialog = new WaitForMasterDialog;
-      if (dialog->exec() != QDialog::Accepted)
+      WaitForMasterDialog dialog;
+      if (dialog.exec() != QDialog::Accepted)
       {
         return false;
       }

@@ -54,6 +54,10 @@ public:
   {
     return 0;
   }
+  virtual tf::TransformListener* getTFClient() const
+  {
+    return 0;
+  }
   virtual QString getFixedFrame() const
   {
     return "";

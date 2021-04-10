@@ -34,7 +34,7 @@
 #include <QTreeView>
 #include <QHeaderView>
 
-#include <rviz/properties/splitter_handle.h>
+#include "rviz/properties/splitter_handle.h"
 
 namespace rviz
 {

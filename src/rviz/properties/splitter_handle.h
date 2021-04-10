@@ -30,8 +30,6 @@
 #define SPLITTER_HANDLE_H
 
 #include <QWidget>
-#include <utility>
-
 
 class QTreeView;
 
@@ -59,7 +57,7 @@ public:
 
   void setColor(QColor color)
   {
-    color_ = std::move(color);
+    color_ = color;
     update();
   }
   QColor getColor() const

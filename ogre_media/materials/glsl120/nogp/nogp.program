@@ -1,10 +1,10 @@
 // These shaders are work-arounds in case geometry shaders
 // are not supported, so vertices can't be created on the graphics card.
-// Multiple vertices are passed in for each primitive, 
+// Multiple vertices are passed in for each primitive,
 // and each one is offset according to its texture coords.
 
 //includes:
-vertex_program rviz/glsl120/nogp/pass_depth.vert glsl { source pass_depth.vert }
+vertex_program rviz/glsl120/nogp/pass_depth.vert glsl { source ../include/pass_depth.vert }
 
 vertex_program rviz/glsl120/nogp/billboard_tile.vert glsl
 {

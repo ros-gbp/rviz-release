@@ -38,10 +38,10 @@
 #include <string>
 #include <deque>
 
-#include <rviz/config.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/panel.h>
-#include <rviz/rviz_export.h>
+#include "rviz/config.h"
+#include "rviz/window_manager_interface.h"
+#include "rviz/panel.h"
+#include "rviz/rviz_export.h"
 
 #include <ros/time.h>
 
@@ -114,12 +114,12 @@ public:
   PanelDockWidget* addPane(const QString& name,
                            QWidget* panel,
                            Qt::DockWidgetArea area = Qt::LeftDockWidgetArea,
-                           bool floating = true) override;
+                           bool floating = false) override;
 
   QDockWidget* addPanelByName(const QString& name,
                               const QString& class_lookup_name,
                               Qt::DockWidgetArea area = Qt::LeftDockWidgetArea,
-                              bool floating = true);
+                              bool floating = false);
 
   /** @brief Load the "general" config file, which has just the few
    * things which should not be saved with a display config.
@@ -377,7 +377,8 @@ protected:
   };
   QList<PanelRecord> custom_panels_;
 
-  QAction* toolbar_separator_;
+  //! @todo Rename to toolbar_button_separator_ in Noetic
+  QAction* add_tool_action_;
   QMenu* remove_tool_menu_;
 
   bool initialized_;
