@@ -1,5 +1,5 @@
 ---
-Checks:          '-*,
+Checks:          'performance-*,
                   llvm-namespace-comment,
                   modernize-redundant-void-arg,
                   modernize-use-nullptr,
