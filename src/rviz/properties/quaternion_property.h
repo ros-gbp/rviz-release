@@ -29,9 +29,9 @@
 #ifndef QUATERNION_PROPERTY_H
 #define QUATERNION_PROPERTY_H
 
-#include <OgreQuaternion.h>
+#include <OGRE/OgreQuaternion.h>
 
-#include <rviz/properties/property.h>
+#include "rviz/properties/property.h"
 
 namespace rviz
 {

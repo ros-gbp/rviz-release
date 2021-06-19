@@ -27,17 +27,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/color_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/validate_floats.h>
-#include <rviz/validate_quaternions.h>
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/color_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/validate_floats.h"
+#include "rviz/validate_quaternions.h"
 
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
 
 #include "odometry_display.h"
 #include "covariance_property.h"

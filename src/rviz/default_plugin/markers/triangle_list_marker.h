@@ -30,10 +30,10 @@
 #ifndef RVIZ_TRIANGLE_LIST_MARKER_H
 #define RVIZ_TRIANGLE_LIST_MARKER_H
 
-#include <OgreMaterial.h>
-#include <OgreSharedPtr.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreSharedPtr.h>
 
-#include <rviz/default_plugin/markers/marker_base.h>
+#include "rviz/default_plugin/markers/marker_base.h"
 
 namespace Ogre
 {

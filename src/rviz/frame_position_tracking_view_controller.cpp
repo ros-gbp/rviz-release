@@ -27,18 +27,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgreCamera.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
+#include <OGRE/OgreCamera.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/tf_frame_property.h>
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/view_manager.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/tf_frame_property.h"
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/view_manager.h"
 
-#include <rviz/frame_position_tracking_view_controller.h>
+#include "rviz/frame_position_tracking_view_controller.h"
 
 namespace rviz
 {

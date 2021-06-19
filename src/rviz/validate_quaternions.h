@@ -31,9 +31,9 @@
 #define RVIZ_VALIDATE_QUATERNIONS_H
 
 #include <geometry_msgs/PoseStamped.h>
-#include <OgreQuaternion.h>
+#include <OGRE/OgreQuaternion.h>
 #include <ros/ros.h>
-#include <tf2/LinearMath/Quaternion.h>
+#include <tf/LinearMath/Quaternion.h>
 
 #include <boost/array.hpp>
 
@@ -125,7 +125,7 @@ inline bool validateQuaternions(const Ogre::Quaternion& quaternion)
   return validateQuaternions(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
 }
 
-inline bool validateQuaternions(const tf2::Quaternion& quaternion)
+inline bool validateQuaternions(const tf::Quaternion& quaternion)
 {
   return validateQuaternions(quaternion.w(), quaternion.x(), quaternion.y(), quaternion.z());
 }

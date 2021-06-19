@@ -29,15 +29,15 @@
 #include <QObject>
 
 #include "depth_cloud_display.h"
-#include <rviz/visualization_manager.h>
-#include <rviz/properties/property.h>
-#include <rviz/validate_floats.h>
+#include "rviz/visualization_manager.h"
+#include "rviz/properties/property.h"
+#include "rviz/validate_floats.h"
 
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/frame_manager.h>
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/frame_manager.h"
 
 #include <tf2_ros/buffer.h>
 
@@ -46,8 +46,8 @@
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
 
 #include <image_transport/camera_common.h>
 #include <image_transport/subscriber_plugin.h>
@@ -158,10 +158,6 @@ void DepthCloudDisplay::onInitialize()
 
   updateUseAutoSize();
   updateUseOcclusionCompensation();
-
-  // PointCloudCommon sets up a callback queue with a thread for each
-  // instance.  Use that for processing incoming messages.
-  threaded_nh_.setCallbackQueue(pointcloud_common_->getCallbackQueue());
 
   // Scan for available transport plugins
   scanForTransportSubscriberPlugins();
@@ -342,7 +338,7 @@ void DepthCloudDisplay::subscribe()
 void DepthCloudDisplay::caminfoCallback(sensor_msgs::CameraInfo::ConstPtr msg)
 {
   boost::mutex::scoped_lock lock(cam_info_mutex_);
-  cam_info_ = std::move(msg);
+  cam_info_ = msg;
 }
 
 void DepthCloudDisplay::unsubscribe()
@@ -389,13 +385,13 @@ void DepthCloudDisplay::reset()
   setStatus(StatusProperty::Ok, "Message", "Ok");
 }
 
-void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg)
+void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg)
 {
   processMessage(depth_msg, sensor_msgs::ImageConstPtr());
 }
 
-void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg,
-                                       const sensor_msgs::ImageConstPtr& rgb_msg)
+void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg,
+                                       sensor_msgs::ImageConstPtr rgb_msg)
 {
   if (context_->getFrameManager()->getPause())
   {
@@ -602,7 +598,5 @@ void DepthCloudDisplay::fixedFrameChanged()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
-#include <utility>
-
 
 PLUGINLIB_EXPORT_CLASS(rviz::DepthCloudDisplay, rviz::Display)

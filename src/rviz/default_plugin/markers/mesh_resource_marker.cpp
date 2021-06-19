@@ -30,20 +30,21 @@
 #include "mesh_resource_marker.h"
 
 #include "marker_selection_handler.h"
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/selection/selection_manager.h>
+#include "rviz/default_plugin/marker_display.h"
+#include "rviz/selection/selection_manager.h"
 
-#include <rviz/display_context.h>
-#include <rviz/mesh_loader.h>
+#include "rviz/display_context.h"
+#include "rviz/mesh_loader.h"
+#include "marker_display.h"
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-#include <OgreEntity.h>
-#include <OgreSubEntity.h>
-#include <OgreMaterialManager.h>
-#include <OgreTextureManager.h>
-#include <OgreSharedPtr.h>
-#include <OgreTechnique.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreEntity.h>
+#include <OGRE/OgreSubEntity.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreTextureManager.h>
+#include <OGRE/OgreSharedPtr.h>
+#include <OGRE/OgreTechnique.h>
 
 namespace rviz
 {
@@ -76,6 +77,7 @@ void MeshResourceMarker::reset()
     Ogre::MaterialPtr material = *it;
     if (!material.isNull())
     {
+      material->unload();
       Ogre::MaterialManager::getSingleton().remove(material->getName());
     }
   }
@@ -130,8 +132,8 @@ void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
 
     // create a default material for any sub-entities which don't have their own.
     ss << "Material";
-    Ogre::MaterialPtr default_material = Ogre::MaterialManager::getSingleton().create(
-        ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+    Ogre::MaterialPtr default_material =
+        Ogre::MaterialManager::getSingleton().create(ss.str(), ROS_PACKAGE_NAME);
     default_material->setReceiveShadows(false);
     default_material->getTechnique(0)->setLightingEnabled(true);
     default_material->getTechnique(0)->setAmbient(0.5, 0.5, 0.5);
@@ -232,11 +234,7 @@ void MeshResourceMarker::onNewMessage(const MarkerConstPtr& old_message,
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  if (!transform(new_message, pos, orient, scale))
-  {
-    scene_node_->setVisible(false);
-    return;
-  }
+  transform(new_message, pos, orient, scale);
 
   scene_node_->setVisible(true);
   setPosition(pos);

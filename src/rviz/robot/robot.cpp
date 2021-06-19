@@ -30,23 +30,23 @@
 #include "robot.h"
 #include "robot_link.h"
 #include "robot_joint.h"
-#include <rviz/properties/property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/display_context.h>
+#include "properties/property.h"
+#include "properties/enum_property.h"
+#include "properties/bool_property.h"
+#include "display_context.h"
 
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/ogre_helpers/axes.h>
+#include "ogre_helpers/object.h"
+#include "ogre_helpers/shape.h"
+#include "ogre_helpers/axes.h"
 
 #include <urdf_model/model.h>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-#include <OgreEntity.h>
-#include <OgreMaterialManager.h>
-#include <OgreMaterial.h>
-#include <OgreResourceGroupManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreEntity.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreResourceGroupManager.h>
 
 #include <ros/console.h>
 #include <ros/assert.h>
@@ -101,9 +101,9 @@ Robot::~Robot()
 {
   clear();
 
-  scene_manager_->destroySceneNode(root_visual_node_);
-  scene_manager_->destroySceneNode(root_collision_node_);
-  scene_manager_->destroySceneNode(root_other_node_);
+  scene_manager_->destroySceneNode(root_visual_node_->getName());
+  scene_manager_->destroySceneNode(root_collision_node_->getName());
+  scene_manager_->destroySceneNode(root_other_node_->getName());
   delete link_factory_;
   delete link_tree_;
 }
@@ -440,7 +440,7 @@ void Robot::changedEnableAllLinks()
   inChangedEnableAllLinks = false;
 }
 
-void Robot::setEnableAllLinksCheckbox(const QVariant& val)
+void Robot::setEnableAllLinksCheckbox(QVariant val)
 {
   // doing_set_checkbox_ prevents changedEnableAllLinks from turning all
   // links off when we modify the enable_all_links_ property.

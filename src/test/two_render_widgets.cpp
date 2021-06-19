@@ -27,19 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rviz/ogre_helpers/render_system.h>
-#include <rviz/ogre_helpers/render_widget.h>
+#include "rviz/ogre_helpers/render_system.h"
+#include "rviz/ogre_helpers/render_widget.h"
 
 #include <QApplication>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QPushButton>
 
-#include <OgreCamera.h>
-#include <OgreEntity.h>
-#include <OgreRenderWindow.h>
-#include <OgreSceneNode.h>
-#include <OgreViewport.h>
+#include <OGRE/OgreCamera.h>
+#include <OGRE/OgreEntity.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreViewport.h>
 
 using namespace rviz;
 

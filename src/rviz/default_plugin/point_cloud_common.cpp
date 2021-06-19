@@ -29,28 +29,28 @@
 
 #include <QColor>
 
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreWireBoundingBox.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreWireBoundingBox.h>
 
 #include <ros/time.h>
 
 #include <pluginlib/class_loader.hpp>
 
-#include <rviz/default_plugin/point_cloud_transformer.h>
-#include <rviz/default_plugin/point_cloud_transformers.h>
-#include <rviz/display.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/point_cloud.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/uniform_string_stream.h>
-#include <rviz/validate_floats.h>
+#include "rviz/default_plugin/point_cloud_transformer.h"
+#include "rviz/default_plugin/point_cloud_transformers.h"
+#include "rviz/display.h"
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/point_cloud.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/uniform_string_stream.h"
+#include "rviz/validate_floats.h"
 
-#include <rviz/default_plugin/point_cloud_common.h>
+#include "rviz/default_plugin/point_cloud_common.h"
 
 namespace rviz
 {
@@ -307,7 +307,6 @@ void PointCloudCommon::CloudInfo::clear()
 
 PointCloudCommon::PointCloudCommon(Display* display)
   : auto_size_(false)
-  , spinner_(1, &cbqueue_)
   , new_xyz_transformer_(false)
   , new_color_transformer_(false)
   , needs_retransform_(false)
@@ -377,18 +376,11 @@ void PointCloudCommon::initialize(DisplayContext* context, Ogre::SceneNode* scen
   updateBillboardSize();
   updateAlpha();
   updateSelectable();
-
-  spinner_.start();
 }
 
 PointCloudCommon::~PointCloudCommon()
 {
-  spinner_.stop();
-
-  if (transformer_class_loader_)
-  {
-    delete transformer_class_loader_;
-  }
+  delete transformer_class_loader_;
 }
 
 void PointCloudCommon::loadTransformers()

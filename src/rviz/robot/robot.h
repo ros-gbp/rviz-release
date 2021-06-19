@@ -35,18 +35,23 @@
 #include <string>
 #include <map>
 
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-#include <OgreAny.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreAny.h>
 
 #include <urdf/model.h> // can be replaced later by urdf_model/types.h
 
-#include <OgrePrerequisites.h>
-
 namespace Ogre
 {
+class SceneManager;
+class Entity;
+class SceneNode;
+class Vector3;
+class Quaternion;
 class Any;
-}
+class RibbonTrail;
+class SceneNode;
+} // namespace Ogre
 
 namespace rviz
 {
@@ -262,7 +267,7 @@ protected:
   void addJointToLinkTree(LinkTreeStyle style, Property* parent, RobotJoint* joint);
 
   // set the value of the EnableAllLinks property without affecting child links/joints.
-  void setEnableAllLinksCheckbox(const QVariant& val);
+  void setEnableAllLinksCheckbox(QVariant val);
 
   /** initialize style_name_map_ and link_tree_style_ options */
   void initLinkTreeStyle();

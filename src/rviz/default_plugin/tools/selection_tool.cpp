@@ -29,29 +29,29 @@
 
 #include <QKeyEvent>
 
-#include <OgreRay.h>
-#include <OgreSceneManager.h>
-#include <OgreCamera.h>
-#include <OgreMovableObject.h>
-#include <OgreRectangle2D.h>
-#include <OgreSceneNode.h>
-#include <OgreViewport.h>
-#include <OgreMaterialManager.h>
-#include <OgreTexture.h>
-#include <OgreTextureManager.h>
+#include <OGRE/OgreRay.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreCamera.h>
+#include <OGRE/OgreMovableObject.h>
+#include <OGRE/OgreRectangle2D.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreViewport.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreTexture.h>
+#include <OGRE/OgreTextureManager.h>
 
 #include <ros/time.h>
 
 #include "move_tool.h"
 
-#include <rviz/ogre_helpers/camera_base.h>
-#include <rviz/ogre_helpers/qt_ogre_render_window.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/render_panel.h>
-#include <rviz/display.h>
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/load_resource.h>
+#include "rviz/ogre_helpers/camera_base.h"
+#include "rviz/ogre_helpers/qt_ogre_render_window.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/render_panel.h"
+#include "rviz/display.h"
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/load_resource.h"
 
 #include "selection_tool.h"
 

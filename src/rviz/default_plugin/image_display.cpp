@@ -29,24 +29,23 @@
 
 #include <boost/bind.hpp>
 
-#include <OgreManualObject.h>
-#include <OgreMaterialManager.h>
-#include <OgreRectangle2D.h>
-#include <OgreRenderSystem.h>
-#include <OgreRenderWindow.h>
-#include <OgreRoot.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreTextureManager.h>
-#include <OgreViewport.h>
-#include <OgreTechnique.h>
-#include <OgreCamera.h>
+#include <OGRE/OgreManualObject.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreRectangle2D.h>
+#include <OGRE/OgreRenderSystem.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreRoot.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreTextureManager.h>
+#include <OGRE/OgreViewport.h>
+#include <OGRE/OgreTechnique.h>
+#include <OGRE/OgreCamera.h>
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/compatibility.h>
-#include <rviz/render_panel.h>
-#include <rviz/validate_floats.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/render_panel.h"
+#include "rviz/validate_floats.h"
 
 #include <sensor_msgs/image_encodings.h>
 
@@ -112,7 +111,7 @@ void ImageDisplay::onInitialize()
     Ogre::AxisAlignedBox aabInf;
     aabInf.setInfinite();
     screen_rect_->setBoundingBox(aabInf);
-    setMaterial(*screen_rect_, material_);
+    screen_rect_->setMaterial(material_->getName());
     img_scene_node_->attachObject(screen_rect_);
   }
 
@@ -138,7 +137,7 @@ ImageDisplay::~ImageDisplay()
   {
     delete render_panel_;
     delete screen_rect_;
-    removeAndDestroyChildNode(img_scene_node_->getParentSceneNode(), img_scene_node_);
+    img_scene_node_->getParentSceneNode()->removeAndDestroyChild(img_scene_node_->getName());
   }
 }
 
@@ -176,6 +175,15 @@ void ImageDisplay::updateNormalizeOptions()
     max_property_->setHidden(true);
     median_buffer_size_property_->setHidden(true);
   }
+}
+
+// TODO: In Noetic remove and integrate into reset()
+void ImageDisplay::clear()
+{
+  texture_.clear();
+
+  if (render_panel_->getCamera())
+    render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 void ImageDisplay::update(float wall_dt, float ros_dt)
@@ -220,9 +228,8 @@ void ImageDisplay::update(float wall_dt, float ros_dt)
 
 void ImageDisplay::reset()
 {
+  clear();
   ImageDisplayBase::reset();
-  texture_.clear();
-  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 /* This is called by incomingMessage(). */

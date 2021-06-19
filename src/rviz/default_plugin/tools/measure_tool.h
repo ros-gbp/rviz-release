@@ -36,9 +36,9 @@
 #ifndef MEASURE_TOOL_H_
 #define MEASURE_TOOL_H_
 
-#include <rviz/tool.h>
+#include "rviz/tool.h"
 
-#include <OgreVector3.h>
+#include <OGRE/OgreVector3.h>
 
 namespace rviz
 {

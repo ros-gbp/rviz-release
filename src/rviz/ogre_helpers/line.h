@@ -32,14 +32,18 @@
 
 #include "object.h"
 
-#include <OgreSceneNode.h>
-#include <OgreMaterial.h>
-#include <OgreSharedPtr.h>
-#include <OgrePrerequisites.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreSharedPtr.h>
 
 namespace Ogre
 {
+class SceneManager;
+class SceneNode;
+class Vector3;
+class Quaternion;
 class Any;
+class ColourValue;
 } // namespace Ogre
 
 namespace rviz

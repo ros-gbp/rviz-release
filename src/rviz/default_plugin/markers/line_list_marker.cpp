@@ -29,14 +29,14 @@
 
 #include "line_list_marker.h"
 #include "marker_selection_handler.h"
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/display_context.h>
+#include "rviz/default_plugin/marker_display.h"
+#include "rviz/display_context.h"
 
 #include <rviz/ogre_helpers/billboard_line.h>
 
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-#include <OgreSceneNode.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreSceneNode.h>
 
 namespace rviz
 {
@@ -64,13 +64,8 @@ void LineListMarker::onNewMessage(const MarkerConstPtr& /*old_message*/,
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  if (!transform(new_message, pos, orient, scale))
-  {
-    scene_node_->setVisible(false);
-    return;
-  }
+  transform(new_message, pos, orient, scale);
 
-  scene_node_->setVisible(true);
   setPosition(pos);
   setOrientation(orient);
   lines_->setScale(scale);

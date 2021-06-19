@@ -36,8 +36,8 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
 
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
 #endif
 
 #include <visualization_msgs/InteractiveMarker.h>
@@ -47,12 +47,12 @@
 
 #include <ros/publisher.h>
 
-#include <rviz/selection/forwards.h>
-#include <rviz/ogre_helpers/axes.h>
+#include "rviz/selection/forwards.h"
+#include "rviz/ogre_helpers/axes.h"
 
-#include <rviz/default_plugin/rviz_default_plugin_export.h>
-#include <rviz/default_plugin/interactive_markers/interactive_marker_control.h>
-#include <rviz/properties/status_property.h>
+#include "rviz/default_plugin/rviz_default_plugin_export.h"
+#include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
+#include "rviz/properties/status_property.h"
 
 namespace Ogre
 {

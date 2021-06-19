@@ -30,16 +30,16 @@
 #ifndef OGRE_TOOLS_OGRE_POINT_CLOUD_H
 #define OGRE_TOOLS_OGRE_POINT_CLOUD_H
 
-#include <OgreSimpleRenderable.h>
-#include <OgreMovableObject.h>
-#include <OgreString.h>
-#include <OgreAxisAlignedBox.h>
-#include <OgreVector3.h>
-#include <OgreMaterial.h>
-#include <OgreColourValue.h>
-#include <OgreRoot.h>
-#include <OgreHardwareBufferManager.h>
-#include <OgreSharedPtr.h>
+#include <OGRE/OgreSimpleRenderable.h>
+#include <OGRE/OgreMovableObject.h>
+#include <OGRE/OgreString.h>
+#include <OGRE/OgreAxisAlignedBox.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreColourValue.h>
+#include <OGRE/OgreRoot.h>
+#include <OGRE/OgreHardwareBufferManager.h>
+#include <OGRE/OgreSharedPtr.h>
 
 #include <stdint.h>
 
@@ -67,8 +67,6 @@ public:
   PointCloudRenderable(PointCloud* parent, int num_points, bool use_tex_coords);
   ~PointCloudRenderable() override;
 
-  using Ogre::SimpleRenderable::getRenderOperation;
-
   Ogre::RenderOperation* getRenderOperation()
   {
     return &mRenderOp;
@@ -78,6 +76,7 @@ public:
 
   Ogre::Real getBoundingRadius() const override;
   Ogre::Real getSquaredViewDepth(const Ogre::Camera* cam) const override;
+  void _notifyCurrentCamera(Ogre::Camera* camera) override;
   unsigned short getNumWorldTransforms() const override
   {
     return 1;
@@ -202,8 +201,11 @@ public:
     return 1;
   }
   void _updateRenderQueue(Ogre::RenderQueue* queue) override;
+  void _notifyCurrentCamera(Ogre::Camera* camera) override;
   void _notifyAttached(Ogre::Node* parent, bool isTagPoint = false) override;
+#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
   void visitRenderables(Ogre::Renderable::Visitor* visitor, bool debugRenderables) override;
+#endif
 
   virtual void setName(const std::string& name)
   {

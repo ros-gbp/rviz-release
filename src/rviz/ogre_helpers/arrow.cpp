@@ -30,10 +30,10 @@
 #include "arrow.h"
 #include "shape.h"
 
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
 
 #include <sstream>
 
@@ -68,7 +68,7 @@ Arrow::~Arrow()
   delete shaft_;
   delete head_;
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
 }
 
 void Arrow::set(float shaft_length, float shaft_diameter, float head_length, float head_diameter)

@@ -31,28 +31,27 @@
 
 #include <QMenu>
 
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-#include <OgreMaterialManager.h>
-#include <OgreResourceGroupManager.h>
-#include <OgreSubEntity.h>
-#include <OgreMath.h>
-#include <OgreRenderWindow.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreResourceGroupManager.h>
+#include <OGRE/OgreSubEntity.h>
+#include <OGRE/OgreMath.h>
+#include <OGRE/OgreRenderWindow.h>
 
 #include <ros/ros.h>
 #include <interactive_markers/tools.h>
-#include <tf2_msgs/TF2Error.h>
 
-#include <rviz/frame_manager.h>
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/frame_manager.h>
-#include <rviz/render_panel.h>
-#include <rviz/geometry.h>
-#include <rviz/validate_quaternions.h>
+#include "rviz/frame_manager.h"
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/frame_manager.h"
+#include "rviz/render_panel.h"
+#include "rviz/geometry.h"
+#include "rviz/validate_quaternions.h"
 
-#include <rviz/default_plugin/interactive_markers/integer_action.h>
-#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#include "rviz/default_plugin/interactive_markers/integer_action.h"
+#include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 namespace rviz
 {
@@ -312,13 +311,20 @@ void InteractiveMarker::updateReferencePose()
     }
     else
     {
-      auto tf = context_->getFrameManager()->getTF2BufferPtr();
-      tf2::CompactFrameID target_id = tf->_lookupFrameNumber(reference_frame_);
-      tf2::CompactFrameID source_id = tf->_lookupFrameNumber(fixed_frame);
       std::string error;
-      int retval = tf->_getLatestCommonTime(target_id, source_id, reference_time_, &error);
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
-      if (retval != tf2_msgs::TF2Error::NO_ERROR)
+      int retval = context_->getFrameManager()->getTFClient()->getLatestCommonTime(
+          reference_frame_, fixed_frame, reference_time_, &error);
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
+      if (retval != tf::NO_ERROR)
       {
         std::ostringstream s;
         s << "Error getting time of latest transform between " << reference_frame_ << " and "

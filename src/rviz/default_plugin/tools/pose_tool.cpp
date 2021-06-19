@@ -27,18 +27,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OgrePlane.h>
-#include <OgreRay.h>
-#include <OgreSceneNode.h>
-#include <OgreViewport.h>
+#include <OGRE/OgrePlane.h>
+#include <OGRE/OgreRay.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreViewport.h>
 
-#include <rviz/geometry.h>
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/load_resource.h>
-#include <rviz/render_panel.h>
+#include "rviz/geometry.h"
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/load_resource.h"
+#include "rviz/render_panel.h"
 
-#include <rviz/default_plugin/tools/pose_tool.h>
+#include "rviz/default_plugin/tools/pose_tool.h"
 
 namespace rviz
 {
