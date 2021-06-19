@@ -60,8 +60,8 @@
 #include <ros/package.h>
 #include <ros/init.h>
 
-#include <OgreRenderWindow.h>
-#include <OgreMeshManager.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreMeshManager.h>
 
 #include <rviz/ogre_helpers/initialization.h>
 
@@ -478,6 +478,7 @@ void VisualizationFrame::initMenus()
 
   QAction* file_menu_quit_action =
       file_menu_->addAction("&Quit", this, SLOT(close()), QKeySequence("Ctrl+Q"));
+  file_menu_quit_action->setObjectName("actQuit");
   this->addAction(file_menu_quit_action);
 
   view_menu_ = menuBar()->addMenu("&Panels");
@@ -623,13 +624,11 @@ void VisualizationFrame::openPreferencesDialog()
 {
   Preferences temp_preferences(*preferences_);
   PreferencesDialog dialog(panel_factory_, &temp_preferences, this);
-  manager_->stopUpdate();
   if (dialog.exec() == QDialog::Accepted)
   {
     // Apply preferences.
     preferences_ = boost::make_shared<Preferences>(temp_preferences);
   }
-  manager_->startUpdate();
 }
 
 void VisualizationFrame::openNewPanelDialog()
@@ -640,7 +639,6 @@ void VisualizationFrame::openNewPanelDialog()
 
   NewObjectDialog* dialog =
       new NewObjectDialog(panel_factory_, "Panel", empty, empty, &class_id, &display_name, this);
-  manager_->stopUpdate();
   if (dialog->exec() == QDialog::Accepted)
   {
     QDockWidget* dock = addPanelByName(display_name, class_id);
@@ -649,7 +647,6 @@ void VisualizationFrame::openNewPanelDialog()
       connect(dock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(onDockPanelChange()));
     }
   }
-  manager_->startUpdate();
 }
 
 void VisualizationFrame::openNewToolDialog()
@@ -660,12 +657,10 @@ void VisualizationFrame::openNewToolDialog()
 
   NewObjectDialog* dialog =
       new NewObjectDialog(tool_man->getFactory(), "Tool", empty, tool_man->getToolClasses(), &class_id);
-  manager_->stopUpdate();
   if (dialog->exec() == QDialog::Accepted)
   {
     tool_man->addTool(class_id);
   }
-  manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
@@ -761,6 +756,7 @@ bool VisualizationFrame::loadDisplayConfigHelper(const std::string& full_path)
     dialog.reset(new LoadingDialog(this));
     dialog->show();
     connect(this, SIGNAL(statusUpdate(const QString&)), dialog.get(), SLOT(showMessage(const QString&)));
+    app_->processEvents(); // make the window correctly appear although running a long-term function
   }
 
   YamlConfigReader reader;
@@ -817,6 +813,7 @@ void VisualizationFrame::setDisplayConfigFile(const std::string& path)
     title = fs::path(path).filename().string() + "[*] - RViz";
   }
   setWindowTitle(QString::fromStdString(title));
+  Q_EMIT displayConfigFileChanged(QString::fromStdString(path));
 }
 
 bool VisualizationFrame::saveDisplayConfig(const QString& path)
@@ -1012,9 +1009,7 @@ bool VisualizationFrame::prepareToExit()
     box.setInformativeText(QString::fromStdString("Save changes to " + display_config_file_ + "?"));
     box.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     box.setDefaultButton(QMessageBox::Save);
-    manager_->stopUpdate();
     int result = box.exec();
-    manager_->startUpdate();
     switch (result)
     {
     case QMessageBox::Save:
@@ -1057,11 +1052,9 @@ bool VisualizationFrame::prepareToExit()
 
 void VisualizationFrame::onOpen()
 {
-  manager_->stopUpdate();
   QString filename = QFileDialog::getOpenFileName(this, "Choose a file to open",
                                                   QString::fromStdString(last_config_dir_),
                                                   "RViz config files (" CONFIG_EXTENSION_WILDCARD ")");
-  manager_->startUpdate();
 
   if (!filename.isEmpty())
   {
@@ -1089,7 +1082,6 @@ void VisualizationFrame::onSave()
 
   if (!saveDisplayConfig(QString::fromStdString(display_config_file_)))
   {
-    manager_->stopUpdate();
     QMessageBox box(this);
     box.setWindowTitle("Failed to save.");
     box.setText(getErrorMessage());
@@ -1101,17 +1093,14 @@ void VisualizationFrame::onSave()
     {
       onSaveAs();
     }
-    manager_->startUpdate();
   }
 }
 
 void VisualizationFrame::onSaveAs()
 {
-  manager_->stopUpdate();
   QString q_filename = QFileDialog::getSaveFileName(this, "Choose a file to save to",
                                                     QString::fromStdString(last_config_dir_),
                                                     "RViz config files (" CONFIG_EXTENSION_WILDCARD ")");
-  manager_->startUpdate();
 
   if (!q_filename.isEmpty())
   {
