@@ -33,8 +33,8 @@
 #include <OGRE/OgreQuaternion.h>
 #include <OGRE/OgreVector3.h>
 
-#include "rviz/view_controller.h"
-#include "rviz/rviz_export.h"
+#include <rviz/view_controller.h>
+#include <rviz/rviz_export.h>
 
 namespace rviz
 {

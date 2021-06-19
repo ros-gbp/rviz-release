@@ -55,18 +55,15 @@ protected:
   void moveEvent(QMoveEvent* e) override;
   void paintEvent(QPaintEvent* e) override;
   void resizeEvent(QResizeEvent* e) override;
-  qreal pixelRatio() const;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
   QPaintEngine* paintEngine() const override
   {
     return nullptr;
   }
-#endif
 
   RenderSystem* render_system_;
   Ogre::RenderWindow* render_window_;
-
+  qreal pixel_ratio_;
   QFrame* renderFrame;
 };
 

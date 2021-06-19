@@ -31,12 +31,12 @@
 #include <OGRE/OgreMatrix4.h>
 #include <OGRE/OgreVector3.h>
 
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/color_property.h"
-#include "rviz/properties/editable_enum_property.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/validate_floats.h>
 
 #include "point_cloud_transformers.h"
 
@@ -263,8 +263,8 @@ void IntensityPCTransformer::updateChannels(const sensor_msgs::PointCloud2ConstP
 void IntensityPCTransformer::updateAutoComputeIntensityBounds()
 {
   bool auto_compute = auto_compute_intensity_bounds_property_->getBool();
-  min_intensity_property_->setHidden(auto_compute);
-  max_intensity_property_->setHidden(auto_compute);
+  min_intensity_property_->setReadOnly(auto_compute);
+  max_intensity_property_->setReadOnly(auto_compute);
   if (auto_compute)
   {
     disconnect(min_intensity_property_, SIGNAL(changed()), this, SIGNAL(needRetransform()));

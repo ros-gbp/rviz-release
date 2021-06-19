@@ -31,7 +31,7 @@
 
 #include <yaml-cpp/emitter.h>
 
-#include "rviz/yaml_config_writer.h"
+#include <rviz/yaml_config_writer.h>
 
 namespace rviz
 {
@@ -57,7 +57,7 @@ void YamlConfigWriter::writeFile(const Config& config, const QString& filename)
       message_ = "Failed to open " + filename + " for writing.";
     }
   }
-  catch (std::exception ex)
+  catch (const std::exception& ex)
   {
     error_ = true;
     message_ = ex.what();

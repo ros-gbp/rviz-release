@@ -38,10 +38,10 @@
 #include <string>
 #include <deque>
 
-#include "rviz/config.h"
-#include "rviz/window_manager_interface.h"
-#include "rviz/panel.h"
-#include "rviz/rviz_export.h"
+#include <rviz/config.h>
+#include <rviz/window_manager_interface.h>
+#include <rviz/panel.h>
+#include <rviz/rviz_export.h>
 
 #include <ros/time.h>
 
@@ -380,8 +380,7 @@ protected:
   };
   QList<PanelRecord> custom_panels_;
 
-  //! @todo Rename to toolbar_button_separator_ in Noetic
-  QAction* add_tool_action_;
+  QAction* toolbar_separator_;
   QMenu* remove_tool_menu_;
 
   bool initialized_;
