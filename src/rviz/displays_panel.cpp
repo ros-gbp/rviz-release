@@ -33,6 +33,7 @@
 #include <QPushButton>
 #include <QInputDialog>
 #include <QApplication>
+#include <QProgressDialog>
 
 #include <boost/bind.hpp>
 
@@ -113,7 +114,6 @@ void DisplaysPanel::onNewDisplay()
                           &display_name, &topic, &datatype);
   QApplication::restoreOverrideCursor();
 
-  vis_manager_->stopUpdate();
   if (dialog.exec() == QDialog::Accepted)
   {
     Display* disp = vis_manager_->createDisplay(lookup_name, display_name, true);
@@ -122,16 +122,20 @@ void DisplaysPanel::onNewDisplay()
       disp->setTopic(topic, datatype);
     }
   }
-  vis_manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
 void DisplaysPanel::onDuplicateDisplay()
 {
   QList<Display*> displays_to_duplicate = property_grid_->getSelectedObjects<Display>();
-
   QList<Display*> duplicated_displays;
+  QProgressDialog progress_dlg("Duplicating displays...", "Cancel", 0, displays_to_duplicate.size(),
+                               this);
+  progress_dlg.setWindowModality(Qt::WindowModal);
+  progress_dlg.show();
+  QApplication::processEvents(); // explicitly progress events for update
 
+  // duplicate all selected displays
   for (int i = 0; i < displays_to_duplicate.size(); i++)
   {
     // initialize display
@@ -143,6 +147,11 @@ void DisplaysPanel::onDuplicateDisplay()
     displays_to_duplicate[i]->save(config);
     disp->load(config);
     duplicated_displays.push_back(disp);
+    progress_dlg.setValue(i + 1);
+    QApplication::processEvents(); // explicitly progress events for update
+    // push cancel to stop duplicate
+    if (progress_dlg.wasCanceled())
+      break;
   }
   // make sure the newly duplicated displays are selected.
   if (!duplicated_displays.empty())
@@ -152,7 +161,6 @@ void DisplaysPanel::onDuplicateDisplay()
     QItemSelection selection(first, last);
     property_grid_->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect);
   }
-  vis_manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
