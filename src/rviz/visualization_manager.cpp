@@ -37,16 +37,16 @@
 
 #include <boost/bind.hpp>
 
-#include <OgreRoot.h>
-#include <OgreSceneManager.h>
-#include <OgreSceneNode.h>
-#include <OgreLight.h>
-#include <OgreViewport.h>
-#include <OgreMaterialManager.h>
-#include <OgreMaterial.h>
-#include <OgreRenderWindow.h>
-#include <OgreSharedPtr.h>
-#include <OgreCamera.h>
+#include <OGRE/OgreRoot.h>
+#include <OGRE/OgreSceneManager.h>
+#include <OGRE/OgreSceneNode.h>
+#include <OGRE/OgreLight.h>
+#include <OGRE/OgreViewport.h>
+#include <OGRE/OgreMaterialManager.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreRenderWindow.h>
+#include <OGRE/OgreSharedPtr.h>
+#include <OGRE/OgreCamera.h>
 
 #include <boost/filesystem.hpp>
 #include <utility>
@@ -199,6 +199,9 @@ VisualizationManager::VisualizationManager(RenderPanel* render_panel,
 
   selection_manager_ = new SelectionManager(this);
 
+  update_timer_ = new QTimer;
+  connect(update_timer_, SIGNAL(timeout()), this, SLOT(onUpdate()));
+
   private_->threaded_queue_threads_.create_thread(
       boost::bind(&VisualizationManager::threadedQueueThreadFunc, this));
 
@@ -206,17 +209,15 @@ VisualizationManager::VisualizationManager(RenderPanel* render_panel,
 
   ogre_render_queue_clearer_ = new OgreRenderQueueClearer();
   Ogre::Root::getSingletonPtr()->addFrameListener(ogre_render_queue_clearer_);
-
-  update_timer_ = new QTimer;
-  connect(update_timer_, SIGNAL(timeout()), this, SLOT(onUpdate()));
 }
 
 VisualizationManager::~VisualizationManager()
 {
-  delete update_timer_;
-
+  update_timer_->stop();
   shutting_down_ = true;
   private_->threaded_queue_threads_.join_all();
+
+  delete update_timer_;
 
   if (selection_manager_)
   {
@@ -446,8 +447,6 @@ void VisualizationManager::emitStatusUpdate(const QString& message)
 
 void VisualizationManager::load(const Config& config)
 {
-  stopUpdate();
-
   emitStatusUpdate("Creating displays");
   root_display_group_->load(config);
 
@@ -456,8 +455,6 @@ void VisualizationManager::load(const Config& config)
 
   emitStatusUpdate("Creating views");
   view_manager_->load(config.mapGetChild("Views"));
-
-  startUpdate();
 }
 
 void VisualizationManager::save(Config config) const
@@ -507,10 +504,6 @@ void VisualizationManager::updateBackgroundColor()
 
 void VisualizationManager::updateFps()
 {
-  if (update_timer_->isActive())
-  {
-    startUpdate();
-  }
 }
 
 void VisualizationManager::updateDefaultLightVisible()
@@ -564,9 +557,13 @@ void VisualizationManager::handleChar(QKeyEvent* event, RenderPanel* panel)
 
 void VisualizationManager::threadedQueueThreadFunc()
 {
+  ros::WallDuration timeout(0.1);
   while (!shutting_down_)
   {
-    private_->threaded_queue_.callOne(ros::WallDuration(0.1));
+    if (update_timer_->isActive())
+      private_->threaded_queue_.callOne(timeout);
+    else
+      timeout.sleep();
   }
 }
 

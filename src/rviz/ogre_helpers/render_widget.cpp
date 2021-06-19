@@ -31,7 +31,7 @@
 #include <rviz/ogre_helpers/render_system.h>
 #include <rviz/ogre_helpers/version_check.h>
 
-#include <OgreRenderWindow.h>
+#include <OGRE/OgreRenderWindow.h>
 
 #include <QtGlobal>
 #include <QApplication>
@@ -50,8 +50,6 @@ RenderWidget::RenderWidget(RenderSystem* render_system, QWidget* parent)
   setAttribute(Qt::WA_PaintOnScreen, true);
 
   rviz::RenderSystem::WindowIDType win_id = this->winId();
-  QApplication::flush();
-  QApplication::sync();
   QWindow* window = windowHandle();
   pixel_ratio_ = window ? window->devicePixelRatio() : 1.0;
 
@@ -98,7 +96,7 @@ void RenderWidget::resizeEvent(QResizeEvent* e)
      * So here we just always force it to be even. */
     const int w = width() * pixel_ratio_;
     render_window_->resize(w + (w % 2), height() * pixel_ratio_);
-#if OGRE_VERSION < OGRE_VERSION_CHECK(1, 10, 0)
+#if OGRE_VERSION < OGRE_VERSION_CHECK(1, 12, 0)
     render_window_->windowMovedOrResized();
 #endif
   }
