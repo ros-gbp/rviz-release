@@ -36,11 +36,11 @@
 #include <QObject>
 
 #ifndef Q_MOC_RUN
-#include <OgreVector3.h>
-#include <OgreQuaternion.h>
-#include <OgreAny.h>
-#include <OgreMaterial.h>
-#include <OgreSharedPtr.h>
+#include <OGRE/OgreVector3.h>
+#include <OGRE/OgreQuaternion.h>
+#include <OGRE/OgreAny.h>
+#include <OGRE/OgreMaterial.h>
+#include <OGRE/OgreSharedPtr.h>
 #endif
 
 #include <urdf/model.h> // can be replaced later by urdf_model/types.h
@@ -128,6 +128,7 @@ public:
   {
     return robot_;
   }
+  const std::string& getGeometryErrors() const;
 
   // Remove link_property_ from its old parent and add to new_parent.  If new_parent==NULL then leav
   // unparented.
@@ -189,6 +190,7 @@ private:
                                       const urdf::Pose& origin,
                                       Ogre::SceneNode* scene_node,
                                       Ogre::Entity*& entity);
+  void addError(const char* format, ...);
 
   void createVisual(const urdf::LinkConstSharedPtr& link);
   void createCollision(const urdf::LinkConstSharedPtr& link);
