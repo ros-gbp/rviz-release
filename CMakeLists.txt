@@ -8,7 +8,7 @@ if (POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -25,75 +25,71 @@ find_package(Boost REQUIRED
 
 find_package(urdfdom_headers REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-
-find_package(ASSIMP QUIET)
-if (NOT ASSIMP_FOUND)
-  pkg_check_modules(ASSIMP assimp)
+set(CMAKE_POLICY_DEFAULT_CMP0012 NEW)  # required due to a bug in assimp 5.0
+find_package(ASSIMP REQUIRED)
+if(NOT DEFINED ASSIMP_LIBRARIES AND TARGET assimp::assimp)
+  # ASSIMP >= 5.0 no longer defines ASSIMP_LIBRARIES
+  set(ASSIMP_LIBRARIES assimp::assimp)
 endif()
-if (ASSIMP_FOUND)
-  if( NOT ${ASSIMP_VERSION} VERSION_LESS "2.0.1150" )
-    add_definitions(-DASSIMP_UNIFIED_HEADER_NAMES)
-    message(STATUS "Assimp version has unified headers")
-  else()
-    message(STATUS "Assimp version does not have unified headers")
+
+find_package(OGRE QUIET COMPONENTS Overlay)
+if(OGRE_FOUND)
+  if(${OGRE_VERSION} VERSION_LESS 1.11)
+    set(OGRE_INCLUDE_DIRS ${OGRE_INCLUDE_DIRS} ${OGRE_Overlay_INCLUDE_DIRS})
+    set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${OGRE_Overlay_LIBRARIES})
   endif()
-  include_directories(${ASSIMP_INCLUDE_DIRS})
-  #catkin_lint: ignore_once link_directory
-  link_directories(${ASSIMP_LIBRARY_DIRS})
 else()
-  message(STATUS "could not find assimp (perhaps available thorugh ROS package?), so assimping assimp v2")
-  set(ASSIMP_LIBRARIES assimp)
-  set(ASSIMP_LIBRARY_DIRS)
-  set(ASSIMP_CXX_FLAGS)
-  set(ASSIMP_CFLAGS_OTHER)
-  set(ASSIMP_LINK_FLAGS)
-  set(ASSIMP_INCLUDE_DIRS)
+  # OGRE doesn't come with correctly installed cmake files on Linux. Use pkg-config instead.
+  # We need both, OGRE and OGRE-Overlay. Look for both simulatenously and use prefix X_
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(X REQUIRED OGRE OGRE-Overlay)
+
+  # Set OGRE_* variables as cmake-based find_package would do
+  set(OGRE_VERSION ${X_OGRE_VERSION})
+  set(OGRE_INCLUDE_DIRS ${X_INCLUDE_DIRS})
+  message(STATUS "OGRE_INCLUDE_DIRS=${OGRE_INCLUDE_DIRS}")
+
+  # Find absolute path of OGRE libraries.
+  # This is stored in the cache to save time on cmake re-run.
+  # Using absolute paths is necessary if pkg-config finds Ogre in a different
+  # location than the default.  This can happen when Ogre is built from source,
+  # or when 2 versions of Ogre are installed.  Using absolute paths ensures that
+  # components that link against Ogre (rviz and any packages depending on rviz)
+  # all find the same Ogre shared library.
+  if(NOT DEFINED OGRE_LIBRARIES)
+    set(_OGRE_LIBRARIES)
+    foreach(_lib ${X_LIBRARIES})
+      set(_lib_tag "OGRE_RVIZ_${_lib}")
+
+      find_library(${_lib_tag}
+              NAMES ${_lib}
+              HINTS ${X_LIBRARY_DIRS}
+              PATHS ${X_LIBRARY_DIRS}
+      )
+
+      list(APPEND _OGRE_LIBRARIES ${${_lib_tag}})
+    endforeach(_lib)
+
+    set(OGRE_LIBRARIES ${_OGRE_LIBRARIES} CACHE STRING "Absolute paths to OGRE libs")
+  endif(NOT DEFINED OGRE_LIBRARIES)
+  message(STATUS "OGRE_LIBRARIES=${OGRE_LIBRARIES}")
+
+  ## Fetch OGRE_PLUGIN_DIR variable from pkg-config
+  if(NOT DEFINED OGRE_PLUGIN_DIR)
+    execute_process(COMMAND
+      ${PKG_CONFIG_EXECUTABLE} --variable=plugindir OGRE
+      OUTPUT_VARIABLE OGRE_PLUGIN_DIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+  endif(NOT DEFINED OGRE_PLUGIN_DIR)
+  message(STATUS "OGRE_PLUGIN_DIR=${OGRE_PLUGIN_DIR}")
 endif()
 
-pkg_check_modules(OGRE_OV OGRE OGRE-Overlay)
-
-# Old versions of OGRE (pre 1.9) included OGRE-Overlay in the main package
-# (i.e. there was no OGRE-Overlay component).  So if the above
-# pkg_check_modules() failed, try looking for just OGRE.
-if(NOT OGRE_OV_FOUND)
-  pkg_check_modules(OGRE_OV REQUIRED OGRE)
-endif(NOT OGRE_OV_FOUND)
-
-## Find OGRE Plugin path (not necessarily platform-independent, I guess)
-if(NOT DEFINED OGRE_PLUGIN_PATH)
-  execute_process(COMMAND
-    ${PKG_CONFIG_EXECUTABLE} --variable=plugindir OGRE
-    OUTPUT_VARIABLE OGRE_PLUGIN_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-endif(NOT DEFINED OGRE_PLUGIN_PATH)
-message(STATUS OGRE_PLUGIN_PATH=${OGRE_PLUGIN_PATH})
-
-# find absolute path of ogre libraries.
-# This is stored in the cache to save time on cmake re-run.
-# Using absolute paths is necessary if pkg-config finds Ogre in a different
-# location than the default.  This can happen when Ogre is built from source,
-# or when 2 versions of Ogre are installed.  Using absolute paths ensures that
-# components that link against Ogre (rviz and any packages depending on rviz)
-# all find the same Ogre shared library.
-if(NOT DEFINED OGRE_OV_LIBRARIES_ABS)
-  unset(OGRE_OV_LIBRARIES_ABS_TMP)
-  foreach(_lib ${OGRE_OV_LIBRARIES})
-    set(OGRE_OV_LIB_TAG "OGRE_OV_RVIZ_LIB_${_lib}")
-
-    find_library(${OGRE_OV_LIB_TAG}
-            NAMES ${_lib}
-            HINTS ${OGRE_OV_LIBRARY_DIRS}
-            PATHS ${OGRE_OV_LIBRARY_DIRS}
-    )
-
-    set(OGRE_OV_LIBRARIES_ABS_TMP ${OGRE_OV_LIBRARIES_ABS_TMP} ${${OGRE_OV_LIB_TAG}})
-  endforeach(_lib)
-
-  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES_ABS_TMP}
-        CACHE FILEPATH "Pathname of library ${_lib}")
-endif(NOT DEFINED OGRE_OV_LIBRARIES_ABS)
+# TODO: adapt version after upgrade to newer OGRE release
+# Disable deprecation warnings for OGRE >= 1.10
+if(NOT OGRE_VERSION VERSION_LESS "1.10.0" AND NOT MSVC)
+  add_compile_options(-Wno-deprecated-declarations)
+endif()
 
 if(APPLE)
   FIND_LIBRARY(Cocoa_LIBRARIES Cocoa)
@@ -105,21 +101,17 @@ if(APPLE)
   add_definitions(-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
 endif()
 
+# Prefer newer vender-specific OpenGL library
+if (POLICY CMP0072)
+  cmake_policy(SET CMP0072 NEW)
+endif()
 find_package(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(UseQt5 "UseQt5" ON)
-if (UseQt5)
-  find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
-  # set variable names already used with Qt4
-  set(QT_LIBRARIES Qt5::Widgets)
-  set(QTVERSION ${Qt5Widgets_VERSION})
-else()
-  find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
-  include(${QT_USE_FILE})
-endif()
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+set(QT_LIBRARIES Qt5::Widgets)
+set(QTVERSION ${Qt5Widgets_VERSION})
 add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED
@@ -144,7 +136,9 @@ find_package(catkin REQUIRED
   sensor_msgs
   std_msgs
   std_srvs
-  tf
+  tf2_ros
+  tf2_geometry_msgs
+  tf2_eigen
   urdf
   visualization_msgs
 )
@@ -165,10 +159,6 @@ endif()
 find_package(TinyXML2 REQUIRED)
 
 catkin_python_setup()
-
-if(NOT OGRE_OV_LIBRARIES_ABS)
-  set(OGRE_OV_LIBRARIES_ABS ${OGRE_OV_LIBRARIES})
-endif()
 
 # Set the Qt version for use in the extras file.
 set(rviz_QT_VERSION ${QTVERSION})
@@ -200,11 +190,11 @@ catkin_package(
     src
     ${EXPORT_HEADER_DIR}
     ${EIGEN3_INCLUDE_DIRS}
-    ${OGRE_OV_INCLUDE_DIRS}
+    ${OGRE_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIR}
   LIBRARIES
     rviz
-    ${OGRE_OV_LIBRARIES_ABS}
+    ${OGRE_LIBRARIES}
     ${rviz_ADDITIONAL_LIBRARIES}
     ${OPENGL_LIBRARIES}
   CATKIN_DEPENDS
@@ -223,22 +213,23 @@ catkin_package(
     sensor_msgs
     std_msgs
     std_srvs
-    tf
+    tf2_ros
     urdf
     visualization_msgs
 )
 
+#catkin_lint: ignore_once external_directory
+include_directories(src ${EXPORT_HEADER_DIR})
 include_directories(SYSTEM
   ${EIGEN3_INCLUDE_DIRS}
-  ${OGRE_OV_INCLUDE_DIRS}
+  ${OGRE_INCLUDE_DIRS}
   ${OPENGL_INCLUDE_DIR}
   ${PYTHON_INCLUDE_PATH}
   ${TinyXML2_INCLUDE_DIRS}
   ${urdfdom_headers_INCLUDE_DIRS}
+  ${ASSIMP_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
-#catkin_lint: ignore_once external_directory
-include_directories(src ${EXPORT_HEADER_DIR})
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 
 #### If gtk ends up being the best way to get the correct window
 #### position under X11, this is how to compile it in.
@@ -249,8 +240,15 @@ include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 
 add_subdirectory(src)
 
+if(OGRE_VERSION VERSION_LESS "1.10")
+  set(EXCLUDE_PATTERN "ogre1.10.*")
+else()
+  set(EXCLUDE_PATTERN "ogre1.9.*")
+endif()
+
 install(DIRECTORY ogre_media
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  PATTERN "${EXCLUDE_PATTERN}" EXCLUDE
 )
 install(DIRECTORY icons
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

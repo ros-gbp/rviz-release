@@ -34,14 +34,14 @@
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreViewport.h>
 
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/orthographic.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/viewport_mouse_event.h"
+#include <rviz/display_context.h>
+#include <rviz/ogre_helpers/orthographic.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/viewport_mouse_event.h>
 
-#include "rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h"
+#include <rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h>
 
 namespace rviz
 {
@@ -217,11 +217,13 @@ void FixedOrientationOrthoViewController::setPosition(const Ogre::Vector3& pos_r
 void FixedOrientationOrthoViewController::move(float dx, float dy)
 {
   float angle = angle_property_->getFloat();
-  x_property_->add(dx * cos(angle) - dy * sin(angle));
-  y_property_->add(dx * sin(angle) + dy * cos(angle));
+  x_property_->add(dx * std::cos(angle) - dy * std::sin(angle));
+  y_property_->add(dx * std::sin(angle) + dy * std::cos(angle));
 }
 
 } // end namespace rviz
+
+#include <cmath>
 
 #include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(rviz::FixedOrientationOrthoViewController, rviz::ViewController)

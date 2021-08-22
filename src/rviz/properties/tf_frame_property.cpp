@@ -29,9 +29,9 @@
 
 #include <algorithm> // for std::sort
 
-#include "rviz/frame_manager.h"
+#include <rviz/frame_manager.h>
 
-#include "rviz/properties/tf_frame_property.h"
+#include <rviz/properties/tf_frame_property.h>
 
 namespace rviz
 {
@@ -82,17 +82,7 @@ void TfFrameProperty::setFrameManager(FrameManager* frame_manager)
 void TfFrameProperty::fillFrameList()
 {
   std::vector<std::string> std_frames;
-// TODO(wjwwood): remove this and use tf2 interface instead
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-  frame_manager_->getTFClient()->getFrameStrings(std_frames);
-
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
+  frame_manager_->getTF2BufferPtr()->_getFrameStrings(std_frames);
   std::sort(std_frames.begin(), std_frames.end());
 
   clearOptions();

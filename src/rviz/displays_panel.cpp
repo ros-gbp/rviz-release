@@ -37,15 +37,15 @@
 
 #include <boost/bind.hpp>
 
-#include "rviz/display_factory.h"
-#include "rviz/display.h"
-#include "rviz/add_display_dialog.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/property_tree_widget.h"
-#include "rviz/properties/property_tree_with_help.h"
-#include "rviz/visualization_manager.h"
+#include <rviz/display_factory.h>
+#include <rviz/display.h>
+#include <rviz/add_display_dialog.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/property_tree_widget.h>
+#include <rviz/properties/property_tree_with_help.h>
+#include <rviz/visualization_manager.h>
 
-#include "rviz/displays_panel.h"
+#include <rviz/displays_panel.h>
 
 namespace rviz
 {
@@ -114,7 +114,6 @@ void DisplaysPanel::onNewDisplay()
                           &display_name, &topic, &datatype);
   QApplication::restoreOverrideCursor();
 
-  vis_manager_->stopUpdate();
   if (dialog.exec() == QDialog::Accepted)
   {
     Display* disp = vis_manager_->createDisplay(lookup_name, display_name, true);
@@ -123,7 +122,6 @@ void DisplaysPanel::onNewDisplay()
       disp->setTopic(topic, datatype);
     }
   }
-  vis_manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
@@ -133,7 +131,6 @@ void DisplaysPanel::onDuplicateDisplay()
   QList<Display*> duplicated_displays;
   QProgressDialog progress_dlg("Duplicating displays...", "Cancel", 0, displays_to_duplicate.size(),
                                this);
-  vis_manager_->stopUpdate();
   progress_dlg.setWindowModality(Qt::WindowModal);
   progress_dlg.show();
   QApplication::processEvents(); // explicitly progress events for update
@@ -164,7 +161,6 @@ void DisplaysPanel::onDuplicateDisplay()
     QItemSelection selection(first, last);
     property_grid_->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect);
   }
-  vis_manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
