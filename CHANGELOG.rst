@@ -4,6 +4,7 @@ Changelog for package rviz
 
 1.14.9 (2021-08-22)
 -------------------
+* Revert `#1639 <https://github.com/ros-visualization/rviz/issues/1639>`_ as it strongly delayed showing dialogs under heavy (rendering) load
 * Smoothly move PCL given a moving frame_id (`#1655 <https://github.com/ros-visualization/rviz/issues/1655>`_)
 * Smoothly move an Odometry's path given a moving frame_id (`#1631 <https://github.com/ros-visualization/rviz/issues/1631>`_)
 * TF display: Correctly reparent root frame property (`#1647 <https://github.com/ros-visualization/rviz/issues/1647>`_)
