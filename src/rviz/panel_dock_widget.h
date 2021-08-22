@@ -30,8 +30,8 @@
 #ifndef RVIZ_PANEL_DOCK_WIDGET_H
 #define RVIZ_PANEL_DOCK_WIDGET_H
 
-#include <rviz/config.h>
-#include <rviz/rviz_export.h>
+#include "rviz/config.h"
+#include "rviz/rviz_export.h"
 
 #include <QDockWidget>
 #include <QLabel>
@@ -53,10 +53,10 @@ public:
 
   void setCollapsed(bool collapsed);
 
-  void setIcon(const QIcon& icon);
+  void setIcon(QIcon icon);
 
   virtual void save(Config config);
-  virtual void load(const Config& config);
+  virtual void load(Config config);
 
   /** @brief Override setVisible to respect the visibility override, */
   void setVisible(bool visible) override;
@@ -66,13 +66,13 @@ protected:
 
 public Q_SLOTS:
 
-  void setWindowTitle(const QString& title);
+  void setWindowTitle(QString title);
 
   /** @ Override the visibility of the widget. **/
   virtual void overrideVisibility(bool hide);
 
 private Q_SLOTS:
-  void onChildDestroyed(QObject* /*unused*/);
+  void onChildDestroyed(QObject* unused);
 
 Q_SIGNALS:
 

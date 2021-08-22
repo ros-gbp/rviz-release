@@ -63,41 +63,49 @@
 #include <OGRE/OgreRenderWindow.h>
 #include <OGRE/OgreMeshManager.h>
 
-#include <rviz/ogre_helpers/initialization.h>
+#include <ogre_helpers/initialization.h>
 
-#include <rviz/displays_panel.h>
-#include <rviz/env_config.h>
-#include <rviz/failed_panel.h>
-#include <rviz/help_panel.h>
-#include <rviz/loading_dialog.h>
-#include <rviz/new_object_dialog.h>
-#include <rviz/preferences.h>
-#include <rviz/preferences_dialog.h>
-#include <rviz/panel_dock_widget.h>
-#include <rviz/panel_factory.h>
-#include <rviz/render_panel.h>
-#include <rviz/screenshot_dialog.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/selection_panel.h>
-#include <rviz/splash_screen.h>
-#include <rviz/time_panel.h>
-#include <rviz/tool.h>
-#include <rviz/tool_manager.h>
-#include <rviz/tool_properties_panel.h>
-#include <rviz/views_panel.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/widget_geometry_change_detector.h>
-#include <rviz/load_resource.h>
-#include <rviz/yaml_config_reader.h>
-#include <rviz/yaml_config_writer.h>
+#include "rviz/displays_panel.h"
+#include "rviz/env_config.h"
+#include "rviz/failed_panel.h"
+#include "rviz/help_panel.h"
+#include "rviz/loading_dialog.h"
+#include "rviz/new_object_dialog.h"
+#include "rviz/preferences.h"
+#include "rviz/preferences_dialog.h"
+#include "rviz/panel_dock_widget.h"
+#include "rviz/panel_factory.h"
+#include "rviz/render_panel.h"
+#include "rviz/screenshot_dialog.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/selection_panel.h"
+#include "rviz/splash_screen.h"
+#include "rviz/time_panel.h"
+#include "rviz/tool.h"
+#include "rviz/tool_manager.h"
+#include "rviz/tool_properties_panel.h"
+#include "rviz/views_panel.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/widget_geometry_change_detector.h"
+#include "rviz/load_resource.h"
+#include "rviz/yaml_config_reader.h"
+#include "rviz/yaml_config_writer.h"
 
-#include <rviz/visualization_frame.h>
+#include "rviz/visualization_frame.h"
 
 namespace fs = boost::filesystem;
 
 #define CONFIG_EXTENSION "rviz"
 #define CONFIG_EXTENSION_WILDCARD "*." CONFIG_EXTENSION
 #define RECENT_CONFIG_COUNT 10
+
+#if BOOST_FILESYSTEM_VERSION == 3
+#define BOOST_FILENAME_STRING filename().string
+#define BOOST_FILE_STRING string
+#else
+#define BOOST_FILENAME_STRING filename
+#define BOOST_FILE_STRING file_string
+#endif
 
 namespace rviz
 {
@@ -114,7 +122,7 @@ VisualizationFrame::VisualizationFrame(QWidget* parent)
   , splash_(nullptr)
   , toolbar_actions_(nullptr)
   , show_choose_new_master_option_(false)
-  , toolbar_separator_(nullptr)
+  , add_tool_action_(nullptr)
   , remove_tool_menu_(nullptr)
   , initialized_(false)
   , geom_change_detector_(new WidgetGeometryChangeDetector(this))
@@ -132,8 +140,9 @@ VisualizationFrame::VisualizationFrame(QWidget* parent)
   connect(post_load_timer_, SIGNAL(timeout()), this, SLOT(markLoadingDone()));
 
   package_path_ = ros::package::getPath("rviz");
-  help_path_ = QString::fromStdString((fs::path(package_path_) / "help/help.html").string());
-  splash_path_ = QString::fromStdString((fs::path(package_path_) / "images/splash.png").string());
+  help_path_ = QString::fromStdString((fs::path(package_path_) / "help/help.html").BOOST_FILE_STRING());
+  splash_path_ =
+      QString::fromStdString((fs::path(package_path_) / "images/splash.png").BOOST_FILE_STRING());
 
   QToolButton* reset_button = new QToolButton();
   reset_button->setText("Reset");
@@ -247,7 +256,8 @@ void VisualizationFrame::initialize(const QString& display_config_file)
 
   loadPersistentSettings();
 
-  QIcon app_icon(QString::fromStdString((fs::path(package_path_) / "icons/package.png").string()));
+  QIcon app_icon(
+      QString::fromStdString((fs::path(package_path_) / "icons/package.png").BOOST_FILE_STRING()));
   setWindowIcon(app_icon);
 
   if (splash_path_ != "")
@@ -385,9 +395,10 @@ void VisualizationFrame::initConfigs()
 {
   home_dir_ = QDir::toNativeSeparators(QDir::homePath()).toStdString();
 
-  config_dir_ = (fs::path(home_dir_) / ".rviz").string();
-  persistent_settings_file_ = (fs::path(config_dir_) / "persistent_settings").string();
-  default_display_config_file_ = (fs::path(config_dir_) / "default." CONFIG_EXTENSION).string();
+  config_dir_ = (fs::path(home_dir_) / ".rviz").BOOST_FILE_STRING();
+  persistent_settings_file_ = (fs::path(config_dir_) / "persistent_settings").BOOST_FILE_STRING();
+  default_display_config_file_ =
+      (fs::path(config_dir_) / "default." CONFIG_EXTENSION).BOOST_FILE_STRING();
 
   if (fs::is_regular_file(config_dir_))
   {
@@ -517,7 +528,7 @@ void VisualizationFrame::initToolbars()
   connect(toolbar_actions_, SIGNAL(triggered(QAction*)), this, SLOT(onToolbarActionTriggered(QAction*)));
   view_menu_->addAction(toolbar_->toggleViewAction());
 
-  toolbar_separator_ = toolbar_->addSeparator();
+  add_tool_action_ = toolbar_->addSeparator();
 
   QToolButton* add_tool_button = new QToolButton();
   add_tool_button->setToolTip("Add a new tool");
@@ -534,7 +545,7 @@ void VisualizationFrame::initToolbars()
   toolbar_->addWidget(remove_tool_button);
   connect(remove_tool_menu_, SIGNAL(triggered(QAction*)), this, SLOT(onToolbarRemoveTool(QAction*)));
 
-  QMenu* button_style_menu = new QMenu();
+  QMenu* button_style_menu = new QMenu(toolbar_);
   QAction* action_tool_button_icon_only = new QAction("Icon only", toolbar_actions_);
   action_tool_button_icon_only->setData(Qt::ToolButtonIconOnly);
   button_style_menu->addAction(action_tool_button_icon_only);
@@ -624,11 +635,13 @@ void VisualizationFrame::openPreferencesDialog()
 {
   Preferences temp_preferences(*preferences_);
   PreferencesDialog dialog(panel_factory_, &temp_preferences, this);
+  manager_->stopUpdate();
   if (dialog.exec() == QDialog::Accepted)
   {
     // Apply preferences.
     preferences_ = boost::make_shared<Preferences>(temp_preferences);
   }
+  manager_->startUpdate();
 }
 
 void VisualizationFrame::openNewPanelDialog()
@@ -639,6 +652,7 @@ void VisualizationFrame::openNewPanelDialog()
 
   NewObjectDialog* dialog =
       new NewObjectDialog(panel_factory_, "Panel", empty, empty, &class_id, &display_name, this);
+  manager_->stopUpdate();
   if (dialog->exec() == QDialog::Accepted)
   {
     QDockWidget* dock = addPanelByName(display_name, class_id);
@@ -647,6 +661,7 @@ void VisualizationFrame::openNewPanelDialog()
       connect(dock, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(onDockPanelChange()));
     }
   }
+  manager_->startUpdate();
 }
 
 void VisualizationFrame::openNewToolDialog()
@@ -657,10 +672,12 @@ void VisualizationFrame::openNewToolDialog()
 
   NewObjectDialog* dialog =
       new NewObjectDialog(tool_man->getFactory(), "Tool", empty, tool_man->getToolClasses(), &class_id);
+  manager_->stopUpdate();
   if (dialog->exec() == QDialog::Accepted)
   {
     tool_man->addTool(class_id);
   }
+  manager_->startUpdate();
   activateWindow(); // Force keyboard focus back on main window.
 }
 
@@ -681,7 +698,7 @@ void VisualizationFrame::updateRecentConfigMenu()
       }
       if (display_name.find(home_dir_) == 0)
       {
-        display_name = ("~" / fs::path(display_name.substr(home_dir_.size()))).string();
+        display_name = ("~" / fs::path(display_name.substr(home_dir_.size()))).BOOST_FILE_STRING();
       }
       QString qdisplay_name = QString::fromStdString(display_name);
       QAction* action = new QAction(qdisplay_name, this);
@@ -735,7 +752,7 @@ void VisualizationFrame::loadDisplayConfig(const QString& qpath)
       return;
     }
   }
-  loadDisplayConfigHelper(actual_load_path.string());
+  loadDisplayConfigHelper(actual_load_path.BOOST_FILE_STRING());
 }
 
 bool VisualizationFrame::loadDisplayConfigHelper(const std::string& full_path)
@@ -771,7 +788,7 @@ bool VisualizationFrame::loadDisplayConfigHelper(const std::string& full_path)
 
   setDisplayConfigFile(full_path);
 
-  last_config_dir_ = fs::path(full_path).parent_path().string();
+  last_config_dir_ = fs::path(full_path).parent_path().BOOST_FILE_STRING();
 
   post_load_timer_->start(1000);
 
@@ -810,7 +827,7 @@ void VisualizationFrame::setDisplayConfigFile(const std::string& path)
   }
   else
   {
-    title = fs::path(path).filename().string() + "[*] - RViz";
+    title = fs::path(path).BOOST_FILENAME_STRING() + "[*] - RViz";
   }
   setWindowTitle(QString::fromStdString(title));
   Q_EMIT displayConfigFileChanged(QString::fromStdString(path));
@@ -1009,7 +1026,9 @@ bool VisualizationFrame::prepareToExit()
     box.setInformativeText(QString::fromStdString("Save changes to " + display_config_file_ + "?"));
     box.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     box.setDefaultButton(QMessageBox::Save);
+    manager_->stopUpdate();
     int result = box.exec();
+    manager_->startUpdate();
     switch (result)
     {
     case QMessageBox::Save:
@@ -1052,9 +1071,11 @@ bool VisualizationFrame::prepareToExit()
 
 void VisualizationFrame::onOpen()
 {
+  manager_->stopUpdate();
   QString filename = QFileDialog::getOpenFileName(this, "Choose a file to open",
                                                   QString::fromStdString(last_config_dir_),
                                                   "RViz config files (" CONFIG_EXTENSION_WILDCARD ")");
+  manager_->startUpdate();
 
   if (!filename.isEmpty())
   {
@@ -1082,6 +1103,7 @@ void VisualizationFrame::onSave()
 
   if (!saveDisplayConfig(QString::fromStdString(display_config_file_)))
   {
+    manager_->stopUpdate();
     QMessageBox box(this);
     box.setWindowTitle("Failed to save.");
     box.setText(getErrorMessage());
@@ -1093,14 +1115,17 @@ void VisualizationFrame::onSave()
     {
       onSaveAs();
     }
+    manager_->startUpdate();
   }
 }
 
 void VisualizationFrame::onSaveAs()
 {
+  manager_->stopUpdate();
   QString q_filename = QFileDialog::getSaveFileName(this, "Choose a file to save to",
                                                     QString::fromStdString(last_config_dir_),
                                                     "RViz config files (" CONFIG_EXTENSION_WILDCARD ")");
+  manager_->startUpdate();
 
   if (!q_filename.isEmpty())
   {
@@ -1117,7 +1142,7 @@ void VisualizationFrame::onSaveAs()
     }
 
     markRecentConfig(filename);
-    last_config_dir_ = fs::path(filename).parent_path().string();
+    last_config_dir_ = fs::path(filename).parent_path().BOOST_FILE_STRING();
     setDisplayConfigFile(filename);
   }
 }
@@ -1157,7 +1182,7 @@ void VisualizationFrame::addTool(Tool* tool)
   action->setIcon(tool->getIcon());
   action->setIconText(tool->getName());
   action->setCheckable(true);
-  toolbar_->insertAction(toolbar_separator_, action);
+  toolbar_->insertAction(add_tool_action_, action);
   action_to_tool_map_[action] = tool;
   tool_to_action_map_[tool] = action;
 

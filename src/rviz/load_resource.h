@@ -45,7 +45,7 @@ namespace rviz
  *        If fill_cache is set to true (default), the image will be
  *        stored in the cache after loading it from disk.
  */
-QPixmap loadPixmap(const QString& url, bool fill_cache = true);
+QPixmap loadPixmap(QString url, bool fill_cache = true);
 
 /* @brief Load the default cursor: an arrow.
  *        The fill_cache parameter is ignored.
@@ -57,13 +57,13 @@ QCursor getDefaultCursor(bool fill_cache = true);
  *        If fill_cache is set to true (default), the image will be
  *        stored in the cache after loading it from disk.
  */
-QCursor makeIconCursor(const QString& icon_url, bool fill_cache = true);
+QCursor makeIconCursor(QString icon_url, bool fill_cache = true);
 
 /* @brief Create a cursor using the shape in the icon QPixmap.
  *        If fill_cache is set to true (default), the image will be
  *        stored in the cache using \e cache_key.
  */
-QCursor makeIconCursor(const QPixmap& icon, const QString& cache_key = "", bool fill_cache = true);
+QCursor makeIconCursor(QPixmap icon, QString cache_key = "", bool fill_cache = true);
 
 
 } // namespace rviz

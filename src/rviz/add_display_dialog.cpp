@@ -47,7 +47,7 @@
 #include <QHeaderView>
 
 #include "add_display_dialog.h"
-#include <rviz/load_resource.h>
+#include "rviz/load_resource.h"
 
 #include "display_factory.h"
 
@@ -428,7 +428,11 @@ TopicDisplayWidget::TopicDisplayWidget()
   tree_->setColumnCount(2);
 
   tree_->header()->setStretchLastSection(false);
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  tree_->header()->setResizeMode(0, QHeaderView::Stretch);
+#else
   tree_->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+#endif
 
   enable_hidden_box_ = new QCheckBox("Show unvisualizable topics");
   enable_hidden_box_->setCheckState(Qt::Unchecked);
@@ -518,7 +522,7 @@ void TopicDisplayWidget::fill(DisplayFactory* factory)
     QMap<QString, PluginGroup::Info>::const_iterator it;
     for (it = pg.plugins.begin(); it != pg.plugins.end(); ++it)
     {
-      const QString& plugin_name = it.key();
+      const QString plugin_name = it.key();
       const PluginGroup::Info& info = it.value();
       QTreeWidgetItem* row = new QTreeWidgetItem(item);
 

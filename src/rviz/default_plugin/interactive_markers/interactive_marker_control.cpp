@@ -38,21 +38,21 @@
 #include <OGRE/OgreSharedPtr.h>
 #include <OGRE/OgreTechnique.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/render_panel.h>
-#include <rviz/load_resource.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/geometry.h>
-#include <rviz/frame_manager.h>
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/render_panel.h"
+#include "rviz/load_resource.h"
+#include "rviz/window_manager_interface.h"
+#include "rviz/geometry.h"
+#include "rviz/frame_manager.h"
 
-#include <rviz/ogre_helpers/line.h>
+#include "rviz/ogre_helpers/line.h"
 
-#include <rviz/default_plugin/marker_utils.h>
-#include <rviz/default_plugin/markers/points_marker.h>
+#include "rviz/default_plugin/marker_utils.h"
+#include "rviz/default_plugin/markers/points_marker.h"
 
-#include <rviz/default_plugin/interactive_markers/interactive_marker_control.h>
-#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
+#include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 #define NO_HIGHLIGHT_VALUE 0.0
 #define ACTIVE_HIGHLIGHT_VALUE 0.5
@@ -1454,7 +1454,7 @@ bool InteractiveMarkerControl::intersectSomeYzPlane(const Ogre::Ray& mouse_ray,
   return false;
 }
 
-void InteractiveMarkerControl::addHighlightPass(const S_MaterialPtr& materials)
+void InteractiveMarkerControl::addHighlightPass(S_MaterialPtr materials)
 {
   S_MaterialPtr::iterator it;
 
