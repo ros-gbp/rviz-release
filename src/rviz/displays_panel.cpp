@@ -27,6 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <QAction>
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -89,6 +90,21 @@ DisplaysPanel::DisplaysPanel(QWidget* parent) : Panel(parent)
   connect(remove_button_, SIGNAL(clicked(bool)), this, SLOT(onDeleteDisplay()));
   connect(rename_button_, SIGNAL(clicked(bool)), this, SLOT(onRenameDisplay()));
   connect(property_grid_, SIGNAL(selectionHasChanged()), this, SLOT(onSelectionChanged()));
+
+  // additionally to buttons, allow shortcuts F2 / Del to rename / remove displays
+  rename_action_ = new QAction("Rename", this);
+  rename_action_->setShortcut(QKeySequence("F2"));
+  rename_action_->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  rename_action_->setEnabled(false);
+  tree_with_help_->addAction(rename_action_);
+  remove_action_ = new QAction("Remove", this);
+  remove_action_->setShortcut(QKeySequence("Del"));
+  remove_action_->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  remove_action_->setEnabled(false);
+  tree_with_help_->addAction(remove_action_);
+
+  connect(rename_action_, SIGNAL(triggered(bool)), this, SLOT(onRenameDisplay()));
+  connect(remove_action_, SIGNAL(triggered(bool)), this, SLOT(onDeleteDisplay()));
 }
 
 DisplaysPanel::~DisplaysPanel()
@@ -172,16 +188,8 @@ void DisplaysPanel::onDeleteDisplay()
 {
   QList<Display*> displays_to_delete = property_grid_->getSelectedObjects<Display>();
 
-  QModelIndex new_selected;
-
   for (int i = 0; i < displays_to_delete.size(); i++)
   {
-    if (i == 0)
-    {
-      QModelIndex first = property_grid_->getModel()->indexOf(displays_to_delete[i]);
-      // This is safe because the first few rows cannot be deleted (they aren't "displays").
-      new_selected = first.sibling(first.row() - 1, first.column());
-    }
     // Displays can emit signals from other threads with self pointers.  We're
     // freeing the display now, so ensure no one is listening to those signals.
     displays_to_delete[i]->disconnect();
@@ -190,8 +198,10 @@ void DisplaysPanel::onDeleteDisplay()
     // Delete display later in case there are pending signals to it.
     displays_to_delete[i]->deleteLater();
   }
-
-  QItemSelection selection(new_selected, new_selected);
+  // Select new current index
+  const QModelIndex& cur = property_grid_->currentIndex();
+  QItemSelection selection(cur.sibling(cur.row(), 0),
+                           cur.sibling(cur.row(), cur.model()->columnCount() - 1));
   property_grid_->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect);
 
   vis_manager_->notifyConfigChanged();
@@ -206,6 +216,9 @@ void DisplaysPanel::onSelectionChanged()
   duplicate_button_->setEnabled(num_displays_selected > 0);
   remove_button_->setEnabled(num_displays_selected > 0);
   rename_button_->setEnabled(num_displays_selected == 1);
+
+  remove_action_->setEnabled(num_displays_selected > 0);
+  rename_action_->setEnabled(num_displays_selected == 1);
 }
 
 void DisplaysPanel::onRenameDisplay()
@@ -216,11 +229,6 @@ void DisplaysPanel::onRenameDisplay()
     return;
   }
   Display* display_to_rename = displays[0];
-
-  if (!display_to_rename)
-  {
-    return;
-  }
 
   QString old_name = display_to_rename->getName();
   QString new_name =
