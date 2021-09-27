@@ -31,19 +31,21 @@
 #define OGRE_TOOLS_AXES_H
 
 #include "object.h"
-#include <rviz/rviz_export.h>
+#include "rviz/rviz_export.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include <vector>
 
-#include <OGRE/OgrePrerequisites.h>
-#include <OGRE/OgreColourValue.h>
-
 namespace Ogre
 {
+class SceneManager;
+class SceneNode;
+class Vector3;
+class Quaternion;
 class Any;
+class ColourValue;
 } // namespace Ogre
 
 namespace rviz
@@ -64,13 +66,11 @@ public:
    * node.
    * @param length Length of the axes
    * @param radius Radius of the axes
-   * @param alpha Alpha channel value of the axes
    */
   Axes(Ogre::SceneManager* manager,
        Ogre::SceneNode* parent_node = nullptr,
        float length = 1.0f,
-       float radius = 0.1f,
-       float alpha = 1.0f);
+       float radius = 0.1f);
   ~Axes() override;
 
   /**
@@ -78,9 +78,8 @@ public:
    *
    * @param length Length of the axes
    * @param radius Radius of the axes
-   * @param alpha Alpha channel value of the axes
    */
-  void set(float length, float radius, float alpha = 1.0f);
+  void set(float length, float radius);
 
   void setOrientation(const Ogre::Quaternion& orientation) override;
   void setPosition(const Ogre::Vector3& position) override;
@@ -119,12 +118,10 @@ public:
   void setXColor(const Ogre::ColourValue& col);
   void setYColor(const Ogre::ColourValue& col);
   void setZColor(const Ogre::ColourValue& col);
-  void updateAlpha(float alpha);
   void setToDefaultColors();
-  const Ogre::ColourValue& getDefaultXColor();
-  const Ogre::ColourValue& getDefaultYColor();
-  const Ogre::ColourValue& getDefaultZColor();
-
+  static const Ogre::ColourValue& getDefaultXColor();
+  static const Ogre::ColourValue& getDefaultYColor();
+  static const Ogre::ColourValue& getDefaultZColor();
 
 private:
   // prohibit copying
@@ -137,9 +134,9 @@ private:
   Shape* y_axis_; ///< Cylinder for the Y-axis
   Shape* z_axis_; ///< Cylinder for the Z-axis
 
-  Ogre::ColourValue default_x_color_;
-  Ogre::ColourValue default_y_color_;
-  Ogre::ColourValue default_z_color_;
+  static const Ogre::ColourValue default_x_color_;
+  static const Ogre::ColourValue default_y_color_;
+  static const Ogre::ColourValue default_z_color_;
 };
 
 } // namespace rviz

@@ -32,9 +32,9 @@
 #include <QStringList>
 #include <QMimeData>
 
-#include <rviz/properties/property.h>
+#include "rviz/properties/property.h"
 
-#include <rviz/properties/property_tree_model.h>
+#include "rviz/properties/property_tree_model.h"
 
 namespace rviz
 {
@@ -175,7 +175,7 @@ QMimeData* PropertyTreeModel::mimeData(const QModelIndexList& indexes) const
     return nullptr;
   }
   QMimeData* data = new QMimeData();
-  const QString& format = types.at(0);
+  QString format = types.at(0);
   QByteArray encoded;
   QDataStream stream(&encoded, QIODevice::WriteOnly);
 
@@ -215,7 +215,7 @@ bool PropertyTreeModel::dropMimeData(const QMimeData* data,
   {
     return false;
   }
-  const QString& format = types.at(0);
+  QString format = types.at(0);
   if (!data->hasFormat(format))
   {
     return false;
@@ -287,9 +287,9 @@ QModelIndex PropertyTreeModel::indexOf(Property* property) const
   return createIndex(property->rowNumberInParent(), 0, property);
 }
 
-void PropertyTreeModel::emitDataChanged(Property* property, bool emit_config_changed)
+void PropertyTreeModel::emitDataChanged(Property* property)
 {
-  if (emit_config_changed && property->shouldBeSaved() && !property->getReadOnly())
+  if (property->shouldBeSaved())
   {
     Q_EMIT configChanged();
   }

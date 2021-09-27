@@ -30,19 +30,17 @@
 #include <QApplication>
 #include <QMenu>
 #include <QTimer>
-#include <utility>
-
 
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreCamera.h>
 
-#include <rviz/display.h>
-#include <rviz/view_controller.h>
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/window_manager_interface.h>
+#include "rviz/display.h"
+#include "rviz/view_controller.h"
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/window_manager_interface.h"
 
-#include <rviz/render_panel.h>
+#include "rviz/render_panel.h"
 
 namespace rviz
 {
@@ -55,6 +53,8 @@ RenderPanel::RenderPanel(QWidget* parent)
   , scene_manager_(nullptr)
   , view_controller_(nullptr)
   , context_menu_visible_(false)
+  // TODO(simonschmeisser) remove this in noetic
+  , fake_mouse_move_event_timer_(new QTimer())
   , default_camera_(nullptr)
 {
   setFocusPolicy(Qt::WheelFocus);
@@ -64,6 +64,8 @@ RenderPanel::RenderPanel(QWidget* parent)
 
 RenderPanel::~RenderPanel()
 {
+  // TODO(simonschmeisser) remove this in noetic
+  delete fake_mouse_move_event_timer_;
   if (scene_manager_ && default_camera_)
   {
     scene_manager_->destroyCamera(default_camera_);
@@ -89,6 +91,35 @@ void RenderPanel::initialize(Ogre::SceneManager* scene_manager, DisplayContext* 
   default_camera_->lookAt(0, 0, 0);
 
   setCamera(default_camera_);
+}
+
+// TODO(simonschmeisser) remove this in noetic
+void RenderPanel::sendMouseMoveEvent()
+{
+  QPoint cursor_pos = QCursor::pos();
+  QPoint mouse_rel_widget = mapFromGlobal(cursor_pos);
+  if (rect().contains(mouse_rel_widget))
+  {
+    bool mouse_over_this = false;
+    QWidget* w = QApplication::widgetAt(cursor_pos);
+    while (w)
+    {
+      if (w == this)
+      {
+        mouse_over_this = true;
+        break;
+      }
+      w = w->parentWidget();
+    }
+    if (!mouse_over_this)
+    {
+      return;
+    }
+
+    QMouseEvent fake_event(QEvent::MouseMove, mouse_rel_widget, Qt::NoButton,
+                           QApplication::mouseButtons(), QApplication::queryKeyboardModifiers());
+    onRenderWindowMouseEvents(&fake_event);
+  }
 }
 
 void RenderPanel::leaveEvent(QEvent* /*event*/)
@@ -163,7 +194,7 @@ void RenderPanel::setViewController(ViewController* controller)
 void RenderPanel::showContextMenu(boost::shared_ptr<QMenu> menu)
 {
   boost::mutex::scoped_lock lock(context_menu_mutex_);
-  context_menu_ = std::move(menu);
+  context_menu_ = menu;
   context_menu_visible_ = true;
 
   QApplication::postEvent(this, new QContextMenuEvent(QContextMenuEvent::Mouse, QPoint()));

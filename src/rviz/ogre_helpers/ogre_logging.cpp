@@ -32,8 +32,7 @@
 
 #include <ros/ros.h>
 
-#include <rviz/ogre_helpers/version_check.h>
-#include <rviz/ogre_helpers/ogre_logging.h>
+#include "rviz/ogre_helpers/ogre_logging.h"
 
 namespace rviz
 {
@@ -45,6 +44,7 @@ public:
   {
   }
 
+#if OGRE_VERSION >= ((1 << 16) | (8 << 8))
   void messageLogged(const Ogre::String& message,
                      Ogre::LogMessageLevel lml,
                      bool /*maskDebug*/,
@@ -59,6 +59,18 @@ public:
       }
     }
   }
+#else
+  virtual void messageLogged(const Ogre::String& message,
+                             Ogre::LogMessageLevel lml,
+                             bool maskDebug,
+                             const Ogre::String& /*logName*/)
+  {
+    if (lml >= min_lml)
+    {
+      ROS_LOG((ros::console::levels::Level)(lml - 1), ROSCONSOLE_DEFAULT_NAME, "%s", message.c_str());
+    }
+  }
+#endif
   Ogre::LogMessageLevel min_lml;
 };
 

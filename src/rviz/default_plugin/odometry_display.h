@@ -40,7 +40,7 @@
 #include <message_filters/subscriber.h>
 #endif
 
-#include <rviz/message_filter_display.h>
+#include "rviz/message_filter_display.h"
 #include <nav_msgs/Odometry.h>
 
 namespace rviz
@@ -102,7 +102,6 @@ private:
   D_Axes axes_;
 
   nav_msgs::Odometry::ConstPtr last_used_message_;
-  geometry_msgs::Pose::Ptr ref_pose_;
 
   rviz::EnumProperty* shape_property_;
 

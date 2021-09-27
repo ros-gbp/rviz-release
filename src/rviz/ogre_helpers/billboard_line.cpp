@@ -72,7 +72,6 @@ BillboardLine::BillboardLine(Ogre::SceneManager* scene_manager, Ogre::SceneNode*
   material_->getTechnique(0)->setLightingEnabled(false);
 
   setNumLines(num_lines_);
-  setMaxPointsPerLine(max_points_per_line_);
 }
 
 BillboardLine::~BillboardLine()
@@ -84,7 +83,7 @@ BillboardLine::~BillboardLine()
     scene_manager_->destroyBillboardChain(*it);
   }
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
 
   Ogre::MaterialManager::getSingleton().remove(material_->getName());
 }
@@ -95,7 +94,7 @@ Ogre::BillboardChain* BillboardLine::createChain()
   static int count = 0;
   ss << "BillboardLine chain" << count++;
   Ogre::BillboardChain* chain = scene_manager_->createBillboardChain(ss.str());
-  chain->setMaterialName(material_->getName(), material_->getGroup());
+  chain->setMaterialName(material_->getName());
   scene_node_->attachObject(chain);
 
   chains_.push_back(chain);
@@ -169,9 +168,20 @@ void BillboardLine::setupChains()
 
 void BillboardLine::setMaxPointsPerLine(uint32_t max)
 {
-  max_points_per_line_ = max;
-
-  setupChains();
+  if (max <= MAX_ELEMENTS)
+  {
+    max_points_per_line_ = max;
+    setupChains();
+  }
+  else // need to split points across several lines
+  {
+    ROS_ASSERT(num_lines_ == 1);
+    max_points_per_line_ = MAX_ELEMENTS;
+    num_lines_ = max / MAX_ELEMENTS;
+    if (max % MAX_ELEMENTS != 0)
+      ++num_lines_;
+    setNumLines(num_lines_);
+  }
 }
 
 void BillboardLine::setNumLines(uint32_t num)
@@ -202,17 +212,20 @@ void BillboardLine::addPoint(const Ogre::Vector3& point)
 
 void BillboardLine::addPoint(const Ogre::Vector3& point, const Ogre::ColourValue& color)
 {
-  ++num_elements_[current_line_];
-  ++total_elements_;
-
-  ROS_ASSERT(num_elements_[current_line_] <= max_points_per_line_);
-
   ++elements_in_current_chain_;
   if (elements_in_current_chain_ > MAX_ELEMENTS)
   {
     ++current_chain_;
     elements_in_current_chain_ = 1;
+
+    if (max_points_per_line_ == MAX_ELEMENTS)
+      newLine();
   }
+
+  ++num_elements_[current_line_];
+  ++total_elements_;
+
+  ROS_ASSERT(num_elements_[current_line_] < max_points_per_line_);
 
   Ogre::BillboardChain::Element e;
   e.position = point;

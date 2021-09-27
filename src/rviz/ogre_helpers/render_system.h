@@ -32,7 +32,7 @@
 #include <OGRE/OgreRoot.h>
 #include <stdint.h>
 
-#include <rviz/rviz_export.h>
+#include "rviz/rviz_export.h"
 
 namespace Ogre
 {

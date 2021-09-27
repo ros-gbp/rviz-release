@@ -33,15 +33,19 @@
 #include <string>
 
 #include <QCursor>
-#include <utility>
 
-
-#include <OGRE/OgrePrerequisites.h>
-
-#include <rviz/properties/property.h>
-#include <rviz/rviz_export.h>
+#include "rviz/properties/property.h"
+#include "rviz/rviz_export.h"
 
 class QKeyEvent;
+
+namespace Ogre
+{
+class Camera;
+class SceneNode;
+class Vector3;
+class Quaternion;
+} // namespace Ogre
 
 namespace rviz
 {
@@ -219,7 +223,7 @@ protected:
   // set a custom cursor
   void setCursor(QCursor cursor)
   {
-    cursor_ = std::move(cursor);
+    cursor_ = cursor;
   }
 
   DisplayContext* context_;

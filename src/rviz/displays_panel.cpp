@@ -37,15 +37,15 @@
 
 #include <boost/bind.hpp>
 
-#include <rviz/display_factory.h>
-#include <rviz/display.h>
-#include <rviz/add_display_dialog.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_widget.h>
-#include <rviz/properties/property_tree_with_help.h>
-#include <rviz/visualization_manager.h>
+#include "rviz/display_factory.h"
+#include "rviz/display.h"
+#include "rviz/add_display_dialog.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_widget.h"
+#include "rviz/properties/property_tree_with_help.h"
+#include "rviz/visualization_manager.h"
 
-#include <rviz/displays_panel.h>
+#include "rviz/displays_panel.h"
 
 namespace rviz
 {
@@ -172,16 +172,8 @@ void DisplaysPanel::onDeleteDisplay()
 {
   QList<Display*> displays_to_delete = property_grid_->getSelectedObjects<Display>();
 
-  QModelIndex new_selected;
-
   for (int i = 0; i < displays_to_delete.size(); i++)
   {
-    if (i == 0)
-    {
-      QModelIndex first = property_grid_->getModel()->indexOf(displays_to_delete[i]);
-      // This is safe because the first few rows cannot be deleted (they aren't "displays").
-      new_selected = first.sibling(first.row() - 1, first.column());
-    }
     // Displays can emit signals from other threads with self pointers.  We're
     // freeing the display now, so ensure no one is listening to those signals.
     displays_to_delete[i]->disconnect();
@@ -190,8 +182,10 @@ void DisplaysPanel::onDeleteDisplay()
     // Delete display later in case there are pending signals to it.
     displays_to_delete[i]->deleteLater();
   }
-
-  QItemSelection selection(new_selected, new_selected);
+  // Select new current index
+  const QModelIndex& cur = property_grid_->currentIndex();
+  QItemSelection selection(cur.sibling(cur.row(), 0),
+                           cur.sibling(cur.row(), cur.model()->columnCount() - 1));
   property_grid_->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect);
 
   vis_manager_->notifyConfigChanged();
