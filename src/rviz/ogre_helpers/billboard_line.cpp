@@ -83,7 +83,7 @@ BillboardLine::~BillboardLine()
     scene_manager_->destroyBillboardChain(*it);
   }
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
 
   Ogre::MaterialManager::getSingleton().remove(material_->getName());
 }
@@ -94,7 +94,7 @@ Ogre::BillboardChain* BillboardLine::createChain()
   static int count = 0;
   ss << "BillboardLine chain" << count++;
   Ogre::BillboardChain* chain = scene_manager_->createBillboardChain(ss.str());
-  chain->setMaterialName(material_->getName(), material_->getGroup());
+  chain->setMaterialName(material_->getName());
   scene_node_->attachObject(chain);
 
   chains_.push_back(chain);
@@ -225,7 +225,7 @@ void BillboardLine::addPoint(const Ogre::Vector3& point, const Ogre::ColourValue
   ++num_elements_[current_line_];
   ++total_elements_;
 
-  ROS_ASSERT(num_elements_[current_line_] < max_points_per_line_);
+  ROS_ASSERT(num_elements_[current_line_] <= max_points_per_line_);
 
   Ogre::BillboardChain::Element e;
   e.position = point;
