@@ -33,14 +33,14 @@
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreEntity.h>
 
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/default_plugin/markers/marker_selection_handler.h"
-#include "rviz/display_context.h"
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/shape.h"
-#include "rviz/selection/selection_manager.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/default_plugin/markers/marker_selection_handler.h>
+#include <rviz/display_context.h>
+#include <rviz/ogre_helpers/arrow.h>
+#include <rviz/ogre_helpers/shape.h>
+#include <rviz/selection/selection_manager.h>
 
-#include "rviz/default_plugin/markers/arrow_marker.h"
+#include <rviz/default_plugin/markers/arrow_marker.h>
 
 namespace rviz
 {
@@ -77,7 +77,13 @@ void ArrowMarker::onNewMessage(const MarkerConstPtr& /*old_message*/, const Mark
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  transform(new_message, pos, orient, scale);
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
+
+  scene_node_->setVisible(true);
   setPosition(pos);
   setOrientation(orient);
 

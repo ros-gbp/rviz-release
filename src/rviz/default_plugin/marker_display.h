@@ -37,16 +37,16 @@
 #include <boost/shared_ptr.hpp>
 
 #ifndef Q_MOC_RUN
-#include <tf/message_filter.h>
+#include <tf2_ros/message_filter.h>
 #include <message_filters/subscriber.h>
 #endif
 
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "rviz/display.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/selection/forwards.h"
+#include <rviz/display.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/selection/forwards.h>
 
 namespace rviz
 {
@@ -81,18 +81,18 @@ public:
   void fixedFrameChanged() override;
   void reset() override;
 
-  void deleteMarker(MarkerID id);
+  void deleteMarker(const MarkerID& id);
 
   /** @brief Delete all known markers to this plugin, regardless of id or namespace **/
   void deleteAllMarkers();
 
-  void setMarkerStatus(MarkerID id, StatusLevel level, const std::string& text);
-  void deleteMarkerStatus(MarkerID id);
+  void setMarkerStatus(const MarkerID& id, StatusLevel level, const std::string& text);
+  void deleteMarkerStatus(const MarkerID& id);
 
   void setTopic(const QString& topic, const QString& datatype) override;
 
 protected:
-  void deleteMarkerInternal(MarkerID id);
+  void deleteMarkerInternal(const MarkerID& id);
 
   void onEnable() override;
   void onDisable() override;
@@ -150,7 +150,7 @@ private:
   void incomingMarker(const visualization_msgs::Marker::ConstPtr& marker);
 
   void failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt,
-                    tf::FilterFailureReason reason);
+                    tf2_ros::FilterFailureReason reason);
 
   typedef std::map<MarkerID, MarkerBasePtr> M_IDToMarker;
   typedef std::set<MarkerBasePtr> S_MarkerBase;
@@ -164,7 +164,7 @@ private:
   boost::mutex queue_mutex_;
 
   message_filters::Subscriber<visualization_msgs::Marker> sub_;
-  tf::MessageFilter<visualization_msgs::Marker>* tf_filter_;
+  tf2_ros::MessageFilter<visualization_msgs::Marker>* tf_filter_;
 
   typedef QHash<QString, MarkerNamespace*> M_Namespace;
   M_Namespace namespaces_;

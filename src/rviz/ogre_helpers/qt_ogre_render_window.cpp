@@ -29,6 +29,7 @@
 #include "qt_ogre_render_window.h"
 #include "orthographic.h"
 #include "render_system.h"
+#include <rviz/ogre_helpers/version_check.h>
 
 #include <OGRE/OgreRoot.h>
 #include <OGRE/OgreViewport.h>
@@ -43,6 +44,10 @@
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_LINUX
 #include <stdlib.h>
+
+
+#include <utility>
+
 #endif
 
 namespace rviz
@@ -283,12 +288,12 @@ void QtOgreRenderWindow::setOrthoScale(float scale)
 
 void QtOgreRenderWindow::setPreRenderCallback(boost::function<void()> func)
 {
-  pre_render_callback_ = func;
+  pre_render_callback_ = std::move(func);
 }
 
 void QtOgreRenderWindow::setPostRenderCallback(boost::function<void()> func)
 {
-  post_render_callback_ = func;
+  post_render_callback_ = std::move(func);
 }
 
 //------------------------------------------------------------------------------
@@ -303,9 +308,7 @@ void QtOgreRenderWindow::paintEvent(QPaintEvent* /*e*/)
 
     if (ogre_root_->_fireFrameStarted())
     {
-#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
       ogre_root_->_fireFrameRenderingQueued();
-#endif
 
       render_window_->update();
 
