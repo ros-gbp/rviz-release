@@ -1,0 +1,12 @@
+Source: ros-noetic-rviz
+Section: misc
+Priority: optional
+Maintainer: Robert Haschke <rhaschke@techfak.uni-bielefeld.de>
+Build-Depends: debhelper (>= 9.0.0), libassimp-dev, libeigen3-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libogre-1.9.0v5, libqt5opengl5-dev, libtinyxml2-dev, liburdfdom-dev, liburdfdom-headers-dev, libyaml-cpp-dev, qtbase5-dev, ros-noetic-catkin, ros-noetic-cmake-modules, ros-noetic-geometry-msgs, ros-noetic-image-transport, ros-noetic-interactive-markers, ros-noetic-laser-geometry, ros-noetic-map-msgs, ros-noetic-message-filters, ros-noetic-message-generation, ros-noetic-nav-msgs, ros-noetic-pluginlib, ros-noetic-python-qt-binding, ros-noetic-resource-retriever, ros-noetic-rosconsole, ros-noetic-roscpp, ros-noetic-roslib, ros-noetic-rospy, ros-noetic-rostest, ros-noetic-rosunit, ros-noetic-sensor-msgs, ros-noetic-std-msgs, ros-noetic-std-srvs, ros-noetic-tf2-geometry-msgs, ros-noetic-tf2-ros, ros-noetic-urdf, ros-noetic-visualization-msgs
+Homepage: http://wiki.ros.org/rviz
+Standards-Version: 3.9.2
+
+Package: ros-noetic-rviz
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libassimp-dev, libgl1-mesa-dev, libglu1-mesa-dev, libogre-1.9-dev, libogre-1.9.0v5, libqt5core5a, libqt5gui5, libqt5opengl5, libqt5widgets5, libtinyxml2-dev, libyaml-cpp-dev, ros-noetic-geometry-msgs, ros-noetic-image-transport, ros-noetic-interactive-markers, ros-noetic-laser-geometry, ros-noetic-map-msgs, ros-noetic-media-export, ros-noetic-message-filters, ros-noetic-message-runtime, ros-noetic-nav-msgs, ros-noetic-pluginlib, ros-noetic-python-qt-binding, ros-noetic-resource-retriever, ros-noetic-rosconsole, ros-noetic-roscpp, ros-noetic-roslib, ros-noetic-rospy, ros-noetic-sensor-msgs, ros-noetic-std-msgs, ros-noetic-std-srvs, ros-noetic-tf2-geometry-msgs, ros-noetic-tf2-ros, ros-noetic-urdf, ros-noetic-visualization-msgs
+Description: 3D visualization tool for ROS.
