@@ -15,9 +15,11 @@ Describe your issue here and explain how to reproduce it.
 
 ### Your environment
 * OS Version: e.g. Ubuntu 18.04
-* ROS Distro: [Kinetic | Melodic | Noetic]
+* ROS Distro: [Kinetic | Melodic]
 * RViz, Qt, OGRE, OpenGl version as printed by rviz:
     ```
     paste your console output here
     ```
 * If source build, which git commit?
+* System locale, i.e. the output of `echo "$LANG $LC_NUMERIC"`:
+  Before reporting a rendering issue, try running RViz with `LANG=C rviz`!

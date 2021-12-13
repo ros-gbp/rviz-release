@@ -29,9 +29,9 @@
 
 #include <QColor>
 
-#include <rviz/properties/status_property.h>
-#include <rviz/display_context.h>
-#include <rviz/load_resource.h>
+#include "rviz/properties/status_property.h"
+#include "rviz/display_context.h"
+#include "rviz/load_resource.h"
 
 #include "failed_display.h"
 
@@ -69,6 +69,11 @@ void FailedDisplay::load(const Config& config)
 {
   saved_config_ = config;
   Display::load(config);
+}
+
+void FailedDisplay::save(Config config)
+{
+  const_cast<const FailedDisplay*>(this)->save(config);
 }
 
 void FailedDisplay::save(Config config) const

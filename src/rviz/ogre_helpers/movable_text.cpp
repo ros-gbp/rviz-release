@@ -40,7 +40,6 @@
  */
 
 #include "movable_text.h"
-#include <rviz/ogre_helpers/version_check.h>
 
 #include <OGRE/OgreVector3.h>
 #include <OGRE/OgreQuaternion.h>
@@ -51,11 +50,7 @@
 #include <OGRE/OgreHardwareBufferManager.h>
 #include <OGRE/Overlay/OgreFontManager.h>
 #include <OGRE/Overlay/OgreFont.h>
-#if OGRE_VERSION < OGRE_VERSION_CHECK(1, 12, 0)
 #include <OGRE/OgreUTFString.h>
-#else
-#include <OGRE/Overlay/OgreUTFString.h>
-#endif
 
 #include <sstream>
 
@@ -102,18 +97,22 @@ MovableText::~MovableText()
 {
   if (mRenderOp.vertexData)
     delete mRenderOp.vertexData;
-  MaterialManager::getSingletonPtr()->remove(mpMaterial->getName());
+  // May cause crashing... check this and comment if it does
+  if (!mpMaterial.isNull())
+    MaterialManager::getSingletonPtr()->remove(mpMaterial->getName());
 }
 
 void MovableText::setFontName(const String& fontName)
 {
+  if ((Ogre::MaterialManager::getSingletonPtr()->resourceExists(mName + "Material")))
+  {
+    Ogre::MaterialManager::getSingleton().remove(mName + "Material");
+  }
+
   if (mFontName != fontName || mpMaterial.isNull() || !mpFont)
   {
     mFontName = fontName;
-    mpFont = static_cast<Font*>(
-        FontManager::getSingleton()
-            .getByName(mFontName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME)
-            .get());
+    mpFont = (Font*)FontManager::getSingleton().getByName(mFontName).getPointer();
     if (!mpFont)
       throw Exception(Exception::ERR_ITEM_NOT_FOUND, "Could not find font " + fontName,
                       "MovableText::setFontName");
@@ -121,9 +120,12 @@ void MovableText::setFontName(const String& fontName)
     // to support non-ascii letters, setup the codepoint range before loading
     mpFont->addCodePointRange(std::make_pair<Ogre::Font::CodePoint>(0, 999));
     mpFont->load();
-
-    if (mpMaterial.get())
+    if (!mpMaterial.isNull())
+    {
       MaterialManager::getSingletonPtr()->remove(mpMaterial->getName());
+      mpMaterial.setNull();
+    }
+
     mpMaterial = mpFont->getMaterial()->clone(mName + "Material");
     if (!mpMaterial->isLoaded())
       mpMaterial->load();
@@ -452,7 +454,7 @@ void MovableText::_setupGeometry()
   ptbuf->unlock();
 
   // update AABB/Sphere radius
-  mAABB = mCamFacingAABB = Ogre::AxisAlignedBox(min, max);
+  mAABB = Ogre::AxisAlignedBox(min, max);
   mRadius =
       Ogre::Math::Sqrt(std::max(mAABB.getMinimum().squaredLength(), mAABB.getMaximum().squaredLength()));
 
@@ -485,10 +487,12 @@ const Quaternion& MovableText::getWorldOrientation() const
   return const_cast<Quaternion&>(mpCam->getDerivedOrientation());
 }
 
+#if ((OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6) || OGRE_VERSION_MAJOR >= 2)
 void MovableText::visitRenderables(Ogre::Renderable::Visitor* visitor, bool /*debugRenderables*/)
 {
   visitor->visit(this, 0, false);
 }
+#endif
 
 const Vector3& MovableText::getWorldPosition() const
 {
@@ -535,18 +539,6 @@ void MovableText::getRenderOperation(RenderOperation& op)
 void MovableText::_notifyCurrentCamera(Camera* cam)
 {
   mpCam = cam;
-
-  // update camera-facing bounding box
-  mCamFacingAABB = mAABB;
-#if OGRE_VERSION < OGRE_VERSION_CHECK(1, 11, 0)
-  Ogre::Matrix4 m;
-  m.makeTransform(Ogre::Vector3::ZERO, Ogre::Vector3::UNIT_SCALE, mpCam->getDerivedOrientation());
-  mCamFacingAABB.transformAffine(m);
-#else
-  Ogre::Affine3 m;
-  m.makeTransform(Ogre::Vector3::ZERO, Ogre::Vector3::UNIT_SCALE, mpCam->getDerivedOrientation());
-  mCamFacingAABB.transform(m);
-#endif
 }
 
 void MovableText::_updateRenderQueue(RenderQueue* queue)
