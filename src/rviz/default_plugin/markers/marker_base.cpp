@@ -28,21 +28,17 @@
  */
 
 #include "marker_base.h"
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
+#include "rviz/default_plugin/marker_display.h"
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
 #include "marker_selection_handler.h"
-#include <rviz/frame_manager.h>
+#include "rviz/frame_manager.h"
 
 #include <OGRE/OgreSceneNode.h>
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreEntity.h>
 #include <OGRE/OgreSubEntity.h>
 #include <OGRE/OgreSharedPtr.h>
-
-
-#include <utility>
-
 
 namespace rviz
 {
@@ -117,7 +113,7 @@ void MarkerBase::setInteractiveObject(InteractiveObjectWPtr control)
 {
   if (handler_)
   {
-    handler_->setInteractiveObject(std::move(control));
+    handler_->setInteractiveObject(control);
   }
 }
 
@@ -131,12 +127,12 @@ void MarkerBase::setOrientation(const Ogre::Quaternion& orientation)
   scene_node_->setOrientation(orientation);
 }
 
-const Ogre::Vector3& MarkerBase::getPosition() const
+const Ogre::Vector3& MarkerBase::getPosition()
 {
   return scene_node_->getPosition();
 }
 
-const Ogre::Quaternion& MarkerBase::getOrientation() const
+const Ogre::Quaternion& MarkerBase::getOrientation()
 {
   return scene_node_->getOrientation();
 }
@@ -147,7 +143,7 @@ void MarkerBase::extractMaterials(Ogre::Entity* entity, S_MaterialPtr& materials
   for (uint32_t i = 0; i < num_sub_entities; ++i)
   {
     Ogre::SubEntity* sub = entity->getSubEntity(i);
-    const Ogre::MaterialPtr& material = sub->getMaterial();
+    Ogre::MaterialPtr material = sub->getMaterial();
     materials.insert(material);
   }
 }

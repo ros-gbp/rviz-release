@@ -46,24 +46,28 @@
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
 
-#include <rviz/mesh_loader.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/quaternion_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/robot/robot.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/load_resource.h>
+#include "rviz/mesh_loader.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/ogre_helpers/object.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/quaternion_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/robot/robot.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/load_resource.h"
 
-#include <rviz/robot/robot_link.h>
-#include <rviz/robot/robot_joint.h>
+#include "rviz/robot/robot_link.h"
+#include "rviz/robot/robot_joint.h"
 
 namespace fs = boost::filesystem;
+
+#ifndef ROS_PACKAGE_NAME
+#define ROS_PACKAGE_NAME "rviz"
+#endif
 
 namespace rviz
 {
@@ -202,8 +206,8 @@ RobotLink::RobotLink(Robot* robot,
   collision_node_ = robot_->getCollisionNode()->createChildSceneNode();
 
   // create material for coloring links
-  color_material_ = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link color material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+  color_material_ =
+      Ogre::MaterialPtr(new Ogre::Material(nullptr, "robot link color material", 0, ROS_PACKAGE_NAME));
   color_material_->setReceiveShadows(false);
   color_material_->getTechnique(0)->setLightingEnabled(true);
 
@@ -456,8 +460,8 @@ void RobotLink::updateVisibility()
 Ogre::MaterialPtr RobotLink::getMaterialForLink(const urdf::LinkConstSharedPtr& link,
                                                 urdf::MaterialConstSharedPtr material)
 {
-  Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+  Ogre::MaterialPtr mat =
+      Ogre::MaterialPtr(new Ogre::Material(nullptr, "robot link material", 0, ROS_PACKAGE_NAME));
 
   // only the first visual's material actually comprises color values, all others only have the name
   // hence search for the first visual with given material name (better fix the bug in urdf parser)
@@ -662,8 +666,8 @@ void RobotLink::createEntityForGeometryElement(const urdf::LinkConstSharedPtr& l
       else
       {
         // create a new material copy for each instance of a RobotLink
-        Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-            nullptr, material_name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+        Ogre::MaterialPtr mat =
+            Ogre::MaterialPtr(new Ogre::Material(nullptr, material_name, 0, ROS_PACKAGE_NAME));
         *mat = *sub->getMaterial();
         sub->setMaterial(mat);
       }
@@ -898,13 +902,11 @@ void RobotLink::setToErrorMaterial()
 {
   for (size_t i = 0; i < visual_meshes_.size(); i++)
   {
-    visual_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                       Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
+    visual_meshes_[i]->setMaterialName("BaseWhiteNoLighting");
   }
   for (size_t i = 0; i < collision_meshes_.size(); i++)
   {
-    collision_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                          Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
+    collision_meshes_[i]->setMaterialName("BaseWhiteNoLighting");
   }
 }
 

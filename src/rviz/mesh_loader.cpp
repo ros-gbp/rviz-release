@@ -28,15 +28,11 @@
  */
 
 #include "mesh_loader.h"
-#include <OGRE/OgrePrerequisites.h>
 #include <resource_retriever/retriever.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <OGRE/OgreSkeleton.h>
-#include <OGRE/OgreSkeletonManager.h>
-#include <OGRE/OgreSkeletonSerializer.h>
 #include <OGRE/OgreMeshManager.h>
 #include <OGRE/OgreTextureManager.h>
 #include <OGRE/OgreMaterialManager.h>
@@ -55,12 +51,19 @@
 
 #include <ros/assert.h>
 
+#if defined(ASSIMP_UNIFIED_HEADER_NAMES)
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/IOStream.hpp>
 #include <assimp/IOSystem.hpp>
-#include <boost/filesystem/operations.hpp>
+#else
+#include <assimp/assimp.hpp>
+#include <assimp/aiScene.h>
+#include <assimp/aiPostProcess.h>
+#include <assimp/IOStream.h>
+#include <assimp/IOSystem.h>
+#endif
 
 namespace fs = boost::filesystem;
 
@@ -219,16 +222,28 @@ void ResourceIOSystem::Close(Assimp::IOStream* stream)
  * already by loadMaterials(). */
 void buildMesh(const aiScene* scene,
                const aiNode* node,
-               aiMatrix4x4 transform,
                const Ogre::MeshPtr& mesh,
                Ogre::AxisAlignedBox& aabb,
                float& radius,
-               std::vector<Ogre::MaterialPtr>& material_table)
+               std::vector<Ogre::MaterialPtr>& material_table,
+               aiMatrix4x4 transform = aiMatrix4x4())
 {
   if (!node)
     return;
 
-  transform *= node->mTransformation;
+  if (node->mParent == nullptr)
+  {
+    // Use root node's transform
+    transform = node->mTransformation;
+    // but don't rotate to y-up orientation, which is *sometimes* done in assimp's root node
+    aiVector3D scaling, axis, pos;
+    float angle;
+    transform.Decompose(scaling, axis, angle, pos);
+    // drop rotation, but keep scaling and position
+    transform = aiMatrix4x4(scaling, aiQuaternion(), pos);
+  }
+  else
+    transform *= node->mTransformation;
 
   for (uint32_t i = 0; i < node->mNumMeshes; i++)
   {
@@ -363,13 +378,12 @@ void buildMesh(const aiScene* scene,
     }
     vbuf->unlock();
 
-    Ogre::MaterialPtr const& material = material_table[input_mesh->mMaterialIndex];
-    submesh->setMaterialName(material->getName(), material->getGroup());
+    submesh->setMaterialName(material_table[input_mesh->mMaterialIndex]->getName());
   }
 
   for (uint32_t i = 0; i < node->mNumChildren; ++i)
   {
-    buildMesh(scene, node->mChildren[i], transform, mesh, aabb, radius, material_table);
+    buildMesh(scene, node->mChildren[i], mesh, aabb, radius, material_table, transform);
   }
 }
 
@@ -443,8 +457,8 @@ void loadMaterials(const std::string& resource_path,
   {
     std::stringstream ss;
     ss << resource_path << "Material" << i;
-    Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(
-        ss.str(), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, true);
+    Ogre::MaterialPtr mat =
+        Ogre::MaterialManager::getSingleton().create(ss.str(), ROS_PACKAGE_NAME, true);
     material_table_out.push_back(mat);
 
     Ogre::Technique* tech = mat->getTechnique(0);
@@ -570,15 +584,11 @@ Ogre::MeshPtr meshFromAssimpScene(const std::string& name, const aiScene* scene)
   std::vector<Ogre::MaterialPtr> material_table;
   loadMaterials(name, scene, material_table);
 
-  Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().createManual(
-      name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().createManual(name, ROS_PACKAGE_NAME);
 
   Ogre::AxisAlignedBox aabb(Ogre::AxisAlignedBox::EXTENT_NULL);
   float radius = 0.0f;
-  // Reverse conversion to y-up orientation, which is what the root node in assimp does
-  aiMatrix4x4 transform;
-  aiMatrix4x4::RotationX(M_PI_2, transform);
-  buildMesh(scene, scene->mRootNode, transform, mesh, aabb, radius, material_table);
+  buildMesh(scene, scene->mRootNode, mesh, aabb, radius, material_table);
 
   mesh->_setBounds(aabb);
   mesh->_setBoundingSphereRadius(radius);
@@ -622,12 +632,11 @@ Ogre::MeshPtr loadMeshFromResource(const std::string& resource_path)
       {
         return Ogre::MeshPtr();
       }
-      loadSkeletonFromResource(resource_path); // load skeleton to the resource manager
 
       Ogre::MeshSerializer ser;
       Ogre::DataStreamPtr stream(new Ogre::MemoryDataStream(res.data.get(), res.size));
-      Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().createManual(
-          resource_path, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+      Ogre::MeshPtr mesh =
+          Ogre::MeshManager::getSingleton().createManual(resource_path, ROS_PACKAGE_NAME);
       ser.importMesh(stream, mesh.get());
 
       return mesh;
@@ -651,50 +660,6 @@ Ogre::MeshPtr loadMeshFromResource(const std::string& resource_path)
   }
 
   return Ogre::MeshPtr();
-}
-
-// Try to load .skeleton file co-located with a .mesh file
-Ogre::SkeletonPtr loadSkeletonFromResource(const std::string& resource_path)
-{
-  std::string skeleton_resource_path = resource_path.substr(0, resource_path.length() - 4);
-  skeleton_resource_path.append("skeleton");
-
-  if (Ogre::SkeletonManager::getSingleton().resourceExists(skeleton_resource_path))
-  {
-    return Ogre::SkeletonManager::getSingleton().getByName(skeleton_resource_path);
-  }
-  else
-  {
-    resource_retriever::Retriever retriever;
-    resource_retriever::MemoryResource res;
-    try
-    {
-      res = retriever.get(skeleton_resource_path);
-    }
-    catch (resource_retriever::Exception& e)
-    { // often the .skeleton file will not exist -> debug msg only
-      ROS_DEBUG("%s", e.what());
-      return Ogre::SkeletonPtr();
-    }
-
-    if (res.size == 0)
-    {
-      return Ogre::SkeletonPtr();
-    }
-
-    fs::path skeleton_path(skeleton_resource_path);
-
-    Ogre::SkeletonSerializer ser;
-    Ogre::DataStreamPtr stream(new Ogre::MemoryDataStream(res.data.get(), res.size));
-    Ogre::SkeletonPtr skeleton = Ogre::SkeletonManager::getSingleton().create(
-        skeleton_path.filename().string().c_str(),
-        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, true);
-    ser.importSkeleton(stream, skeleton.get());
-
-    return skeleton;
-  }
-
-  return Ogre::SkeletonPtr();
 }
 
 } // namespace rviz
