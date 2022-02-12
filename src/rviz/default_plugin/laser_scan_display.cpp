@@ -34,12 +34,12 @@
 
 #include <laser_geometry/laser_geometry.h>
 
-#include "rviz/default_plugin/point_cloud_common.h"
-#include "rviz/display_context.h"
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/point_cloud.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/default_plugin/point_cloud_common.h>
+#include <rviz/display_context.h>
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/point_cloud.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/validate_floats.h>
 
 #include "laser_scan_display.h"
 
@@ -48,12 +48,6 @@ namespace rviz
 LaserScanDisplay::LaserScanDisplay()
   : point_cloud_common_(new PointCloudCommon(this)), projector_(new laser_geometry::LaserProjection())
 {
-  queue_size_property_ = new IntProperty(
-      "Queue Size", 10,
-      "Advanced: set the size of the incoming LaserScan message queue. "
-      " Increasing this is useful if your incoming TF data is delayed significantly "
-      "from your LaserScan data, but it can greatly increase memory usage if the messages are big.",
-      this, SLOT(updateQueueSize()));
 }
 
 LaserScanDisplay::~LaserScanDisplay()
@@ -71,16 +65,9 @@ void LaserScanDisplay::onInitialize()
   point_cloud_common_->initialize(context_, scene_node_);
 }
 
-void LaserScanDisplay::updateQueueSize()
-{
-  tf_filter_->setQueueSize((uint32_t)queue_size_property_->getInt());
-}
-
 void LaserScanDisplay::processMessage(const sensor_msgs::LaserScanConstPtr& scan)
 {
-  sensor_msgs::PointCloudPtr cloud(new sensor_msgs::PointCloud);
-
-  std::string frame_id = scan->header.frame_id;
+  sensor_msgs::PointCloud2Ptr cloud(new sensor_msgs::PointCloud2);
 
   // Compute tolerance necessary for this scan
   ros::Duration tolerance(scan->time_increment * scan->ranges.size());
@@ -92,24 +79,15 @@ void LaserScanDisplay::processMessage(const sensor_msgs::LaserScanConstPtr& scan
 
   try
   {
-// TODO(wjwwood): remove this and use tf2 interface instead
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
+    auto tf = context_->getTF2BufferPtr();
 
-    auto tf_client = context_->getTFClient();
-
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
-    projector_->transformLaserScanToPointCloud(fixed_frame_.toStdString(), *scan, *cloud, *tf_client,
+    projector_->transformLaserScanToPointCloud(fixed_frame_.toStdString(), *scan, *cloud, *tf, -1.0,
                                                laser_geometry::channel_option::Intensity);
   }
-  catch (tf::TransformException& e)
+  catch (tf2::TransformException& e)
   {
     ROS_DEBUG("LaserScan [%s]: failed to transform scan: %s.  This message should not repeat (tolerance "
-              "should now be set on our tf::MessageFilter).",
+              "should now be set on our tf2::MessageFilter).",
               qPrintable(getName()), e.what());
     return;
   }
