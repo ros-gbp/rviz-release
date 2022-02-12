@@ -39,13 +39,14 @@
 
 #ifndef Q_MOC_RUN
 #include <message_filters/subscriber.h>
+#include <tf/message_filter.h>
 #include <interactive_markers/interactive_marker_client.h>
 #endif
 
-#include <rviz/display.h>
-#include <rviz/selection/forwards.h>
+#include "rviz/display.h"
+#include "rviz/selection/forwards.h"
 
-#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 namespace rviz
 {
@@ -97,12 +98,12 @@ private:
   // Unsubscribe from all message topics
   void unsubscribe();
 
-  void initCb(const visualization_msgs::InteractiveMarkerInitConstPtr& msg);
-  void updateCb(const visualization_msgs::InteractiveMarkerUpdateConstPtr& msg);
+  void initCb(visualization_msgs::InteractiveMarkerInitConstPtr msg);
+  void updateCb(visualization_msgs::InteractiveMarkerUpdateConstPtr msg);
 
-  void resetCb(const std::string& server_id);
+  void resetCb(std::string server_id);
 
-  void statusCb(interactive_markers::InteractiveMarkerClient::StatusT /*status*/,
+  void statusCb(interactive_markers::InteractiveMarkerClient::StatusT status,
                 const std::string& server_id,
                 const std::string& msg);
 
@@ -124,7 +125,7 @@ private:
   typedef std::map<std::string, M_StringToIMPtr> M_StringToStringToIMPtr;
   M_StringToStringToIMPtr interactive_markers_;
 
-  M_StringToIMPtr& getImMap(const std::string& server_id);
+  M_StringToIMPtr& getImMap(std::string server_id);
 
   std::string client_id_;
 

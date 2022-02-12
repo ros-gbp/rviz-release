@@ -3,7 +3,11 @@
 
 #include <geometry_msgs/PointStamped.h>
 
-#include <OGRE/OgrePrerequisites.h>
+namespace Ogre
+{
+class Vector3;
+class Quaternion;
+} // namespace Ogre
 
 namespace rviz
 {

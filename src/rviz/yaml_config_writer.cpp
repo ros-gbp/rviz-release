@@ -31,7 +31,7 @@
 
 #include <yaml-cpp/emitter.h>
 
-#include <rviz/yaml_config_writer.h>
+#include "rviz/yaml_config_writer.h"
 
 namespace rviz
 {
@@ -57,7 +57,7 @@ void YamlConfigWriter::writeFile(const Config& config, const QString& filename)
       message_ = "Failed to open " + filename + " for writing.";
     }
   }
-  catch (const std::exception& ex)
+  catch (std::exception ex)
   {
     error_ = true;
     message_ = ex.what();
@@ -152,11 +152,7 @@ void YamlConfigWriter::writeConfigNode(const Config& config, YAML::Emitter& emit
     break;
   }
   default:
-// Workaround as YAML::Null is missing from Windows DLLs;
-// see https://github.com/jbeder/yaml-cpp/issues/950
-#ifndef _WIN32
     emitter << YAML::Null;
-#endif
     break;
   }
 }
