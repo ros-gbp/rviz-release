@@ -27,32 +27,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreCamera.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgrePass.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreSubEntity.h>
-#include <OGRE/OgreSharedPtr.h>
-#include <OGRE/OgreTechnique.h>
+#include <OgreViewport.h>
+#include <OgreCamera.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
+#include <OgrePass.h>
+#include <OgreMaterial.h>
+#include <OgreEntity.h>
+#include <OgreSubEntity.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/render_panel.h>
-#include <rviz/load_resource.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/geometry.h>
-#include <rviz/frame_manager.h>
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/render_panel.h"
+#include "rviz/load_resource.h"
+#include "rviz/window_manager_interface.h"
+#include "rviz/geometry.h"
+#include "rviz/frame_manager.h"
 
-#include <rviz/ogre_helpers/line.h>
+#include "rviz/ogre_helpers/line.h"
 
-#include <rviz/default_plugin/marker_utils.h>
-#include <rviz/default_plugin/markers/points_marker.h>
+#include "rviz/default_plugin/marker_utils.h"
+#include "rviz/default_plugin/markers/points_marker.h"
 
-#include <rviz/default_plugin/interactive_markers/interactive_marker_control.h>
-#include <rviz/default_plugin/interactive_markers/interactive_marker.h>
+#include "rviz/default_plugin/interactive_markers/interactive_marker_control.h"
+#include "rviz/default_plugin/interactive_markers/interactive_marker.h"
 
 #define NO_HIGHLIGHT_VALUE 0.0
 #define ACTIVE_HIGHLIGHT_VALUE 0.5
@@ -1454,7 +1454,7 @@ bool InteractiveMarkerControl::intersectSomeYzPlane(const Ogre::Ray& mouse_ray,
   return false;
 }
 
-void InteractiveMarkerControl::addHighlightPass(const S_MaterialPtr& materials)
+void InteractiveMarkerControl::addHighlightPass(S_MaterialPtr materials)
 {
   S_MaterialPtr::iterator it;
 

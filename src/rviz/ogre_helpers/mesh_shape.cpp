@@ -29,13 +29,13 @@
 
 #include "mesh_shape.h"
 
-#include <OGRE/OgreMesh.h>
-#include <OGRE/OgreMeshManager.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreManualObject.h>
+#include <OgreMesh.h>
+#include <OgreMeshManager.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreEntity.h>
+#include <OgreMaterialManager.h>
+#include <OgreManualObject.h>
 
 #include <ros/console.h>
 #include <boost/lexical_cast.hpp>
@@ -128,7 +128,7 @@ void MeshShape::endTriangles()
     entity_ = scene_manager_->createEntity(name);
     if (entity_)
     {
-      entity_->setMaterial(material_);
+      entity_->setMaterialName(material_name_);
       offset_node_->attachObject(entity_);
     }
     else

@@ -31,22 +31,22 @@
 
 #include <ros/ros.h>
 
-#include <OGRE/OgreCamera.h>
-#include <OGRE/OgrePlane.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreRay.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreMath.h>
+#include <OgreCamera.h>
+#include <OgrePlane.h>
+#include <OgreQuaternion.h>
+#include <OgreRay.h>
+#include <OgreSceneNode.h>
+#include <OgreVector3.h>
+#include <OgreViewport.h>
+#include <OgreMath.h>
 
-#include <rviz/display_context.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/viewport_mouse_event.h>
+#include "rviz/display_context.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/viewport_mouse_event.h"
 
-#include <rviz/default_plugin/view_controllers/third_person_follower_view_controller.h>
+#include "rviz/default_plugin/view_controllers/third_person_follower_view_controller.h"
 
 namespace rviz
 {

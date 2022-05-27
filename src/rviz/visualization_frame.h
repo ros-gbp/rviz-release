@@ -38,10 +38,10 @@
 #include <string>
 #include <deque>
 
-#include <rviz/config.h>
-#include <rviz/window_manager_interface.h>
-#include <rviz/panel.h>
-#include <rviz/rviz_export.h>
+#include "rviz/config.h"
+#include "rviz/window_manager_interface.h"
+#include "rviz/panel.h"
+#include "rviz/rviz_export.h"
 
 #include <ros/time.h>
 
@@ -139,10 +139,8 @@ public:
   void loadDisplayConfig(const QString& path);
 
   /** @brief Load display and other settings from the given full file path.
-   * @param full_path The (absolute) path to the config file to load
-   * @param discard_changes Flag indicating whether to discard any unsaved config changes
    * @return True on success, False on failure. */
-  bool loadDisplayConfigHelper(const std::string& full_path, const bool discard_changes = false);
+  bool loadDisplayConfigHelper(const std::string& full_path);
 
   /** @brief Save display and other settings to the given file.
    * @param path The full path of the config file to save into.
@@ -382,7 +380,8 @@ protected:
   };
   QList<PanelRecord> custom_panels_;
 
-  QAction* toolbar_separator_;
+  //! @todo Rename to toolbar_button_separator_ in Noetic
+  QAction* add_tool_action_;
   QMenu* remove_tool_menu_;
 
   bool initialized_;

@@ -29,16 +29,16 @@
 
 #include <boost/filesystem.hpp>
 
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreRibbonTrail.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSubEntity.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreSharedPtr.h>
-#include <OGRE/OgreTechnique.h>
+#include <OgreEntity.h>
+#include <OgreMaterial.h>
+#include <OgreMaterialManager.h>
+#include <OgreRibbonTrail.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSubEntity.h>
+#include <OgreTextureManager.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
 
 #include <ros/console.h>
 
@@ -46,24 +46,28 @@
 #include <urdf_model/model.h>
 #include <urdf_model/link.h>
 
-#include <rviz/mesh_loader.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/object.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/bool_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/quaternion_property.h>
-#include <rviz/properties/vector_property.h>
-#include <rviz/robot/robot.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/load_resource.h>
+#include "rviz/mesh_loader.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/ogre_helpers/object.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/bool_property.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/quaternion_property.h"
+#include "rviz/properties/vector_property.h"
+#include "rviz/robot/robot.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/load_resource.h"
 
-#include <rviz/robot/robot_link.h>
-#include <rviz/robot/robot_joint.h>
+#include "rviz/robot/robot_link.h"
+#include "rviz/robot/robot_joint.h"
 
 namespace fs = boost::filesystem;
+
+#ifndef ROS_PACKAGE_NAME
+#define ROS_PACKAGE_NAME "rviz"
+#endif
 
 namespace rviz
 {
@@ -167,7 +171,7 @@ RobotLink::RobotLink(Robot* robot,
   , robot_alpha_(1.0)
   , only_render_depth_(false)
   , is_selectable_(true)
-  , using_color_(false)
+  , material_mode_flags_(ORIGINAL)
 {
   link_property_ = new Property(link->name.c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
   link_property_->setIcon(rviz::loadPixmap("package://rviz/icons/classes/RobotLink.png"));
@@ -202,8 +206,8 @@ RobotLink::RobotLink(Robot* robot,
   collision_node_ = robot_->getCollisionNode()->createChildSceneNode();
 
   // create material for coloring links
-  color_material_ = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link color material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+  color_material_ =
+      Ogre::MaterialPtr(new Ogre::Material(nullptr, "robot link color material", 0, ROS_PACKAGE_NAME));
   color_material_->setReceiveShadows(false);
   color_material_->getTechnique(0)->setLightingEnabled(true);
 
@@ -456,8 +460,8 @@ void RobotLink::updateVisibility()
 Ogre::MaterialPtr RobotLink::getMaterialForLink(const urdf::LinkConstSharedPtr& link,
                                                 urdf::MaterialConstSharedPtr material)
 {
-  Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+  Ogre::MaterialPtr mat =
+      Ogre::MaterialPtr(new Ogre::Material(nullptr, "robot link material", 0, ROS_PACKAGE_NAME));
 
   // only the first visual's material actually comprises color values, all others only have the name
   // hence search for the first visual with given material name (better fix the bug in urdf parser)
@@ -662,8 +666,8 @@ void RobotLink::createEntityForGeometryElement(const urdf::LinkConstSharedPtr& l
       else
       {
         // create a new material copy for each instance of a RobotLink
-        Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-            nullptr, material_name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+        Ogre::MaterialPtr mat =
+            Ogre::MaterialPtr(new Ogre::Material(nullptr, material_name, 0, ROS_PACKAGE_NAME));
         *mat = *sub->getMaterial();
         sub->setMaterial(mat);
       }
@@ -896,40 +900,36 @@ void RobotLink::setTransforms(const Ogre::Vector3& visual_position,
 
 void RobotLink::setToErrorMaterial()
 {
-  for (size_t i = 0; i < visual_meshes_.size(); i++)
-  {
-    visual_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                       Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
-  }
-  for (size_t i = 0; i < collision_meshes_.size(); i++)
-  {
-    collision_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                          Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
-  }
+  setMaterialMode(material_mode_flags_ | ERROR);
 }
 
 void RobotLink::setToNormalMaterial()
 {
-  if (using_color_)
+  setMaterialMode(material_mode_flags_ & ~ERROR);
+}
+
+void RobotLink::setMaterialMode(unsigned char mode_flags)
+{
+  if (material_mode_flags_ == mode_flags)
+    return; // nothing to change
+
+  material_mode_flags_ = mode_flags;
+
+  if (mode_flags == ORIGINAL)
   {
-    for (size_t i = 0; i < visual_meshes_.size(); i++)
-    {
-      visual_meshes_[i]->setMaterial(color_material_);
-    }
-    for (size_t i = 0; i < collision_meshes_.size(); i++)
-    {
-      collision_meshes_[i]->setMaterial(color_material_);
-    }
+    for (const auto& item : materials_)
+      item.first->setMaterial(item.second);
+    return;
   }
-  else
-  {
-    M_SubEntityToMaterial::iterator it = materials_.begin();
-    M_SubEntityToMaterial::iterator end = materials_.end();
-    for (; it != end; ++it)
-    {
-      it->first->setMaterial(it->second);
-    }
-  }
+
+  auto error_material = Ogre::MaterialManager::getSingleton().getByName(
+      "BaseWhiteNoLighting", Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
+  auto material = mode_flags == COLOR ? color_material_ : error_material;
+
+  for (const auto& mesh : visual_meshes_)
+    mesh->setMaterial(material);
+  for (const auto& mesh : collision_meshes_)
+    mesh->setMaterial(material);
 }
 
 void RobotLink::setColor(float red, float green, float blue)
@@ -941,14 +941,12 @@ void RobotLink::setColor(float red, float green, float blue)
   color_material_->getTechnique(0)->setAmbient(0.5 * color);
   color_material_->getTechnique(0)->setDiffuse(color);
 
-  using_color_ = true;
-  setToNormalMaterial();
+  setMaterialMode(COLOR | (material_mode_flags_ & ERROR));
 }
 
 void RobotLink::unsetColor()
 {
-  using_color_ = false;
-  setToNormalMaterial();
+  setMaterialMode(ORIGINAL | (material_mode_flags_ & ERROR));
 }
 
 bool RobotLink::setSelectable(bool selectable)

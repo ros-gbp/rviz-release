@@ -32,11 +32,11 @@
 
 #include <ros/assert.h>
 
-#include <rviz/failed_tool.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_model.h>
+#include "rviz/failed_tool.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_model.h"
 
-#include <rviz/tool_manager.h>
+#include "rviz/tool_manager.h"
 
 namespace rviz
 {
@@ -149,7 +149,7 @@ void ToolManager::handleChar(QKeyEvent* event, RenderPanel* panel)
     else
     {
       // if no, check if the current tool accesses all key events
-      if (current_tool_->accessAllKeys())
+      if (current_tool_ && current_tool_->accessAllKeys())
       {
         // if yes, pass the key
         current_tool_->processKeyEvent(event, panel);
@@ -161,7 +161,7 @@ void ToolManager::handleChar(QKeyEvent* event, RenderPanel* panel)
       }
     }
   }
-  else
+  else if (current_tool_)
   {
     // if the incoming key triggers no other tool,
     // just hand down the key event

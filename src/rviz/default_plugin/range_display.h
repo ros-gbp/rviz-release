@@ -32,7 +32,7 @@
 
 #include <sensor_msgs/Range.h>
 
-#include <rviz/message_filter_display.h>
+#include "rviz/message_filter_display.h"
 
 namespace rviz
 {
@@ -69,6 +69,7 @@ protected:
 private Q_SLOTS:
   void updateBufferLength();
   void updateColorAndAlpha();
+  void updateQueueSize();
 
 private:
   std::vector<Shape*> cones_; ///< Handles actually drawing the cones
@@ -76,6 +77,7 @@ private:
   ColorProperty* color_property_;
   FloatProperty* alpha_property_;
   IntProperty* buffer_length_property_;
+  IntProperty* queue_size_property_;
 };
 
 } // namespace rviz

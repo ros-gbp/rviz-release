@@ -30,15 +30,14 @@
 #include "shape.h"
 #include <ros/assert.h>
 
-#include <rviz/ogre_helpers/version_check.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreTechnique.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <OgreEntity.h>
+#include <OgreMaterialManager.h>
+#include <OgreTextureManager.h>
+#include <OgreTechnique.h>
 #include <stdint.h>
 
 namespace rviz
@@ -95,24 +94,29 @@ Shape::Shape(Type type, Ogre::SceneManager* scene_manager, Ogre::SceneNode* pare
 
   ss << "Material";
   material_name_ = ss.str();
-  material_ = Ogre::MaterialManager::getSingleton().create(
-      material_name_, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  material_ = Ogre::MaterialManager::getSingleton().create(material_name_, ROS_PACKAGE_NAME);
   material_->setReceiveShadows(false);
   material_->getTechnique(0)->setLightingEnabled(true);
   material_->getTechnique(0)->setAmbient(0.5, 0.5, 0.5);
 
   if (entity_)
-    entity_->setMaterial(material_);
+    entity_->setMaterialName(material_name_);
+
+#if (OGRE_VERSION_MAJOR <= 1 && OGRE_VERSION_MINOR <= 4)
+  if (entity_)
+    entity_->setNormaliseNormals(true);
+#endif
 }
 
 Shape::~Shape()
 {
-  scene_manager_->destroySceneNode(scene_node_);
-  scene_manager_->destroySceneNode(offset_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
+  scene_manager_->destroySceneNode(offset_node_->getName());
 
   if (entity_)
     scene_manager_->destroyEntity(entity_);
 
+  material_->unload();
   Ogre::MaterialManager::getSingleton().remove(material_->getName());
 }
 

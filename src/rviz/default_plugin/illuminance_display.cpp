@@ -27,18 +27,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <ros/time.h>
 
-#include <rviz/default_plugin/point_cloud_common.h>
-#include <rviz/default_plugin/point_cloud_transformers.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/point_cloud.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/validate_floats.h>
+#include "rviz/default_plugin/point_cloud_common.h"
+#include "rviz/default_plugin/point_cloud_transformers.h"
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/point_cloud.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/validate_floats.h"
 
 #include "illuminance_display.h"
 
@@ -46,6 +46,12 @@ namespace rviz
 {
 IlluminanceDisplay::IlluminanceDisplay() : point_cloud_common_(new PointCloudCommon(this))
 {
+  queue_size_property_ = new IntProperty(
+      "Queue Size", 10,
+      "Advanced: set the size of the incoming Illuminance message queue. "
+      " Increasing this is useful if your incoming TF data is delayed significantly "
+      "from your Illuminance data, but it can greatly increase memory usage if the messages are big.",
+      this, SLOT(updateQueueSize()));
 }
 
 IlluminanceDisplay::~IlluminanceDisplay()
@@ -66,6 +72,11 @@ void IlluminanceDisplay::onInitialize()
   subProp("Autocompute Intensity Bounds")->setValue(false);
   subProp("Min Intensity")->setValue(0);
   subProp("Max Intensity")->setValue(1000);
+}
+
+void IlluminanceDisplay::updateQueueSize()
+{
+  tf_filter_->setQueueSize((uint32_t)queue_size_property_->getInt());
 }
 
 void IlluminanceDisplay::processMessage(const sensor_msgs::IlluminanceConstPtr& msg)

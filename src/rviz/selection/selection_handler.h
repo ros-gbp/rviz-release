@@ -37,14 +37,14 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 
-#include <OGRE/OgreMovableObject.h>
+#include <OgreMovableObject.h>
 #endif
 
-#include <rviz/selection/forwards.h>
-#include <rviz/selection/selection_handler.h>
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/interactive_object.h>
-#include <rviz/rviz_export.h>
+#include "rviz/selection/forwards.h"
+#include "rviz/selection/selection_handler.h"
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/interactive_object.h"
+#include "rviz/rviz_export.h"
 
 namespace Ogre
 {

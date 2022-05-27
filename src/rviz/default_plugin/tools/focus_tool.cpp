@@ -27,19 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreRay.h>
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreCamera.h>
+#include <OgreRay.h>
+#include <OgreVector3.h>
+#include <OgreViewport.h>
+#include <OgreCamera.h>
 
-#include <rviz/viewport_mouse_event.h>
-#include <rviz/load_resource.h>
-#include <rviz/render_panel.h>
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/view_controller.h>
+#include "rviz/viewport_mouse_event.h"
+#include "rviz/load_resource.h"
+#include "rviz/render_panel.h"
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
+#include "rviz/view_controller.h"
 
-#include <rviz/default_plugin/tools/focus_tool.h>
+#include "rviz/default_plugin/tools/focus_tool.h"
 
 #include <sstream>
 

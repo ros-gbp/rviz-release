@@ -27,19 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 #include <QTimer>
 
 #include <urdf/model.h>
 
-#include <rviz/display_context.h>
-#include <rviz/robot/robot.h>
-#include <rviz/robot/robot_link.h>
-#include <rviz/robot/tf_link_updater.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/string_property.h>
+#include "rviz/display_context.h"
+#include "rviz/robot/robot.h"
+#include "rviz/robot/robot_link.h"
+#include "rviz/robot/tf_link_updater.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/string_property.h"
 
 #include "robot_model_display.h"
 

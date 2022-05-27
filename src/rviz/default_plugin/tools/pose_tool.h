@@ -30,13 +30,13 @@
 #ifndef RVIZ_POSE_TOOL_H
 #define RVIZ_POSE_TOOL_H
 
-#include <OGRE/OgreVector3.h>
+#include <OgreVector3.h>
 
 #include <QCursor>
 
 #include <ros/ros.h>
 
-#include <rviz/tool.h>
+#include "rviz/tool.h"
 
 namespace rviz
 {

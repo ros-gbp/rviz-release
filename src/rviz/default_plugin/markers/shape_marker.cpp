@@ -29,15 +29,15 @@
 
 #include "shape_marker.h"
 #include "marker_selection_handler.h"
-#include <rviz/default_plugin/marker_display.h>
+#include "rviz/default_plugin/marker_display.h"
 
-#include <rviz/display_context.h>
-#include <rviz/selection/selection_manager.h>
+#include "rviz/display_context.h"
+#include "rviz/selection/selection_manager.h"
 
 #include <rviz/ogre_helpers/shape.h>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreMatrix3.h>
+#include <OgreSceneNode.h>
+#include <OgreMatrix3.h>
 
 namespace rviz
 {
@@ -84,12 +84,8 @@ void ShapeMarker::onNewMessage(const MarkerConstPtr& old_message, const MarkerCo
   Ogre::Vector3 pos, scale, scale_correct;
   Ogre::Quaternion orient;
   if (!transform(new_message, pos, orient, scale))
-  {
-    scene_node_->setVisible(false);
     return;
-  }
 
-  scene_node_->setVisible(true);
   setPosition(pos);
   setOrientation(orient * Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(1, 0, 0)));
 

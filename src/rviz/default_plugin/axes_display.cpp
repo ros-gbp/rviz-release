@@ -29,25 +29,24 @@
 
 #include <boost/bind.hpp>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreRibbonTrail.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/tf_frame_property.h>
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/tf_frame_property.h"
 
 #include "axes_display.h"
 
 namespace rviz
 {
-AxesDisplay::AxesDisplay() : Display(), axes_(nullptr), trail_(nullptr)
+AxesDisplay::AxesDisplay() : Display(), axes_(nullptr)
 {
-  frame_property_ = new TfFrameProperty("Reference Frame", TfFrameProperty::FIXED_FRAME_STRING,
-                                        "The TF frame these axes will use for their origin.", this,
-                                        nullptr, true, SLOT(resetTrail()));
+  frame_property_ =
+      new TfFrameProperty("Reference Frame", TfFrameProperty::FIXED_FRAME_STRING,
+                          "The TF frame these axes will use for their origin.", this, nullptr, true);
 
   length_property_ =
       new FloatProperty("Length", 1.0, "Length of each axis, in meters.", this, SLOT(updateShape()));
@@ -56,24 +55,10 @@ AxesDisplay::AxesDisplay() : Display(), axes_(nullptr), trail_(nullptr)
   radius_property_ =
       new FloatProperty("Radius", 0.1, "Radius of each axis, in meters.", this, SLOT(updateShape()));
   radius_property_->setMin(0.0001);
-
-  trail_property_ =
-      new Property("Show Trail", false, "Enable/disable a 2 meter \"ribbon\" which follows this frame.",
-                   this, SLOT(updateTrail()));
-
-  alpha_property_ =
-      new FloatProperty("Alpha", 1.0, "Alpha channel value of each axis.", this, SLOT(updateShape()));
-  alpha_property_->setMin(0.0);
-  alpha_property_->setMax(1.0);
 }
 
 AxesDisplay::~AxesDisplay()
 {
-  if (trail_)
-  {
-    scene_manager_->destroyRibbonTrail(trail_);
-  }
-
   delete axes_;
 }
 
@@ -81,74 +66,24 @@ void AxesDisplay::onInitialize()
 {
   frame_property_->setFrameManager(context_->getFrameManager());
 
-  axes_ = new Axes(scene_manager_, nullptr, length_property_->getFloat(), radius_property_->getFloat(),
-                   alpha_property_->getFloat());
+  axes_ = new Axes(scene_manager_, nullptr, length_property_->getFloat(), radius_property_->getFloat());
   axes_->getSceneNode()->setVisible(isEnabled());
-}
-
-void AxesDisplay::reset()
-{
-  Display::reset();
-  resetTrail(false);
-}
-
-void AxesDisplay::resetTrail(bool update)
-{
-  if (!trail_)
-    return;
-  if (update)
-    this->update(0.0, 0.0);
-  trail_->nodeUpdated(axes_->getSceneNode());
-  trail_->clearAllChains();
 }
 
 void AxesDisplay::onEnable()
 {
   axes_->getSceneNode()->setVisible(true);
-  if (trail_)
-    trail_->setVisible(true);
 }
 
 void AxesDisplay::onDisable()
 {
   axes_->getSceneNode()->setVisible(false);
-  if (trail_)
-    trail_->setVisible(false);
 }
 
 void AxesDisplay::updateShape()
 {
-  axes_->set(length_property_->getFloat(), radius_property_->getFloat(), alpha_property_->getFloat());
+  axes_->set(length_property_->getFloat(), radius_property_->getFloat());
   context_->queueRender();
-}
-
-void AxesDisplay::updateTrail()
-{
-  if (trail_property_->getValue().toBool())
-  {
-    if (!trail_)
-    {
-      static int count = 0;
-      std::stringstream ss;
-      ss << "Trail for frame " << frame_property_->getFrame().toStdString() << count++;
-      trail_ = scene_manager_->createRibbonTrail(ss.str());
-      trail_->setMaxChainElements(100);
-      trail_->setInitialWidth(0, 0.01f);
-      trail_->setInitialColour(0, 1, 0, 0);
-      trail_->addNode(axes_->getSceneNode());
-      trail_->setTrailLength(2.0f);
-      trail_->setVisible(isEnabled());
-      axes_->getSceneNode()->getParentSceneNode()->attachObject(trail_);
-    }
-  }
-  else
-  {
-    if (trail_)
-    {
-      scene_manager_->destroyRibbonTrail(trail_);
-      trail_ = nullptr;
-    }
-  }
 }
 
 void AxesDisplay::update(float /*dt*/, float /*ros_dt*/)

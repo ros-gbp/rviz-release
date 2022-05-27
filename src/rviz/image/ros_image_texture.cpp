@@ -35,11 +35,11 @@
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/foreach.hpp>
 
-#include <OGRE/OgreTextureManager.h>
+#include <OgreTextureManager.h>
 
 #include <sensor_msgs/image_encodings.h>
 
-#include <rviz/image/ros_image_texture.h>
+#include "rviz/image/ros_image_texture.h"
 
 namespace rviz
 {

@@ -27,17 +27,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <ros/assert.h>
 
-#include <rviz/default_plugin/markers/marker_selection_handler.h>
-#include <rviz/display_context.h>
-#include <rviz/ogre_helpers/movable_text.h>
-#include <rviz/selection/selection_manager.h>
+#include "rviz/default_plugin/markers/marker_selection_handler.h"
+#include "rviz/display_context.h"
+#include "rviz/ogre_helpers/movable_text.h"
+#include "rviz/selection/selection_manager.h"
 
-#include <rviz/default_plugin/markers/text_view_facing_marker.h>
+#include "rviz/default_plugin/markers/text_view_facing_marker.h"
 
 namespace rviz
 {
@@ -71,13 +71,8 @@ void TextViewFacingMarker::onNewMessage(const MarkerConstPtr& /*old_message*/,
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  if (!transform(new_message, pos, orient, scale))
-  {
-    scene_node_->setVisible(false);
-    return;
-  }
+  transform(new_message, pos, orient, scale);
 
-  scene_node_->setVisible(true);
   setPosition(pos);
   text_->setCharacterHeight(new_message->scale.z);
   text_->setColor(Ogre::ColourValue(new_message->color.r, new_message->color.g, new_message->color.b,

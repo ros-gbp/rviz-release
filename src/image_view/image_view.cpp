@@ -31,25 +31,24 @@
 #include <QtGlobal>
 #include <QTimer>
 
-#include <rviz/ogre_helpers/qt_ogre_render_window.h>
-#include <rviz/ogre_helpers/initialization.h>
-#include <rviz/ogre_helpers/compatibility.h>
-#include <rviz/image/ros_image_texture.h>
+#include "rviz/ogre_helpers/qt_ogre_render_window.h"
+#include "rviz/ogre_helpers/initialization.h"
+#include "rviz/image/ros_image_texture.h"
 
 #include "ros/ros.h"
 #include <ros/package.h>
 
-#include <OGRE/OgreRoot.h>
-#include <OGRE/OgreRenderWindow.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreRectangle2D.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreTextureUnitState.h>
-#include <OGRE/OgreSharedPtr.h>
-#include <OGRE/OgreTechnique.h>
-#include <OGRE/OgreSceneNode.h>
+#include <OgreRoot.h>
+#include <OgreRenderWindow.h>
+#include <OgreSceneManager.h>
+#include <OgreViewport.h>
+#include <OgreRectangle2D.h>
+#include <OgreMaterial.h>
+#include <OgreMaterialManager.h>
+#include <OgreTextureUnitState.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
+#include <OgreSceneNode.h>
 
 #include "image_view.h"
 
@@ -112,7 +111,7 @@ void ImageView::showEvent(QShowEvent* event)
 
   Ogre::Rectangle2D* rect = new Ogre::Rectangle2D(true);
   rect->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
-  setMaterial(*rect, material);
+  rect->setMaterial(material->getName());
   rect->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
   Ogre::AxisAlignedBox aabb;
   aabb.setInfinite();
