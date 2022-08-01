@@ -38,7 +38,7 @@
 
 #include <rviz/tool.h>
 
-#include <OGRE/OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
 namespace rviz
 {

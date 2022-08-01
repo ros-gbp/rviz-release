@@ -27,13 +27,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreBillboardSet.h>
-#include <OGRE/OgreMatrix4.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
+#include <OgreManualObject.h>
+#include <OgreMatrix4.h>
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>

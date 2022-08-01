@@ -35,10 +35,10 @@
 
 #include <rviz/ogre_helpers/point_cloud.h>
 
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreQuaternion.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 namespace rviz
 {

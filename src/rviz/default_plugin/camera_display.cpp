@@ -27,19 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreRectangle2D.h>
-#include <OGRE/OgreRenderSystem.h>
-#include <OGRE/OgreRenderWindow.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreTechnique.h>
-#include <OGRE/OgreCamera.h>
+#include <OgreManualObject.h>
+#include <OgreMaterialManager.h>
+#include <OgreRectangle2D.h>
+#include <OgreRenderSystem.h>
+#include <OgreRenderWindow.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreTextureManager.h>
+#include <OgreViewport.h>
+#include <OgreTechnique.h>
+#include <OgreCamera.h>
 
 #include <tf2_ros/message_filter.h>
 
@@ -110,7 +110,7 @@ CameraDisplay::~CameraDisplay()
   {
     render_panel_->getRenderWindow()->removeListener(this);
 
-    unsubscribe();
+    CameraDisplay::unsubscribe();
 
     delete render_panel_;
     delete bg_screen_rect_;

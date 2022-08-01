@@ -30,8 +30,8 @@
 #ifndef OGRE_TOOLS_CAMERA_BASE_H_
 #define OGRE_TOOLS_CAMERA_BASE_H_
 
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreQuaternion.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreQuaternion.h>
 
 namespace Ogre
 {

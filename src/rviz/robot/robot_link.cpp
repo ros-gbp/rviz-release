@@ -29,16 +29,16 @@
 
 #include <boost/filesystem.hpp>
 
-#include <OGRE/OgreEntity.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreRibbonTrail.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSubEntity.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreSharedPtr.h>
-#include <OGRE/OgreTechnique.h>
+#include <OgreEntity.h>
+#include <OgreMaterial.h>
+#include <OgreMaterialManager.h>
+#include <OgreRibbonTrail.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSubEntity.h>
+#include <OgreTextureManager.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
 
 #include <ros/console.h>
 
@@ -163,11 +163,10 @@ RobotLink::RobotLink(Robot* robot,
   , collision_node_(nullptr)
   , trail_(nullptr)
   , axes_(nullptr)
-  , material_alpha_(1.0)
   , robot_alpha_(1.0)
   , only_render_depth_(false)
   , is_selectable_(true)
-  , using_color_(false)
+  , material_mode_flags_(ORIGINAL)
 {
   link_property_ = new Property(link->name.c_str(), true, "", nullptr, SLOT(updateVisibility()), this);
   link_property_->setIcon(rviz::loadPixmap("package://rviz/icons/classes/RobotLink.png"));
@@ -202,8 +201,9 @@ RobotLink::RobotLink(Robot* robot,
   collision_node_ = robot_->getCollisionNode()->createChildSceneNode();
 
   // create material for coloring links
+  std::string material_name = "robot link " + link->name + ":color material";
   color_material_ = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link color material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+      nullptr, material_name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
   color_material_->setReceiveShadows(false);
   color_material_->getTechnique(0)->setLightingEnabled(true);
 
@@ -383,32 +383,36 @@ void RobotLink::setOnlyRenderDepth(bool onlyRenderDepth)
 void RobotLink::updateAlpha()
 {
   float link_alpha = alpha_property_->getFloat();
-  M_SubEntityToMaterial::iterator it = materials_.begin();
-  M_SubEntityToMaterial::iterator end = materials_.end();
-  for (; it != end; ++it)
+  for (auto& item : materials_)
   {
-    const Ogre::MaterialPtr& material = it->second;
+    Ogre::MaterialPtr& active = item.second.first;
+    const Ogre::MaterialPtr& original = item.second.second;
 
     if (only_render_depth_)
     {
-      material->setColourWriteEnabled(false);
-      material->setDepthWriteEnabled(true);
+      active->setColourWriteEnabled(false);
+      active->setDepthWriteEnabled(true);
     }
     else
     {
-      Ogre::ColourValue color = material->getTechnique(0)->getPass(0)->getDiffuse();
-      color.a = robot_alpha_ * material_alpha_ * link_alpha;
-      material->setDiffuse(color);
+      Ogre::ColourValue color = active->getTechnique(0)->getPass(0)->getDiffuse();
+      const float material_alpha = original->getTechnique(0)->getPass(0)->getDiffuse().a;
+      color.a = robot_alpha_ * material_alpha * link_alpha;
+      active->setDiffuse(color);
 
-      if (color.a < 0.9998)
+      if (color.a < 0.9998) // transparent
       {
-        material->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
-        material->setDepthWriteEnabled(false);
+        active->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+        active->setDepthWriteEnabled(false);
       }
-      else
+      else if (active == original)
       {
-        material->setSceneBlending(Ogre::SBT_REPLACE);
-        material->setDepthWriteEnabled(true);
+        active->setSceneBlending(Ogre::SBT_REPLACE);
+        active->setDepthWriteEnabled(true);
+      }
+      else // restore original material
+      {
+        original->copyDetailsTo(active);
       }
     }
   }
@@ -456,9 +460,6 @@ void RobotLink::updateVisibility()
 Ogre::MaterialPtr RobotLink::getMaterialForLink(const urdf::LinkConstSharedPtr& link,
                                                 urdf::MaterialConstSharedPtr material)
 {
-  Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-      nullptr, "robot link material", 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
-
   // only the first visual's material actually comprises color values, all others only have the name
   // hence search for the first visual with given material name (better fix the bug in urdf parser)
   if (material && !material->name.empty())
@@ -475,6 +476,13 @@ Ogre::MaterialPtr RobotLink::getMaterialForLink(const urdf::LinkConstSharedPtr& 
   if (!material && link->visual && link->visual->material)
     material = link->visual->material; // fallback to visual's material
 
+  std::string name = "robot link " + link->name;
+  if (material)
+    name += ":" + material->name;
+
+  Ogre::MaterialPtr mat = Ogre::MaterialPtr(
+      new Ogre::Material(nullptr, name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+
   if (!material)
   {
     // clone default material (for modification by link)
@@ -488,8 +496,6 @@ Ogre::MaterialPtr RobotLink::getMaterialForLink(const urdf::LinkConstSharedPtr& 
     const urdf::Color& col = material->color;
     mat->getTechnique(0)->setAmbient(col.r * 0.5, col.g * 0.5, col.b * 0.5);
     mat->getTechnique(0)->setDiffuse(col.r, col.g, col.b, col.a);
-
-    material_alpha_ = col.a;
   }
   else
   {
@@ -655,19 +661,18 @@ void RobotLink::createEntityForGeometryElement(const urdf::LinkConstSharedPtr& l
       Ogre::SubEntity* sub = entity->getSubEntity(i);
       const std::string& material_name = sub->getMaterialName();
 
+      Ogre::MaterialPtr active, original;
       if (material_name == "BaseWhite" || material_name == "BaseWhiteNoLighting")
-      {
-        sub->setMaterial(default_material_);
-      }
+        original = default_material_;
       else
-      {
-        // create a new material copy for each instance of a RobotLink
-        Ogre::MaterialPtr mat = Ogre::MaterialPtr(new Ogre::Material(
-            nullptr, material_name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
-        *mat = *sub->getMaterial();
-        sub->setMaterial(mat);
-      }
-      materials_[sub] = sub->getMaterial();
+        original = sub->getMaterial();
+
+      // create a new material copy for each instance of a RobotLink to allow modification per link
+      active = Ogre::MaterialPtr(new Ogre::Material(
+          nullptr, material_name, 0, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME));
+      *active = *original;
+      sub->setMaterial(active);
+      materials_[sub] = std::make_pair(active, original);
     }
   }
 }
@@ -896,40 +901,36 @@ void RobotLink::setTransforms(const Ogre::Vector3& visual_position,
 
 void RobotLink::setToErrorMaterial()
 {
-  for (size_t i = 0; i < visual_meshes_.size(); i++)
-  {
-    visual_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                       Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
-  }
-  for (size_t i = 0; i < collision_meshes_.size(); i++)
-  {
-    collision_meshes_[i]->setMaterialName("BaseWhiteNoLighting",
-                                          Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
-  }
+  setMaterialMode(material_mode_flags_ | ERROR);
 }
 
 void RobotLink::setToNormalMaterial()
 {
-  if (using_color_)
+  setMaterialMode(material_mode_flags_ & ~ERROR);
+}
+
+void RobotLink::setMaterialMode(unsigned char mode_flags)
+{
+  if (material_mode_flags_ == mode_flags)
+    return; // nothing to change
+
+  material_mode_flags_ = mode_flags;
+
+  if (mode_flags == ORIGINAL)
   {
-    for (size_t i = 0; i < visual_meshes_.size(); i++)
-    {
-      visual_meshes_[i]->setMaterial(color_material_);
-    }
-    for (size_t i = 0; i < collision_meshes_.size(); i++)
-    {
-      collision_meshes_[i]->setMaterial(color_material_);
-    }
+    for (const auto& item : materials_)
+      item.first->setMaterial(item.second.first);
+    return;
   }
-  else
-  {
-    M_SubEntityToMaterial::iterator it = materials_.begin();
-    M_SubEntityToMaterial::iterator end = materials_.end();
-    for (; it != end; ++it)
-    {
-      it->first->setMaterial(it->second);
-    }
-  }
+
+  auto error_material = Ogre::MaterialManager::getSingleton().getByName(
+      "BaseWhiteNoLighting", Ogre::ResourceGroupManager::INTERNAL_RESOURCE_GROUP_NAME);
+  auto material = mode_flags == COLOR ? color_material_ : error_material;
+
+  for (const auto& mesh : visual_meshes_)
+    mesh->setMaterial(material);
+  for (const auto& mesh : collision_meshes_)
+    mesh->setMaterial(material);
 }
 
 void RobotLink::setColor(float red, float green, float blue)
@@ -941,14 +942,12 @@ void RobotLink::setColor(float red, float green, float blue)
   color_material_->getTechnique(0)->setAmbient(0.5 * color);
   color_material_->getTechnique(0)->setDiffuse(color);
 
-  using_color_ = true;
-  setToNormalMaterial();
+  setMaterialMode(COLOR | (material_mode_flags_ & ERROR));
 }
 
 void RobotLink::unsetColor()
 {
-  using_color_ = false;
-  setToNormalMaterial();
+  setMaterialMode(ORIGINAL | (material_mode_flags_ & ERROR));
 }
 
 bool RobotLink::setSelectable(bool selectable)

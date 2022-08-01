@@ -1,5 +1,5 @@
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 #include <QTimer>
 
 #include <rviz/visualization_manager.h>
@@ -119,7 +119,7 @@ void EffortDisplay::onInitialize()
                                                                    std::string(), 1, update_nh_);
 
   // but directly process messages
-  sub_.registerCallback(boost::bind(&EffortDisplay::incomingMessage, this, _1));
+  sub_.registerCallback(boost::bind(&EffortDisplay::incomingMessage, this, boost::placeholders::_1));
   updateHistoryLength();
 }
 

@@ -27,9 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreColourValue.h>
-#include <OGRE/OgreMatrix4.h>
-#include <OGRE/OgreVector3.h>
+#include <OgreColourValue.h>
+#include <OgreMatrix4.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/color_property.h>
