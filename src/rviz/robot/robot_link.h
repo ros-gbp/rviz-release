@@ -36,11 +36,11 @@
 #include <QObject>
 
 #ifndef Q_MOC_RUN
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreAny.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreSharedPtr.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreQuaternion.h>
+#include <OgreAny.h>
+#include <OgreMaterial.h>
+#include <OgreSharedPtr.h>
 #endif
 
 #include <urdf/model.h> // can be replaced later by urdf_model/types.h
@@ -49,7 +49,7 @@
 #include <rviz/ogre_helpers/object.h>
 #include <rviz/selection/forwards.h>
 
-#include <OGRE/OgrePrerequisites.h>
+#include <OgrePrerequisites.h>
 
 namespace Ogre
 {
@@ -79,6 +79,14 @@ typedef boost::shared_ptr<RobotLinkSelectionHandler> RobotLinkSelectionHandlerPt
 class RobotLink : public QObject
 {
   Q_OBJECT
+
+  enum MaterialMode
+  {
+    ORIGINAL = 0,
+    COLOR = 1,
+    ERROR = 2,
+  };
+
 public:
   RobotLink(Robot* robot,
             const urdf::LinkConstSharedPtr& link,
@@ -177,6 +185,7 @@ private Q_SLOTS:
   void updateAxes();
 
 private:
+  void setMaterialMode(unsigned char mode_flags);
   void setRenderQueueGroup(Ogre::uint8 group);
   bool getEnabled() const;
   void createEntityForGeometryElement(const urdf::LinkConstSharedPtr& link,
@@ -214,7 +223,9 @@ protected:
   FloatProperty* alpha_property_;
 
 private:
-  typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+  // maintain the original material of each SubEntity to restore it after unsetColor()
+  using M_SubEntityToMaterial =
+      std::map<Ogre::SubEntity*, std::pair<Ogre::MaterialPtr, Ogre::MaterialPtr>>;
   M_SubEntityToMaterial materials_;
   Ogre::MaterialPtr default_material_;
   std::string default_material_name_;
@@ -231,9 +242,7 @@ private:
 
   Axes* axes_;
 
-  float material_alpha_; ///< If material is not a texture, this saves the alpha value set in the URDF,
-                         /// otherwise is 1.0.
-  float robot_alpha_;    ///< Alpha value from top-level robot alpha Property (set via setRobotAlpha()).
+  float robot_alpha_; ///< Alpha value from top-level robot alpha Property (set via setRobotAlpha()).
 
   bool only_render_depth_;
   bool is_selectable_;
@@ -244,7 +253,7 @@ private:
   RobotLinkSelectionHandlerPtr selection_handler_;
 
   Ogre::MaterialPtr color_material_;
-  bool using_color_;
+  unsigned char material_mode_flags_;
 
   friend class RobotLinkSelectionHandler;
 };

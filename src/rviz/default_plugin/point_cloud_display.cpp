@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <ros/time.h>
 
@@ -48,6 +48,7 @@ PointCloudDisplay::PointCloudDisplay() : point_cloud_common_(new PointCloudCommo
 
 PointCloudDisplay::~PointCloudDisplay()
 {
+  PointCloudDisplay::unsubscribe();
   delete point_cloud_common_;
 }
 

@@ -29,12 +29,12 @@
 
 #include <stdint.h>
 
-#include <OGRE/OgreCamera.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreViewport.h>
+#include <OgreCamera.h>
+#include <OgreQuaternion.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreViewport.h>
 
 #include <rviz/display_context.h>
 #include <rviz/geometry.h>
@@ -137,25 +137,20 @@ void OrbitViewController::handleMouseEvent(ViewportMouseEvent& event)
   int32_t diff_x = 0;
   int32_t diff_y = 0;
 
-  bool moved = false;
-
   if (event.type == QEvent::MouseButtonPress)
   {
     focal_shape_->getRootNode()->setVisible(true);
-    moved = true;
     dragging_ = true;
   }
   else if (event.type == QEvent::MouseButtonRelease)
   {
     focal_shape_->getRootNode()->setVisible(false);
-    moved = true;
     dragging_ = false;
   }
   else if (dragging_ && event.type == QEvent::MouseMove)
   {
     diff_x = event.x - event.last_x;
     diff_y = event.y - event.last_y;
-    moved = true;
   }
 
   // regular left-button drag
@@ -198,8 +193,6 @@ void OrbitViewController::handleMouseEvent(ViewportMouseEvent& event)
     setCursor(event.shift() ? MoveXY : Rotate3D);
   }
 
-  moved = true;
-
   if (event.wheel_delta != 0)
   {
     int diff = event.wheel_delta;
@@ -211,14 +204,9 @@ void OrbitViewController::handleMouseEvent(ViewportMouseEvent& event)
     {
       zoom(diff * 0.001 * distance);
     }
-
-    moved = true;
   }
 
-  if (moved)
-  {
-    context_->queueRender();
-  }
+  context_->queueRender();
 }
 
 void OrbitViewController::mimic(ViewController* source_view)

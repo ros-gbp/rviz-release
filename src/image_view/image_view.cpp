@@ -39,17 +39,17 @@
 #include "ros/ros.h"
 #include <ros/package.h>
 
-#include <OGRE/OgreRoot.h>
-#include <OGRE/OgreRenderWindow.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreViewport.h>
-#include <OGRE/OgreRectangle2D.h>
-#include <OGRE/OgreMaterial.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreTextureUnitState.h>
-#include <OGRE/OgreSharedPtr.h>
-#include <OGRE/OgreTechnique.h>
-#include <OGRE/OgreSceneNode.h>
+#include <OgreRoot.h>
+#include <OgreRenderWindow.h>
+#include <OgreSceneManager.h>
+#include <OgreViewport.h>
+#include <OgreRectangle2D.h>
+#include <OgreMaterial.h>
+#include <OgreMaterialManager.h>
+#include <OgreTextureUnitState.h>
+#include <OgreSharedPtr.h>
+#include <OgreTechnique.h>
+#include <OgreSceneNode.h>
 
 #include "image_view.h"
 
@@ -94,7 +94,8 @@ void ImageView::showEvent(QShowEvent* event)
 
     texture_sub_.reset(new image_transport::SubscriberFilter());
     texture_sub_->subscribe(texture_it_, "image", 1, image_transport::TransportHints("raw"));
-    texture_sub_->registerCallback(boost::bind(&ImageView::textureCallback, this, _1));
+    texture_sub_->registerCallback(
+        boost::bind(&ImageView::textureCallback, this, boost::placeholders::_1));
   }
   catch (ros::Exception& e)
   {

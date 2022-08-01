@@ -27,15 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreMaterialManager.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreTextureManager.h>
-#include <OGRE/OgreTechnique.h>
-#include <OGRE/OgreSharedPtr.h>
+#include <OgreManualObject.h>
+#include <OgreMaterialManager.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreTextureManager.h>
+#include <OgreTechnique.h>
+#include <OgreSharedPtr.h>
 
 #include <ros/ros.h>
 
@@ -272,7 +272,7 @@ MapDisplay::MapDisplay() : Display(), loaded_(false), resolution_(0.0f), width_(
 
 MapDisplay::~MapDisplay()
 {
-  unsubscribe();
+  MapDisplay::unsubscribe();
   clear();
   for (unsigned i = 0; i < swatches.size(); i++)
   {

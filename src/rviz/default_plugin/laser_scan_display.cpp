@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <ros/time.h>
 
@@ -52,6 +52,7 @@ LaserScanDisplay::LaserScanDisplay()
 
 LaserScanDisplay::~LaserScanDisplay()
 {
+  LaserScanDisplay::unsubscribe();
   delete point_cloud_common_;
   delete projector_;
 }
