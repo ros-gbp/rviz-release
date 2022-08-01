@@ -40,8 +40,8 @@
 
 #include <Eigen/Dense>
 
-#include <OGRE/OgreVector3.h>
-#include <OGRE/OgreColourValue.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreColourValue.h>
 
 namespace Ogre
 {

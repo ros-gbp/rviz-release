@@ -53,15 +53,15 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/filesystem.hpp>
 
 #include <ros/console.h>
 #include <ros/package.h>
 #include <ros/init.h>
 
-#include <OGRE/OgreRenderWindow.h>
-#include <OGRE/OgreMeshManager.h>
+#include <OgreRenderWindow.h>
+#include <OgreMeshManager.h>
 
 #include <rviz/ogre_helpers/initialization.h>
 
@@ -733,7 +733,7 @@ void VisualizationFrame::loadDisplayConfig(const QString& qpath)
   if (!valid_load_path)
   {
     actual_load_path = (fs::path(package_path_) / "default.rviz");
-    if (!(valid_load_path = fs::is_regular_file(actual_load_path)))
+    if (!fs::is_regular_file(actual_load_path))
     {
       ROS_ERROR("Default display config '%s' not found.  RViz will be very empty at first.",
                 actual_load_path.c_str());
@@ -1320,6 +1320,23 @@ QWidget* VisualizationFrame::getParentWindow()
   return this;
 }
 
+void VisualizationFrame::onPanelDeleted(QObject* dock)
+{
+  for (int i = 0; i < custom_panels_.size(); ++i)
+  {
+    if (custom_panels_[i].dock == dock)
+    {
+      auto& record = custom_panels_[i];
+      record.delete_action->deleteLater();
+      delete_view_menu_->removeAction(record.delete_action);
+      delete_view_menu_->setDisabled(delete_view_menu_->actions().isEmpty());
+      custom_panels_.removeAt(i);
+      setDisplayConfigModified();
+      return;
+    }
+  }
+}
+
 void VisualizationFrame::onDeletePanel()
 {
   // This should only be called as a SLOT from a QAction in the
@@ -1334,13 +1351,6 @@ void VisualizationFrame::onDeletePanel()
       if (custom_panels_[i].delete_action == action)
       {
         delete custom_panels_[i].dock;
-        custom_panels_.removeAt(i);
-        setDisplayConfigModified();
-        action->deleteLater();
-        if (delete_view_menu_->actions().size() == 1 && delete_view_menu_->actions().first() == action)
-        {
-          delete_view_menu_->setEnabled(false);
-        }
         return;
       }
     }
@@ -1393,6 +1403,7 @@ QDockWidget* VisualizationFrame::addPanelByName(const QString& name,
   record.panel = panel;
   record.name = name;
   record.delete_action = delete_view_menu_->addAction(name, this, SLOT(onDeletePanel()));
+  connect(record.dock, &QObject::destroyed, this, &VisualizationFrame::onPanelDeleted);
   custom_panels_.append(record);
   delete_view_menu_->setEnabled(true);
 

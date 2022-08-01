@@ -33,8 +33,8 @@
 #include <map>
 #include <set>
 
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
 #include <rviz/selection/forwards.h>
 
