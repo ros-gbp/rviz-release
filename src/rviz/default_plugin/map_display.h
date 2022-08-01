@@ -35,7 +35,7 @@
 
 #include <OgreTexture.h>
 #include <OgreMaterial.h>
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreSharedPtr.h>
 #endif
 
@@ -45,7 +45,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <map_msgs/OccupancyGridUpdate.h>
 
-#include "rviz/display.h"
+#include <rviz/display.h>
 
 namespace Ogre
 {

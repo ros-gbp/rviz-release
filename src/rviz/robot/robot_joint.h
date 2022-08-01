@@ -36,7 +36,7 @@
 #include <QObject>
 
 #ifndef Q_MOC_RUN
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreQuaternion.h>
 #include <OgreAny.h>
 #include <OgreMaterial.h>
@@ -45,20 +45,15 @@
 #include <urdf/model.h>
 #include <urdf_model/pose.h>
 
-#include "rviz/ogre_helpers/object.h"
-#include "rviz/selection/forwards.h"
+#include <rviz/ogre_helpers/object.h>
+#include <rviz/selection/forwards.h>
+
+#include <OgrePrerequisites.h>
 
 namespace Ogre
 {
-class SceneManager;
-class Entity;
-class SubEntity;
-class SceneNode;
-class Vector3;
-class Quaternion;
 class Any;
-class RibbonTrail;
-} // namespace Ogre
+}
 
 namespace rviz
 {
@@ -122,7 +117,7 @@ public:
   Ogre::Vector3 getPosition();
   Ogre::Quaternion getOrientation();
 
-  void setRobotAlpha(float /*alpha*/)
+  void setRobotAlpha(float /*unused*/)
   {
   }
 
@@ -170,7 +165,7 @@ private:
                     bool recursive) const; // True: all descendant links.  False: just single child link.
 
   // set the value of the enable checkbox without touching child joints/links
-  void setJointCheckbox(QVariant val);
+  void setJointCheckbox(const QVariant& val);
 
 
 protected:
