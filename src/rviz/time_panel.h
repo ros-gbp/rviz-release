@@ -62,7 +62,6 @@ protected Q_SLOTS:
   void pauseToggled(bool checked);
   void syncModeSelected(int index);
   void syncSourceSelected(int index);
-  void experimentalToggled(bool checked);
 
   /** Read time values from VisualizationManager and update displays. */
   void update();
@@ -70,7 +69,7 @@ protected Q_SLOTS:
   void onDisplayAdded(rviz::Display* display);
   void onDisplayRemoved(rviz::Display* display);
 
-  void onTimeSignal(rviz::Display* display, ros::Time time);
+  void onTimeSignal(ros::Time time);
 
   void load(const Config& config) override;
   void save(Config config) const override;
@@ -82,12 +81,7 @@ protected:
   /** Fill a single time label with the given time value (in seconds). */
   void fillTimeLabel(QLineEdit* label, double time);
 
-  QWidget* old_widget_;
-  QWidget* experimental_widget_;
-
   QString config_sync_source_;
-
-  QCheckBox* experimental_cb_;
 
   QPushButton* pause_button_;
   QComboBox* sync_source_selector_;
