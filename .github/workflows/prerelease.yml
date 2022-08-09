@@ -9,7 +9,7 @@ jobs:
   default:
     strategy:
       matrix:
-        distro: [noetic]
+        distro: [melodic]
 
     env:
       ROS_DISTRO: ${{ matrix.distro }}

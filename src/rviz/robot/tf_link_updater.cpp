@@ -28,10 +28,11 @@
  */
 
 #include "tf_link_updater.h"
-#include <rviz/frame_manager.h>
-#include <rviz/helpers/tf_prefix.h>
+#include "frame_manager.h"
 
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <tf/tf.h>
+
+#include <OgreVector3.h>
 #include <OgreQuaternion.h>
 
 namespace rviz
@@ -49,7 +50,11 @@ bool TFLinkUpdater::getLinkTransforms(const std::string& _link_name,
                                       Ogre::Vector3& collision_position,
                                       Ogre::Quaternion& collision_orientation) const
 {
-  std::string link_name = concat(tf_prefix_, _link_name);
+  std::string link_name = _link_name;
+  if (!tf_prefix_.empty())
+  {
+    link_name = tf::resolve(tf_prefix_, link_name);
+  }
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;

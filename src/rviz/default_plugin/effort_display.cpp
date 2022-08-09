@@ -7,21 +7,23 @@
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/int_property.h>
 #include <rviz/frame_manager.h>
-#include <rviz/validate_floats.h>
-#include <rviz/helpers/tf_prefix.h>
+
+#include <boost/foreach.hpp>
 
 #include "effort_visual.h"
+
 #include "effort_display.h"
 
 #include <urdf/model.h>
 
 namespace rviz
 {
-JointInfo::JointInfo(const std::string& name, rviz::Property* parent_category)
+JointInfo::JointInfo(const std::string name, rviz::Property* parent_category)
 {
   name_ = name;
   effort_ = 0;
   max_effort_ = 0;
+  last_update_ = ros::Time::now();
 
   // info->category_ = new Property( QString::fromStdString( info->name_ ) , QVariant(), "",
   // joints_category_);
@@ -49,10 +51,18 @@ void JointInfo::setEffort(double e)
   effort_property_->setFloat(e);
   effort_ = e;
 }
+double JointInfo::getEffort()
+{
+  return effort_;
+}
 void JointInfo::setMaxEffort(double m)
 {
   max_effort_property_->setFloat(m);
   max_effort_ = m;
+}
+double JointInfo::getMaxEffort()
+{
+  return max_effort_;
 }
 
 bool JointInfo::getEnabled() const
@@ -78,6 +88,7 @@ JointInfo* EffortDisplay::createJoint(const std::string& joint)
   return info;
 }
 
+///
 EffortDisplay::EffortDisplay()
 {
   alpha_property_ = new rviz::FloatProperty("Alpha", 1.0, "0 is fully transparent, 1.0 is fully opaque.",
@@ -95,16 +106,16 @@ EffortDisplay::EffortDisplay()
   history_length_property_->setMin(1);
   history_length_property_->setMax(100000);
 
+
   robot_description_property_ =
       new rviz::StringProperty("Robot Description", "robot_description",
-                               "Name of the parameter to search for to load the robot "
-                               "description.",
+                               "Name of the parameter to search for to load the robot description.",
                                this, SLOT(updateRobotDescription()));
 
   tf_prefix_property_ = new StringProperty(
       "TF Prefix", "",
       "Robot Model normally assumes the link name is the same as the tf frame name. "
-      "This option allows you to set a prefix.  Mainly useful for multi-robot situations.",
+      " This option allows you to set a prefix.  Mainly useful for multi-robot situations.",
       this, SLOT(updateTfPrefix()));
 
   joints_category_ = new rviz::Property("Joints", QVariant(), "", this);
@@ -113,18 +124,12 @@ EffortDisplay::EffortDisplay()
 void EffortDisplay::onInitialize()
 {
   MFDClass::onInitialize();
-  // skip tf_filter_ (resetting it)
-  delete tf_filter_;
-  tf_filter_ = new tf2_ros::MessageFilter<sensor_msgs::JointState>(*context_->getTF2BufferPtr(),
-                                                                   std::string(), 1, update_nh_);
-
-  // but directly process messages
-  sub_.registerCallback(boost::bind(&EffortDisplay::incomingMessage, this, boost::placeholders::_1));
   updateHistoryLength();
 }
 
 EffortDisplay::~EffortDisplay()
 {
+  // delete robot_model_; // sharead pointer
 }
 
 // Clear the visuals by deleting their objects.
@@ -220,6 +225,7 @@ void EffortDisplay::load()
 
   robot_description_ = content;
 
+
   robot_model_ = boost::shared_ptr<urdf::Model>(new urdf::Model());
   if (!robot_model_->initString(content))
   {
@@ -252,6 +258,39 @@ void EffortDisplay::onDisable()
   clear();
 }
 
+#if 0
+    void EffortDisplay::setRobotDescription( const std::string& description_param )
+    {
+        description_param_ = description_param;
+
+        propertyChanged(robot_description_property_);
+
+        if ( isEnabled() )
+            {
+                load();
+                unsubscribe();
+                subscribe();
+                causeRender();
+            }
+    }
+
+    void EffortDisplay::setAllEnabled(bool enabled)
+    {
+        all_enabled_ = enabled;
+
+        M_JointInfo::iterator it = joints_.begin();
+        M_JointInfo::iterator end = joints_.end();
+        for (; it != end; ++it)
+            {
+                JointInfo* joint = it->second;
+
+                setJointEnabled(joint, enabled);
+            }
+
+        propertyChanged(all_enabled_property_);
+    }
+
+#endif
 // This is our callback to handle an incoming message.
 void EffortDisplay::processMessage(const sensor_msgs::JointState::ConstPtr& msg)
 {
@@ -269,72 +308,78 @@ void EffortDisplay::processMessage(const sensor_msgs::JointState::ConstPtr& msg)
   }
   else
   {
-    visual.reset(new EffortVisual(context_->getSceneManager(), scene_node_));
+    visual.reset(new EffortVisual(context_->getSceneManager(), scene_node_, robot_model_));
   }
-  visual->setWidth(width_property_->getFloat());
-  visual->setScale(scale_property_->getFloat());
 
   V_string joints;
   size_t joint_num = msg->name.size();
   if (joint_num != msg->effort.size())
   {
-    setStatus(rviz::StatusProperty::Error, "Topic",
-              "Received a joint state msg with different joint names and efforts size!");
+    std::string tmp_error = "Received a joint state msg with different joint names and efforts size!";
+    ROS_ERROR("%s", tmp_error.c_str());
+    setStatus(rviz::StatusProperty::Error, "TOPIC", QString::fromStdString(tmp_error));
     return;
   }
   for (size_t i = 0; i < joint_num; ++i)
   {
-    const std::string& joint_name = msg->name[i];
+    std::string joint_name = msg->name[i];
     JointInfo* joint_info = getJointInfo(joint_name);
     if (!joint_info)
       continue; // skip joints..
 
-    // update effort property
+    // set effort
     joint_info->setEffort(msg->effort[i]);
-    joint_info->last_update_ = msg->header.stamp;
+
+    // update effort property ???
+    if ((ros::Time::now() - joint_info->last_update_) > ros::Duration(0.2))
+    {
+      joint_info->last_update_ = ros::Time::now();
+    }
 
     const urdf::Joint* joint = robot_model_->getJoint(joint_name).get();
     int joint_type = joint->type;
     if (joint_type == urdf::Joint::REVOLUTE)
     {
-      std::string tf_frame_id = concat(tf_prefix_property_->getStdString(), joint->child_link_name);
+      std::string tf_prefix = tf_prefix_property_->getStdString();
+      std::string tf_frame_id = (tf_prefix.empty() ? "" : tf_prefix + "/") + joint->child_link_name;
       Ogre::Quaternion orientation;
       Ogre::Vector3 position;
 
-      // Call rviz::FrameManager to get the transform from the fixed frame to the joint's frame.
-      if (!context_->getFrameManager()->getTransform(tf_frame_id, ros::Time(), position, orientation))
+      // Here we call the rviz::FrameManager to get the transform from the
+      // fixed frame to the frame in the header of this Effort message.  If
+      // it fails, we can't do anything else so we return.
+      if (!context_->getFrameManager()->getTransform(tf_frame_id, ros::Time(),
+                                                     // msg->header.stamp, // ???
+                                                     position, orientation))
       {
-        setStatus(rviz::StatusProperty::Error, QString::fromStdString(joint_name),
-                  QString("Error transforming from frame '%1' to frame '%2'")
-                      .arg(tf_frame_id.c_str(), qPrintable(fixed_frame_)));
+        ROS_DEBUG("Error transforming from frame '%s' to frame '%s'", tf_frame_id.c_str(),
+                  qPrintable(fixed_frame_));
         continue;
       };
-      tf2::Vector3 axis_joint(joint->axis.x, joint->axis.y, joint->axis.z);
-      tf2::Vector3 axis_z(0, 0, 1);
-      tf2::Quaternion axis_rotation(axis_joint.cross(axis_z), axis_joint.angle(axis_z));
+      tf::Vector3 axis_joint(joint->axis.x, joint->axis.y, joint->axis.z);
+      tf::Vector3 axis_z(0, 0, 1);
+      tf::Quaternion axis_rotation(tf::tfCross(axis_joint, axis_z), tf::tfAngle(axis_joint, axis_z));
       if (std::isnan(axis_rotation.x()) || std::isnan(axis_rotation.y()) || std::isnan(axis_rotation.z()))
-        axis_rotation = tf2::Quaternion::getIdentity();
+        axis_rotation = tf::Quaternion::getIdentity();
 
-      tf2::Quaternion axis_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
-      tf2::Quaternion axis_rot = axis_orientation * axis_rotation;
+      tf::Quaternion axis_orientation(orientation.x, orientation.y, orientation.z, orientation.w);
+      tf::Quaternion axis_rot = axis_orientation * axis_rotation;
       Ogre::Quaternion joint_orientation(Ogre::Real(axis_rot.w()), Ogre::Real(axis_rot.x()),
                                          Ogre::Real(axis_rot.y()), Ogre::Real(axis_rot.z()));
       visual->setFramePosition(joint_name, position);
       visual->setFrameOrientation(joint_name, joint_orientation);
       visual->setFrameEnabled(joint_name, joint_info->getEnabled());
-
-      if (!validateFloats(joint_info->getEffort()))
-      {
-        setStatus(rviz::StatusProperty::Error, QString::fromStdString(joint_name),
-                  QString("Invalid effort: %1").arg(joint_info->getEffort()));
-        visual->setFrameEnabled(joint_name, false);
-      }
-      else
-        setStatus(rviz::StatusProperty::Ok, QString::fromStdString(joint_name), QString());
-
-      visual->setEffort(joint_name, joint_info->getEffort(), joint_info->getMaxEffort());
     }
   }
+
+
+  // Now set or update the contents of the chosen visual.
+  float scale = scale_property_->getFloat();
+  float width = width_property_->getFloat();
+  visual->setWidth(width);
+  visual->setScale(scale);
+  visual->setMessage(msg);
+
   visuals_.push_back(visual);
 }
 

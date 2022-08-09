@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/bind/bind.hpp>
+#include <boost/bind.hpp>
 
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
@@ -43,20 +43,19 @@
 
 #include <tf2_ros/message_filter.h>
 
-#include <rviz/bit_allocator.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/axes.h>
-#include <rviz/ogre_helpers/compatibility.h>
-#include <rviz/properties/enum_property.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/render_panel.h>
-#include <rviz/uniform_string_stream.h>
-#include <rviz/validate_floats.h>
-#include <rviz/display_context.h>
-#include <rviz/properties/display_group_visibility_property.h>
-#include <rviz/load_resource.h>
+#include "rviz/bit_allocator.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/axes.h"
+#include "rviz/properties/enum_property.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/properties/ros_topic_property.h"
+#include "rviz/render_panel.h"
+#include "rviz/uniform_string_stream.h"
+#include "rviz/validate_floats.h"
+#include "rviz/display_context.h"
+#include "rviz/properties/display_group_visibility_property.h"
+#include "rviz/load_resource.h"
 
 #include <image_transport/camera_common.h>
 
@@ -110,14 +109,14 @@ CameraDisplay::~CameraDisplay()
   {
     render_panel_->getRenderWindow()->removeListener(this);
 
-    CameraDisplay::unsubscribe();
+    unsubscribe();
 
     delete render_panel_;
     delete bg_screen_rect_;
     delete fg_screen_rect_;
 
-    removeAndDestroyChildNode(bg_scene_node_->getParentSceneNode(), bg_scene_node_);
-    removeAndDestroyChildNode(fg_scene_node_->getParentSceneNode(), fg_scene_node_);
+    bg_scene_node_->getParentSceneNode()->removeAndDestroyChild(bg_scene_node_->getName());
+    fg_scene_node_->getParentSceneNode()->removeAndDestroyChild(fg_scene_node_->getName());
 
     context_->visibilityBits()->freeBits(vis_bit_);
   }
@@ -151,6 +150,7 @@ void CameraDisplay::onInitialize()
     Ogre::TextureUnitState* tu = bg_material_->getTechnique(0)->getPass(0)->createTextureUnitState();
     tu->setTextureName(texture_.getTexture()->getName());
     tu->setTextureFiltering(Ogre::TFO_NONE);
+    tu->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
     tu->setAlphaOperation(Ogre::LBX_SOURCE1, Ogre::LBS_MANUAL, Ogre::LBS_CURRENT, 0.0);
 
     bg_material_->setCullingMode(Ogre::CULL_NONE);
@@ -161,7 +161,7 @@ void CameraDisplay::onInitialize()
 
     bg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_BACKGROUND);
     bg_screen_rect_->setBoundingBox(aabInf);
-    setMaterial(*bg_screen_rect_, bg_material_);
+    bg_screen_rect_->setMaterial(bg_material_->getName());
 
     bg_scene_node_->attachObject(bg_screen_rect_);
     bg_scene_node_->setVisible(false);
@@ -172,7 +172,7 @@ void CameraDisplay::onInitialize()
 
     fg_material_ = bg_material_->clone(ss.str() + "fg");
     fg_screen_rect_->setBoundingBox(aabInf);
-    setMaterial(*fg_screen_rect_, fg_material_);
+    fg_screen_rect_->setMaterial(fg_material_->getName());
 
     fg_material_->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
     fg_screen_rect_->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
@@ -195,6 +195,8 @@ void CameraDisplay::onInitialize()
   render_panel_->setAutoRender(false);
   render_panel_->setOverlaysEnabled(false);
   render_panel_->getCamera()->setNearClipDistance(0.01f);
+
+  caminfo_sub_.registerCallback(boost::bind(&CameraDisplay::caminfoCallback, this, _1));
 
   vis_bit_ = context_->visibilityBits()->allocBit();
   render_panel_->getViewport()->setVisibilityMask(vis_bit_);
@@ -253,7 +255,7 @@ void CameraDisplay::subscribe()
   {
     const std::string caminfo_topic =
         image_transport::getCameraInfoTopic(topic_property_->getTopicStd());
-    caminfo_sub_ = update_nh_.subscribe(caminfo_topic, 1, &CameraDisplay::processCamInfoMessage, this);
+    caminfo_sub_.subscribe(update_nh_, caminfo_topic, 1);
   }
   catch (ros::Exception& e)
   {
@@ -264,7 +266,7 @@ void CameraDisplay::subscribe()
 void CameraDisplay::unsubscribe()
 {
   ImageDisplayBase::unsubscribe();
-  caminfo_sub_.shutdown();
+  caminfo_sub_.unsubscribe();
 
   boost::mutex::scoped_lock lock(caminfo_mutex_);
   current_caminfo_.reset();
@@ -299,6 +301,15 @@ void CameraDisplay::forceRender()
 void CameraDisplay::updateQueueSize()
 {
   ImageDisplayBase::updateQueueSize();
+}
+
+// TODO: In Noetic remove and integrate into reset()
+void CameraDisplay::clear()
+{
+  texture_.clear();
+  force_render_ = true;
+  context_->queueRender();
+  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 void CameraDisplay::update(float /*wall_dt*/, float /*ros_dt*/)
@@ -506,7 +517,7 @@ void CameraDisplay::processMessage(const sensor_msgs::Image::ConstPtr& msg)
   texture_.addMessage(msg);
 }
 
-void CameraDisplay::processCamInfoMessage(const sensor_msgs::CameraInfo::ConstPtr& msg)
+void CameraDisplay::caminfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg)
 {
   boost::mutex::scoped_lock lock(caminfo_mutex_);
   current_caminfo_ = msg;
@@ -520,6 +531,7 @@ void CameraDisplay::fixedFrameChanged()
 
 void CameraDisplay::reset()
 {
+  clear();
   ImageDisplayBase::reset();
   // We explicitly do not reset current_caminfo_ here: If we are subscribed to a latched caminfo topic,
   // we will not receive another message after reset, i.e. the caminfo could not be recovered.
@@ -535,10 +547,6 @@ void CameraDisplay::reset()
                 "No CameraInfo received on [" + QString::fromStdString(caminfo_topic) +
                     "].\nTopic may not exist.");
   }
-  texture_.clear();
-  force_render_ = true;
-  context_->queueRender();
-  render_panel_->getCamera()->setPosition(Ogre::Vector3(999999, 999999, 999999));
 }
 
 } // namespace rviz
