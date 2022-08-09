@@ -156,8 +156,9 @@ protected:
 
   typedef std::vector<rviz::PointCloud::Point> V_Point;
 
-  virtual void processMessage(sensor_msgs::Image::ConstPtr msg);
-  virtual void processMessage(sensor_msgs::ImageConstPtr depth_msg, sensor_msgs::ImageConstPtr rgb_msg);
+  virtual void processMessage(const sensor_msgs::Image::ConstPtr& msg);
+  virtual void processMessage(const sensor_msgs::ImageConstPtr& depth_msg,
+                              const sensor_msgs::ImageConstPtr& rgb_msg);
   void caminfoCallback(sensor_msgs::CameraInfo::ConstPtr msg);
 
   // overrides from Display
@@ -179,8 +180,6 @@ protected:
   void setStatusList();
 
   uint32_t messages_received_;
-
-  boost::mutex mutex_;
 
   // ROS image subscription & synchronization
   boost::scoped_ptr<image_transport::ImageTransport> depthmap_it_;

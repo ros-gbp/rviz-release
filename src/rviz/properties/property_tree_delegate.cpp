@@ -29,10 +29,10 @@
 
 #include <QAbstractItemView>
 
-#include "rviz/properties/property.h"
-#include "rviz/properties/line_edit_with_button.h"
+#include <rviz/properties/property.h>
+#include <rviz/properties/line_edit_with_button.h>
 
-#include "rviz/properties/property_tree_delegate.h"
+#include <rviz/properties/property_tree_delegate.h>
 
 namespace rviz
 {
@@ -61,9 +61,10 @@ QWidget* PropertyTreeDelegate::createEditor(QWidget* parent,
     return nullptr;
   }
 
-  if (QWidget* editor = prop->createEditor(parent, option))
+  if (index.column() != 0)
   {
-    return editor;
+    if (QWidget* editor = prop->createEditor(parent, option))
+      return editor;
   }
   return QStyledItemDelegate::createEditor(parent, option, index);
 }

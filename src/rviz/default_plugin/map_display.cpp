@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
@@ -39,19 +39,19 @@
 
 #include <ros/ros.h>
 
-#include "rviz/frame_manager.h"
-#include "rviz/ogre_helpers/custom_parameter_indices.h"
-#include "rviz/ogre_helpers/grid.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/properties/property.h"
-#include "rviz/properties/quaternion_property.h"
-#include "rviz/properties/ros_topic_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/validate_floats.h"
-#include "rviz/validate_quaternions.h"
-#include "rviz/display_context.h"
+#include <rviz/frame_manager.h>
+#include <rviz/ogre_helpers/custom_parameter_indices.h>
+#include <rviz/ogre_helpers/grid.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/quaternion_property.h>
+#include <rviz/properties/ros_topic_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/validate_floats.h>
+#include <rviz/validate_quaternions.h>
+#include <rviz/display_context.h>
 
 #include "map_display.h"
 
@@ -272,7 +272,7 @@ MapDisplay::MapDisplay() : Display(), loaded_(false), resolution_(0.0f), width_(
 
 MapDisplay::~MapDisplay()
 {
-  unsubscribe();
+  MapDisplay::unsubscribe();
   clear();
   for (unsigned i = 0; i < swatches.size(); i++)
   {
@@ -708,7 +708,7 @@ void MapDisplay::showMap()
   frame_ = current_map_.header.frame_id;
   if (frame_.empty())
   {
-    frame_ = "/map";
+    frame_ = "map";
   }
 
   bool map_status_set = false;

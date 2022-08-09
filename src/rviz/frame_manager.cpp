@@ -31,33 +31,23 @@
 #include "display.h"
 #include "properties/property.h"
 
-#include <tf/transform_listener.h>
 #include <ros/ros.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <std_msgs/Float32.h>
 
 namespace rviz
 {
-// TODO(wjwwood): remove this when deprecated interface is removed
-#ifndef _WIN32
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-FrameManager::FrameManager() : FrameManager(boost::shared_ptr<tf::TransformListener>())
+FrameManager::FrameManager(std::shared_ptr<tf2_ros::Buffer> tf_buffer,
+                           std::shared_ptr<tf2_ros::TransformListener> tf_listener)
 {
-}
-
-#ifndef _WIN32
-#pragma GCC diagnostic pop
-#endif
-
-FrameManager::FrameManager(boost::shared_ptr<tf::TransformListener> tf)
-{
-  if (!tf)
-    tf_.reset(new tf::TransformListener(ros::NodeHandle(), ros::Duration(10 * 60), true));
-  else
-    tf_ = tf;
+  assert(!tf_listener || tf_buffer); // tf_listener implies tf_buffer to defined too
+  tf_buffer_ =
+      tf_buffer ? std::move(tf_buffer) : std::make_shared<tf2_ros::Buffer>(ros::Duration(10 * 60));
+  tf_listener_ = tf_listener ?
+                     std::move(tf_listener) :
+                     std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, ros::NodeHandle(), true);
 
   setSyncMode(SyncOff);
   setPause(false);
@@ -69,32 +59,30 @@ FrameManager::~FrameManager()
 
 void FrameManager::update()
 {
-  boost::mutex::scoped_lock lock(cache_mutex_);
-  if (!pause_)
+  if (pause_)
+    return;
+  else
   {
+    boost::mutex::scoped_lock lock(cache_mutex_);
     cache_.clear();
-  }
-
-  if (!pause_)
-  {
     switch (sync_mode_)
     {
-    case SyncOff:
+    case SyncOff: // always use latest time
       sync_time_ = ros::Time::now();
       break;
-    case SyncExact:
+    case SyncExact: // sync to external source
+      // sync_time_ set via syncTime()
       break;
     case SyncApprox:
-      // adjust current time offset to sync source
-      current_delta_ = 0.7 * current_delta_ + 0.3 * sync_delta_;
-      try
-      {
-        sync_time_ = ros::Time::now() - ros::Duration(current_delta_);
-      }
-      catch (...)
-      {
-        sync_time_ = ros::Time::now();
-      }
+      // sync_delta is a sliding average of current_delta_, i.e.
+      // approximating the average delay of incoming sync messages w.r.t. current time
+      sync_delta_ = 0.7 * sync_delta_ + 0.3 * current_delta_;
+      // date back sync_time_ to ensure finding TFs that are as old as now() - sync_delta_
+      sync_time_ = ros::Time::now() - ros::Duration(sync_delta_);
+      break;
+    case SyncFrame: // sync to current time
+      // date back sync_time_ to ensure finding TFs that are as old as now() - sync_delta_
+      sync_time_ = ros::Time::now() - ros::Duration(sync_delta_);
       break;
     }
   }
@@ -128,8 +116,8 @@ void FrameManager::setSyncMode(SyncMode mode)
 {
   sync_mode_ = mode;
   sync_time_ = ros::Time(0);
-  current_delta_ = 0;
   sync_delta_ = 0;
+  current_delta_ = 0;
 }
 
 void FrameManager::syncTime(ros::Time time)
@@ -137,6 +125,7 @@ void FrameManager::syncTime(ros::Time time)
   switch (sync_mode_)
   {
   case SyncOff:
+  case SyncFrame:
     break;
   case SyncExact:
     sync_time_ = time;
@@ -144,13 +133,13 @@ void FrameManager::syncTime(ros::Time time)
   case SyncApprox:
     if (time == ros::Time(0))
     {
-      sync_delta_ = 0;
+      current_delta_ = 0;
       return;
     }
-    // avoid exception due to negative time
-    if (ros::Time::now() >= time)
+    if (ros::Time::now() >= time) // avoid exception due to negative time
     {
-      sync_delta_ = (ros::Time::now() - time).toSec();
+      // estimate delay of sync message w.r.t. current time
+      current_delta_ = (ros::Time::now() - time).toSec();
     }
     else
     {
@@ -160,44 +149,22 @@ void FrameManager::syncTime(ros::Time time)
   }
 }
 
-bool FrameManager::adjustTime(const std::string& frame, ros::Time& time)
+void FrameManager::adjustTime(ros::Time& time)
 {
   // we only need to act if we get a zero timestamp, which means "latest"
   if (time != ros::Time())
-  {
-    return true;
-  }
+    return;
 
   switch (sync_mode_)
   {
   case SyncOff:
     break;
+  case SyncFrame:
   case SyncExact:
+  case SyncApprox:
     time = sync_time_;
     break;
-  case SyncApprox:
-  {
-    // if we don't have tf info for the given timestamp, use the latest available
-    ros::Time latest_time;
-    std::string error_string;
-    int error_code;
-    error_code = tf_->getLatestCommonTime(fixed_frame_, frame, latest_time, &error_string);
-
-    if (error_code != 0)
-    {
-      ROS_ERROR("Error getting latest time from frame '%s' to frame '%s': %s (Error code: %d)",
-                frame.c_str(), fixed_frame_.c_str(), error_string.c_str(), error_code);
-      return false;
-    }
-
-    if (latest_time > sync_time_)
-    {
-      time = sync_time_;
-    }
   }
-  break;
-  }
-  return true;
 }
 
 
@@ -206,10 +173,7 @@ bool FrameManager::getTransform(const std::string& frame,
                                 Ogre::Vector3& position,
                                 Ogre::Quaternion& orientation)
 {
-  if (!adjustTime(frame, time))
-  {
-    return false;
-  }
+  adjustTime(time);
 
   boost::mutex::scoped_lock lock(cache_mutex_);
 
@@ -248,53 +212,51 @@ bool FrameManager::transform(const std::string& frame,
                              Ogre::Vector3& position,
                              Ogre::Quaternion& orientation)
 {
-  if (!adjustTime(frame, time))
-  {
-    return false;
-  }
+  adjustTime(time);
 
   position = Ogre::Vector3::ZERO;
   orientation = Ogre::Quaternion::IDENTITY;
 
-  // put all pose data into a tf stamped pose
-  tf::Quaternion bt_orientation(pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z,
-                                pose_msg.orientation.w);
-  tf::Vector3 bt_position(pose_msg.position.x, pose_msg.position.y, pose_msg.position.z);
+  geometry_msgs::Pose pose = pose_msg;
+  if (pose.orientation.x == 0.0 && pose.orientation.y == 0.0 && pose.orientation.z == 0.0 &&
+      pose.orientation.w == 0.0)
+    pose.orientation.w = 1.0;
 
-  if (bt_orientation.x() == 0.0 && bt_orientation.y() == 0.0 && bt_orientation.z() == 0.0 &&
-      bt_orientation.w() == 0.0)
-  {
-    bt_orientation.setW(1.0);
-  }
-
-  tf::Stamped<tf::Pose> pose_in(tf::Transform(bt_orientation, bt_position), time, frame);
-  tf::Stamped<tf::Pose> pose_out;
-
-  // convert pose into new frame
+  // convert pose into fixed_frame_
   try
   {
-    tf_->transformPose(fixed_frame_, pose_in, pose_out);
+    tf2::doTransform(pose, pose, tf_buffer_->lookupTransform(fixed_frame_, frame, time));
   }
-  catch (std::runtime_error& e)
+  catch (const tf2::ExtrapolationException& e)
+  {
+    if (sync_mode_ == SyncApprox)
+      return false;
+    // We don't have tf info for sync_time_. Reset sync_time_ to latest available time of frame
+    auto tf = tf_buffer_->lookupTransform(frame, frame, ros::Time());
+    if (sync_time_ > tf.header.stamp && tf.header.stamp != ros::Time())
+    {
+      sync_delta_ += (sync_time_ - tf.header.stamp).toSec(); // increase sync delta by observed amount
+      sync_time_ = tf.header.stamp;
+    }
+    return false;
+  }
+  catch (const std::runtime_error& e)
   {
     ROS_DEBUG("Error transforming from frame '%s' to frame '%s': %s", frame.c_str(),
               fixed_frame_.c_str(), e.what());
     return false;
   }
 
-  bt_position = pose_out.getOrigin();
-  position = Ogre::Vector3(bt_position.x(), bt_position.y(), bt_position.z());
-
-  bt_orientation = pose_out.getRotation();
+  position = Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z);
   orientation =
-      Ogre::Quaternion(bt_orientation.w(), bt_orientation.x(), bt_orientation.y(), bt_orientation.z());
+      Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
 
   return true;
 }
 
 bool FrameManager::frameHasProblems(const std::string& frame, ros::Time /*time*/, std::string& error)
 {
-  if (!tf_->frameExists(frame))
+  if (!tf_buffer_->_frameExists(frame))
   {
     error = "Frame [" + frame + "] does not exist";
     if (frame == fixed_frame_)
@@ -309,13 +271,10 @@ bool FrameManager::frameHasProblems(const std::string& frame, ros::Time /*time*/
 
 bool FrameManager::transformHasProblems(const std::string& frame, ros::Time time, std::string& error)
 {
-  if (!adjustTime(frame, time))
-  {
-    return false;
-  }
+  adjustTime(time);
 
   std::string tf_error;
-  bool transform_succeeded = tf_->canTransform(fixed_frame_, frame, time, &tf_error);
+  bool transform_succeeded = tf_buffer_->canTransform(fixed_frame_, frame, time, &tf_error);
   if (transform_succeeded)
   {
     return false;
@@ -347,29 +306,6 @@ std::string getTransformStatusName(const std::string& caller_id)
   std::stringstream ss;
   ss << "Transform [sender=" << caller_id << "]";
   return ss.str();
-}
-
-std::string FrameManager::discoverFailureReason(const std::string& frame_id,
-                                                const ros::Time& stamp,
-                                                const std::string& /*caller_id*/,
-                                                tf::FilterFailureReason reason)
-{
-  if (reason == tf::filter_failure_reasons::OutTheBack)
-  {
-    std::stringstream ss;
-    ss << "Message removed because it is too old (frame=[" << frame_id << "], stamp=[" << stamp << "])";
-    return ss.str();
-  }
-  else
-  {
-    std::string error;
-    if (transformHasProblems(frame_id, stamp, error))
-    {
-      return error;
-    }
-  }
-
-  return "Unknown reason for transform failure";
 }
 
 std::string FrameManager::discoverFailureReason(const std::string& frame_id,

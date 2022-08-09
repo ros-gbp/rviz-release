@@ -48,15 +48,15 @@
 #include <ros/console.h>
 #include <ros/ros.h>
 
-#include "rviz/selection/selection_manager.h"
-#include "rviz/env_config.h"
-#include "rviz/ogre_helpers/ogre_logging.h"
-#include "rviz/visualization_frame.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/wait_for_master_dialog.h"
-#include "rviz/ogre_helpers/render_system.h"
+#include <rviz/selection/selection_manager.h>
+#include <rviz/env_config.h>
+#include <rviz/ogre_helpers/ogre_logging.h>
+#include <rviz/visualization_frame.h>
+#include <rviz/visualization_manager.h>
+#include <rviz/wait_for_master_dialog.h>
+#include <rviz/ogre_helpers/render_system.h>
 
-#include "rviz/visualizer_app.h"
+#include <rviz/visualizer_app.h>
 
 #define CATCH_EXCEPTIONS 0
 
@@ -227,6 +227,8 @@ bool VisualizerApp::init(int argc, char** argv)
 
     load_config_service_ =
         private_nh.advertiseService("load_config", &VisualizerApp::loadConfigCallback, this);
+    load_config_discarding_service_ = private_nh.advertiseService(
+        "load_config_discarding_changes", &VisualizerApp::loadConfigDiscardingCallback, this);
     save_config_service_ =
         private_nh.advertiseService("save_config", &VisualizerApp::saveConfigCallback, this);
 
@@ -272,6 +274,20 @@ bool VisualizerApp::loadConfigCallback(rviz::SendFilePathRequest& req, rviz::Sen
   fs::path path = req.path.data;
   if (fs::is_regular_file(path))
     res.success = frame_->loadDisplayConfigHelper(path.string());
+  else
+    res.success = false;
+  return true;
+}
+
+bool VisualizerApp::loadConfigDiscardingCallback(rviz::SendFilePathRequest& req,
+                                                 rviz::SendFilePathResponse& res)
+{
+  fs::path path = req.path.data;
+  if (fs::is_regular_file(path))
+  {
+    bool discard_changes = true;
+    res.success = frame_->loadDisplayConfigHelper(path.string(), discard_changes);
+  }
   else
     res.success = false;
   return true;

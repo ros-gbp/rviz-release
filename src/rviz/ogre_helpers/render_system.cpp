@@ -40,6 +40,10 @@
 #include <GL/glx.h>
 #endif
 
+#if defined(Q_OS_MAC)
+#include <OpenGL/gl.h>
+#endif
+
 // X.h #defines CursorShape to be "0".  Qt uses CursorShape in normal
 // C++ way.  This wasn't an issue until ogre_logging.h (below)
 // introduced a #include of <QString>.
@@ -50,16 +54,15 @@
 #include <ros/package.h> // This dependency should be moved out of here, it is just used for a search path.
 #include <ros/console.h>
 
+#include <rviz/ogre_helpers/version_check.h>
 #include <OgreRenderWindow.h>
 #include <OgreSceneManager.h>
-#if ((OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9) || OGRE_VERSION_MAJOR >= 2)
 #include <Overlay/OgreOverlaySystem.h>
-#endif
 
-#include "rviz/env_config.h"
-#include "rviz/ogre_helpers/ogre_logging.h"
+#include <rviz/env_config.h>
+#include <rviz/ogre_helpers/ogre_logging.h>
 
-#include "rviz/ogre_helpers/render_system.h"
+#include <rviz/ogre_helpers/render_system.h>
 
 #include <QMessageBox>
 
@@ -105,9 +108,7 @@ RenderSystem::RenderSystem() : ogre_overlay_system_(nullptr), stereo_supported_(
 
   setupDummyWindowId();
   ogre_root_ = new Ogre::Root(rviz_path + "/ogre_media/plugins.cfg");
-#if ((OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9) || OGRE_VERSION_MAJOR >= 2)
   ogre_overlay_system_ = new Ogre::OverlaySystem();
-#endif
   loadOgrePlugins();
   setupRenderSystem();
   ogre_root_->initialise(false);
@@ -119,10 +120,8 @@ RenderSystem::RenderSystem() : ogre_overlay_system_(nullptr), stereo_supported_(
 
 void RenderSystem::prepareOverlays(Ogre::SceneManager* scene_manager)
 {
-#if ((OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9) || OGRE_VERSION_MAJOR >= 2)
   if (ogre_overlay_system_)
     scene_manager->addRenderQueueListener(ogre_overlay_system_);
-#endif
 }
 
 void RenderSystem::setupDummyWindowId()
@@ -167,6 +166,9 @@ void RenderSystem::loadOgrePlugins()
   ogre_root_->loadPlugin(plugin_prefix + "RenderSystem_GL");
   ogre_root_->loadPlugin(plugin_prefix + "Plugin_OctreeSceneManager");
   ogre_root_->loadPlugin(plugin_prefix + "Plugin_ParticleFX");
+#if OGRE_VERSION >= OGRE_VERSION_CHECK(1, 11, 0)
+  ogre_root_->loadPlugin(plugin_prefix + "Codec_FreeImage");
+#endif
 }
 
 void RenderSystem::detectGlVersion()
@@ -185,9 +187,13 @@ void RenderSystem::detectGlVersion()
     int minor = caps->getDriverVersion().minor;
     gl_version_ = major * 100 + minor * 10;
 
+#ifdef __linux__
     std::string gl_version_string = (const char*)glGetString(GL_VERSION);
     // The "Mesa 2" string is intended to match "Mesa 20.", "Mesa 21." and so on
     mesa_workaround = gl_version_string.find("Mesa 2") != std::string::npos && gl_version_ >= 320;
+#else
+    mesa_workaround = false;
+#endif
   }
 
   switch (gl_version_)
@@ -233,14 +239,8 @@ void RenderSystem::detectGlVersion()
 void RenderSystem::setupRenderSystem()
 {
   Ogre::RenderSystem* renderSys;
-  const Ogre::RenderSystemList* rsList;
-
-// Get the list of available renderers.
-#if OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR == 6
-  rsList = ogre_root_->getAvailableRenderers();
-#else
-  rsList = &(ogre_root_->getAvailableRenderers());
-#endif
+  // Get the list of available renderers.
+  const Ogre::RenderSystemList* rsList = &(ogre_root_->getAvailableRenderers());
 
   // Look for the OpenGL one, which we require.
   renderSys = nullptr;
@@ -280,36 +280,49 @@ void RenderSystem::setupRenderSystem()
 void RenderSystem::setupResources()
 {
   std::string rviz_path = ros::package::getPath(ROS_PACKAGE_NAME);
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(rviz_path + "/ogre_media", "FileSystem",
-                                                                 ROS_PACKAGE_NAME);
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(rviz_path + "/ogre_media/textures",
-                                                                 "FileSystem", ROS_PACKAGE_NAME);
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(rviz_path + "/ogre_media/fonts",
-                                                                 "FileSystem", ROS_PACKAGE_NAME);
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(rviz_path + "/ogre_media/models",
-                                                                 "FileSystem", ROS_PACKAGE_NAME);
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(rviz_path + "/ogre_media/materials",
-                                                                 "FileSystem", ROS_PACKAGE_NAME);
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-      rviz_path + "/ogre_media/materials/scripts", "FileSystem", ROS_PACKAGE_NAME);
+      rviz_path + "/ogre_media", "FileSystem", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-      rviz_path + "/ogre_media/materials/glsl120", "FileSystem", ROS_PACKAGE_NAME);
+      rviz_path + "/ogre_media/textures", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-      rviz_path + "/ogre_media/materials/glsl120/nogp", "FileSystem", ROS_PACKAGE_NAME);
+      rviz_path + "/ogre_media/fonts", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, true);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/models", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/materials", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/materials/scripts", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/materials/glsl120", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/materials/glsl120/nogp", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+      rviz_path + "/ogre_media/materials/glsl120/include", "FileSystem",
+      Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   // Add resources that depend on a specific glsl version.
   // Unfortunately, Ogre doesn't have a notion of glsl versions so we can't go
   // the 'official' way of defining multiple schemes per material and let Ogre decide which one to use.
   if (getGlslVersion() >= 150)
   {
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        rviz_path + "/ogre_media/materials/glsl150", "FileSystem", ROS_PACKAGE_NAME);
+        rviz_path + "/ogre_media/materials/glsl150", "FileSystem",
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        rviz_path + "/ogre_media/materials/scripts150", "FileSystem", ROS_PACKAGE_NAME);
+        rviz_path + "/ogre_media/materials/scripts150", "FileSystem",
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   }
   else if (getGlslVersion() >= 120)
   {
     Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-        rviz_path + "/ogre_media/materials/scripts120", "FileSystem", ROS_PACKAGE_NAME);
+        rviz_path + "/ogre_media/materials/scripts120", "FileSystem",
+        Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
   }
   else
   {
@@ -336,15 +349,15 @@ void RenderSystem::setupResources()
       {
         path = iter->substr(pos1, pos2 - pos1);
         ROS_DEBUG("adding resource location: '%s'\n", path.c_str());
-        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(path, "FileSystem",
-                                                                       ROS_PACKAGE_NAME);
+        Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+            path, "FileSystem", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
         pos1 = pos2 + 1;
         pos2 = iter->find(delim, pos2 + 1);
       }
       path = iter->substr(pos1, iter->size() - pos1);
       ROS_DEBUG("adding resource location: '%s'\n", path.c_str());
-      Ogre::ResourceGroupManager::getSingleton().addResourceLocation(path, "FileSystem",
-                                                                     ROS_PACKAGE_NAME);
+      Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+          path, "FileSystem", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
     }
   }
 }

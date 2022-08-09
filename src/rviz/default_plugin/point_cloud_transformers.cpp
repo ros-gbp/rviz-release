@@ -29,14 +29,14 @@
 
 #include <OgreColourValue.h>
 #include <OgreMatrix4.h>
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/color_property.h"
-#include "rviz/properties/editable_enum_property.h"
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/validate_floats.h>
 
 #include "point_cloud_transformers.h"
 

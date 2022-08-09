@@ -32,7 +32,7 @@
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreQuaternion.h>
 
 #include <sstream>
@@ -60,7 +60,7 @@ Arrow::Arrow(Ogre::SceneManager* scene_manager,
 
   set(shaft_length, shaft_diameter, head_length, head_diameter);
 
-  setOrientation(Ogre::Quaternion::IDENTITY);
+  Arrow::setOrientation(Ogre::Quaternion::IDENTITY);
 }
 
 Arrow::~Arrow()
@@ -68,7 +68,7 @@ Arrow::~Arrow()
   delete shaft_;
   delete head_;
 
-  scene_manager_->destroySceneNode(scene_node_->getName());
+  scene_manager_->destroySceneNode(scene_node_);
 }
 
 void Arrow::set(float shaft_length, float shaft_diameter, float head_length, float head_diameter)
