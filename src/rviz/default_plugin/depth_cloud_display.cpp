@@ -29,19 +29,19 @@
 #include <QObject>
 
 #include "depth_cloud_display.h"
-#include "rviz/visualization_manager.h"
-#include "rviz/properties/property.h"
-#include "rviz/validate_floats.h"
+#include <rviz/visualization_manager.h>
+#include <rviz/properties/property.h>
+#include <rviz/validate_floats.h>
 
-#include "rviz/properties/enum_property.h"
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/bool_property.h"
-#include "rviz/properties/int_property.h"
-#include "rviz/frame_manager.h"
+#include <rviz/properties/enum_property.h>
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/bool_property.h>
+#include <rviz/properties/int_property.h>
+#include <rviz/frame_manager.h>
 
 #include <tf2_ros/buffer.h>
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/algorithm/string/erase.hpp>
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
@@ -302,7 +302,8 @@ void DepthCloudDisplay::subscribe()
       // subscribe to CameraInfo  topic
       std::string info_topic = image_transport::getCameraInfoTopic(depthmap_topic);
       cam_info_sub_->subscribe(threaded_nh_, info_topic, queue_size_);
-      cam_info_sub_->registerCallback(boost::bind(&DepthCloudDisplay::caminfoCallback, this, _1));
+      cam_info_sub_->registerCallback(
+          boost::bind(&DepthCloudDisplay::caminfoCallback, this, boost::placeholders::_1));
 
       if (!color_topic.empty() && !color_transport.empty())
       {
@@ -314,14 +315,15 @@ void DepthCloudDisplay::subscribe()
         sync_depth_color_->connectInput(*depthmap_tf_filter_, *rgb_sub_);
         sync_depth_color_->setInterMessageLowerBound(0, ros::Duration(0.5));
         sync_depth_color_->setInterMessageLowerBound(1, ros::Duration(0.5));
-        sync_depth_color_->registerCallback(
-            boost::bind(&DepthCloudDisplay::processMessage, this, _1, _2));
+        sync_depth_color_->registerCallback(boost::bind(
+            &DepthCloudDisplay::processMessage, this, boost::placeholders::_1, boost::placeholders::_2));
 
         pointcloud_common_->color_transformer_property_->setValue("RGB8");
       }
       else
       {
-        depthmap_tf_filter_->registerCallback(boost::bind(&DepthCloudDisplay::processMessage, this, _1));
+        depthmap_tf_filter_->registerCallback(
+            boost::bind(&DepthCloudDisplay::processMessage, this, boost::placeholders::_1));
       }
     }
   }
@@ -338,7 +340,7 @@ void DepthCloudDisplay::subscribe()
 void DepthCloudDisplay::caminfoCallback(sensor_msgs::CameraInfo::ConstPtr msg)
 {
   boost::mutex::scoped_lock lock(cam_info_mutex_);
-  cam_info_ = msg;
+  cam_info_ = std::move(msg);
 }
 
 void DepthCloudDisplay::unsubscribe()
@@ -363,16 +365,12 @@ void DepthCloudDisplay::unsubscribe()
 
 void DepthCloudDisplay::clear()
 {
-  boost::mutex::scoped_lock lock(mutex_);
-
   pointcloud_common_->reset();
 }
 
 
 void DepthCloudDisplay::update(float wall_dt, float ros_dt)
 {
-  boost::mutex::scoped_lock lock(mutex_);
-
   pointcloud_common_->update(wall_dt, ros_dt);
 }
 
@@ -385,13 +383,13 @@ void DepthCloudDisplay::reset()
   setStatus(StatusProperty::Ok, "Message", "Ok");
 }
 
-void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg)
+void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg)
 {
   processMessage(depth_msg, sensor_msgs::ImageConstPtr());
 }
 
-void DepthCloudDisplay::processMessage(sensor_msgs::ImageConstPtr depth_msg,
-                                       sensor_msgs::ImageConstPtr rgb_msg)
+void DepthCloudDisplay::processMessage(const sensor_msgs::ImageConstPtr& depth_msg,
+                                       const sensor_msgs::ImageConstPtr& rgb_msg)
 {
   if (context_->getFrameManager()->getPause())
   {
@@ -598,5 +596,7 @@ void DepthCloudDisplay::fixedFrameChanged()
 } // namespace rviz
 
 #include <pluginlib/class_list_macros.hpp>
+#include <utility>
+
 
 PLUGINLIB_EXPORT_CLASS(rviz::DepthCloudDisplay, rviz::Display)

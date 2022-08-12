@@ -29,11 +29,11 @@
 
 #include "display_visibility_property.h"
 
-#include "rviz/properties/bool_property.h"
-#include "rviz/display_context.h"
-#include "rviz/bit_allocator.h"
-#include "rviz/display.h"
-#include "rviz/display_group.h"
+#include <rviz/properties/bool_property.h>
+#include <rviz/display_context.h>
+#include <rviz/bit_allocator.h>
+#include <rviz/display.h>
+#include <rviz/display_group.h>
 
 namespace rviz
 {
@@ -50,7 +50,7 @@ DisplayVisibilityProperty::DisplayVisibilityProperty(uint32_t vis_bit,
   , display_(display)
 {
   custom_name_ = (name.size() != 0);
-  update();
+  DisplayVisibilityProperty::update();
 }
 
 DisplayVisibilityProperty::~DisplayVisibilityProperty()

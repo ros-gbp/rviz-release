@@ -28,18 +28,18 @@
  */
 
 #include <OgreRay.h>
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreViewport.h>
 #include <OgreCamera.h>
 
-#include "rviz/viewport_mouse_event.h"
-#include "rviz/load_resource.h"
-#include "rviz/render_panel.h"
-#include "rviz/display_context.h"
-#include "rviz/selection/selection_manager.h"
-#include "rviz/view_controller.h"
+#include <rviz/viewport_mouse_event.h>
+#include <rviz/load_resource.h>
+#include <rviz/render_panel.h>
+#include <rviz/display_context.h>
+#include <rviz/selection/selection_manager.h>
+#include <rviz/view_controller.h>
 
-#include "rviz/default_plugin/tools/focus_tool.h"
+#include <rviz/default_plugin/tools/focus_tool.h>
 
 #include <sstream>
 

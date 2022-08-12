@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2021, Tobias Fischer, Queensland University of Technology
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Willow Garage, Inc. nor the names of its
+ *     * Neither the name of the Queensland Uni of Technology nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
@@ -27,44 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OGRE_TOOLS_STL_LOADER_H
-#define OGRE_TOOLS_STL_LOADER_H
+#ifndef WINDOWS_COMPAT_H
+#define WINDOWS_COMPAT_H
 
-#include <OgreVector3.h>
-#include <OgreMesh.h>
+#ifdef _WIN32
 
-#include <vector>
-#include <stdint.h>
+#ifdef ERROR
+#undef ERROR
+#endif
 
-namespace ogre_tools
-{
-// TODO: remove in noetic
-// Please use assimp or rviz::loadMeshFromResource directly
-class [[deprecated]] STLLoader
-{
-public:
-  STLLoader();
-  ~STLLoader();
+#ifdef DELETE
+#undef DELETE
+#endif
 
-  bool load(const std::string& path);
-  bool load(uint8_t * buffer, const size_t num_bytes, const std::string& origin);
+#endif // _WIN32
 
-  Ogre::MeshPtr toMesh(const std::string& name);
-
-  struct Triangle
-  {
-    Ogre::Vector3 vertices_[3];
-    Ogre::Vector3 normal_;
-  };
-
-  typedef std::vector<Triangle> V_Triangle;
-  V_Triangle triangles_;
-
-protected:
-  //! Load a binary STL file
-  bool load_binary(uint8_t * buffer);
-};
-
-} // namespace ogre_tools
-
-#endif // OGRE_TOOLS_STL_LOADER_H
+#endif // WINDOWS_COMPAT_H
