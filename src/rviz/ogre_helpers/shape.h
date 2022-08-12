@@ -33,7 +33,7 @@
 #include "object.h"
 
 #include <OgreMaterial.h>
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreVector3.h>
 #include <OgreSharedPtr.h>
 
 namespace Ogre

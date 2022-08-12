@@ -33,13 +33,13 @@
 
 #include <urdf/model.h>
 
-#include <rviz/display_context.h>
-#include <rviz/robot/robot.h>
-#include <rviz/robot/robot_link.h>
-#include <rviz/robot/tf_link_updater.h>
-#include <rviz/properties/float_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/string_property.h>
+#include "rviz/display_context.h"
+#include "rviz/robot/robot.h"
+#include "rviz/robot/robot_link.h"
+#include "rviz/robot/tf_link_updater.h"
+#include "rviz/properties/float_property.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/string_property.h"
 
 #include "robot_model_display.h"
 
@@ -205,8 +205,7 @@ void RobotModelDisplay::load()
               QString("Errors loading geometries:").append(ss.str().c_str()));
 
   robot_->update(TFLinkUpdater(context_->getFrameManager(),
-                               boost::bind(linkUpdaterStatusFunction, boost::placeholders::_1,
-                                           boost::placeholders::_2, boost::placeholders::_3, this),
+                               boost::bind(linkUpdaterStatusFunction, _1, _2, _3, this),
                                tf_prefix_property_->getStdString()));
 }
 
@@ -231,8 +230,7 @@ void RobotModelDisplay::update(float wall_dt, float /*ros_dt*/)
   if (has_new_transforms_ || update)
   {
     robot_->update(TFLinkUpdater(context_->getFrameManager(),
-                                 boost::bind(linkUpdaterStatusFunction, boost::placeholders::_1,
-                                             boost::placeholders::_2, boost::placeholders::_3, this),
+                                 boost::bind(linkUpdaterStatusFunction, _1, _2, _3, this),
                                  tf_prefix_property_->getStdString()));
     context_->queueRender();
 

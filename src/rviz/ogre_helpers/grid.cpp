@@ -32,7 +32,7 @@
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
@@ -86,9 +86,10 @@ Grid::~Grid()
 {
   delete billboard_line_;
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
   scene_manager_->destroyManualObject(manual_object_);
-  Ogre::MaterialManager::getSingleton().remove(material_->getName());
+
+  material_->unload();
 }
 
 void Grid::setCellCount(uint32_t count)

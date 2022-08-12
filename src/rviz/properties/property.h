@@ -35,8 +35,8 @@
 #include <QIcon>
 #include <QVariant>
 
-#include <rviz/config.h>
-#include <rviz/rviz_export.h>
+#include "rviz/config.h"
+#include "rviz/rviz_export.h"
 
 class QModelIndex;
 class QPainter;
@@ -130,7 +130,7 @@ public:
    * is not specified, parent is used instead.
    */
   Property(const QString& name = QString(),
-           const QVariant& default_value = QVariant(),
+           const QVariant default_value = QVariant(),
            const QString& description = QString(),
            Property* parent = nullptr,
            const char* changed_slot = nullptr,
@@ -374,15 +374,14 @@ public:
    * the given Config reference. */
   virtual void save(Config config) const;
 
-  /** @brief Returns true if the property has data worth saving. */
+  /** @brief Returns true if the property is not read-only AND has data worth saving. */
   bool shouldBeSaved() const
   {
-    return save_;
+    return !is_read_only_ && save_;
   }
 
-  /** @brief If @a save is false, neither the property nor its children will get saved.
-   * If true (the default), the property itself will only get saved if it is not read-only;
-   * children will get saved in any case (according to their save + read-only flags). */
+  /** @brief If @a save is true and getReadOnly() is false,
+   * shouldBeSaved will return true; otherwise false.  Default is true. */
   void setShouldBeSaved(bool save)
   {
     save_ = save;
@@ -438,7 +437,7 @@ public:
 
   /** @brief Return the read-only-ness of this property.
    * @sa setReadOnly() */
-  virtual bool getReadOnly() const
+  virtual bool getReadOnly()
   {
     return is_read_only_;
   }

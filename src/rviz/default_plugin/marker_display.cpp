@@ -29,21 +29,21 @@
 
 #include <sstream>
 
-#include <rviz/default_plugin/markers/marker_base.h>
-#include <rviz/default_plugin/marker_utils.h>
-#include <rviz/display_context.h>
-#include <rviz/frame_manager.h>
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/ogre_helpers/billboard_line.h>
-#include <rviz/ogre_helpers/shape.h>
-#include <rviz/properties/int_property.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/ros_topic_property.h>
-#include <rviz/selection/selection_manager.h>
-#include <rviz/windows_compat.h>
+#include <tf/transform_listener.h>
 
-#include <rviz/default_plugin/marker_display.h>
+#include "rviz/default_plugin/markers/marker_base.h"
+#include "rviz/default_plugin/marker_utils.h"
+#include "rviz/display_context.h"
+#include "rviz/frame_manager.h"
+#include "rviz/ogre_helpers/arrow.h"
+#include "rviz/ogre_helpers/billboard_line.h"
+#include "rviz/ogre_helpers/shape.h"
+#include "rviz/properties/int_property.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/ros_topic_property.h"
+#include "rviz/selection/selection_manager.h"
 
+#include "rviz/default_plugin/marker_display.h"
 
 namespace rviz
 {
@@ -71,16 +71,23 @@ MarkerDisplay::MarkerDisplay() : Display(), tf_filter_(nullptr)
 
 void MarkerDisplay::onInitialize()
 {
-  tf_filter_ =
-      new tf2_ros::MessageFilter<visualization_msgs::Marker>(*context_->getTF2BufferPtr(),
-                                                             fixed_frame_.toStdString(),
-                                                             queue_size_property_->getInt(), update_nh_);
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+  auto tf_client = context_->getTFClient();
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
+  tf_filter_ = new tf::MessageFilter<visualization_msgs::Marker>(
+      *tf_client, fixed_frame_.toStdString(), queue_size_property_->getInt(), update_nh_);
 
   tf_filter_->connectInput(sub_);
-  tf_filter_->registerCallback(
-      boost::bind(&MarkerDisplay::incomingMarker, this, boost::placeholders::_1));
-  tf_filter_->registerFailureCallback(
-      boost::bind(&MarkerDisplay::failedMarker, this, boost::placeholders::_1, boost::placeholders::_2));
+  tf_filter_->registerCallback(boost::bind(&MarkerDisplay::incomingMarker, this, _1));
+  tf_filter_->registerFailureCallback(boost::bind(&MarkerDisplay::failedMarker, this, _1, _2));
 
   namespace_config_enabled_state_.clear();
 }
@@ -89,7 +96,7 @@ MarkerDisplay::~MarkerDisplay()
 {
   if (initialized())
   {
-    MarkerDisplay::unsubscribe();
+    unsubscribe();
 
     clearMarkers();
 
@@ -177,13 +184,13 @@ void MarkerDisplay::unsubscribe()
   array_sub_.shutdown();
 }
 
-inline void MarkerDisplay::deleteMarker(const MarkerID& id)
+inline void MarkerDisplay::deleteMarker(MarkerID id)
 {
   deleteMarkerStatus(id);
   deleteMarkerInternal(id);
 }
 
-void MarkerDisplay::deleteMarkerInternal(const MarkerID& id)
+void MarkerDisplay::deleteMarkerInternal(MarkerID id)
 {
   M_IDToMarker::iterator it = markers_.find(id);
   if (it != markers_.end())
@@ -234,7 +241,7 @@ void MarkerDisplay::deleteAllMarkers()
   }
 }
 
-void MarkerDisplay::setMarkerStatus(const MarkerID& id, StatusLevel level, const std::string& text)
+void MarkerDisplay::setMarkerStatus(MarkerID id, StatusLevel level, const std::string& text)
 {
   std::stringstream ss;
   ss << id.first << "/" << id.second;
@@ -242,7 +249,7 @@ void MarkerDisplay::setMarkerStatus(const MarkerID& id, StatusLevel level, const
   setStatusStd(level, marker_name, text);
 }
 
-void MarkerDisplay::deleteMarkerStatus(const MarkerID& id)
+void MarkerDisplay::deleteMarkerStatus(MarkerID id)
 {
   std::stringstream ss;
   ss << id.first << "/" << id.second;
@@ -266,18 +273,27 @@ void MarkerDisplay::incomingMarker(const visualization_msgs::Marker::ConstPtr& m
 }
 
 void MarkerDisplay::failedMarker(const ros::MessageEvent<visualization_msgs::Marker>& marker_evt,
-                                 tf2_ros::FilterFailureReason reason)
+                                 tf::FilterFailureReason reason)
 {
-  const visualization_msgs::Marker::ConstPtr& marker = marker_evt.getConstMessage();
+  visualization_msgs::Marker::ConstPtr marker = marker_evt.getConstMessage();
   if (marker->action == visualization_msgs::Marker::DELETE ||
       marker->action == visualization_msgs::Marker::DELETEALL)
   {
     return this->processMessage(marker);
   }
-  const std::string& authority = marker_evt.getPublisherName();
+  std::string authority = marker_evt.getPublisherName();
+// TODO(wjwwood): remove this and use tf2 interface instead
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   std::string error = context_->getFrameManager()->discoverFailureReason(
       marker->header.frame_id, marker->header.stamp, authority, reason);
 
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif
   setMarkerStatus(MarkerID(marker->ns, marker->id), StatusProperty::Error, error);
 }
 
