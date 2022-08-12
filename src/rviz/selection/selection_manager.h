@@ -36,7 +36,7 @@
 
 #include "forwards.h"
 #include "selection_handler.h"
-#include <rviz/rviz_export.h>
+#include "rviz/rviz_export.h"
 
 #ifndef Q_MOC_RUN
 #include <boost/shared_ptr.hpp>
@@ -265,13 +265,13 @@ private:
 
   /** Internal render function to render to a texture and read the pixels back out. */
   bool render(Ogre::Viewport* viewport,
-              const Ogre::TexturePtr& tex,
+              Ogre::TexturePtr tex,
               int x1,
               int y1,
               int x2,
               int y2,
               Ogre::PixelBox& dst_box,
-              const std::string& material_scheme,
+              std::string material_scheme,
               unsigned texture_width,
               unsigned textured_height);
 

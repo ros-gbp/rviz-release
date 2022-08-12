@@ -32,7 +32,7 @@
 
 #include <cmath>
 
-#include <rviz/ogre_helpers/object.h>
+#include "rviz/ogre_helpers/object.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -40,7 +40,7 @@
 
 #include <Eigen/Dense>
 
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreVector3.h>
 #include <OgreColourValue.h>
 
 namespace Ogre

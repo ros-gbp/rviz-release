@@ -31,12 +31,12 @@
 #include <QHash>
 #include <QSet>
 
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_delegate.h>
-#include <rviz/properties/splitter_handle.h>
-#include <rviz/properties/status_list.h>
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_delegate.h"
+#include "rviz/properties/splitter_handle.h"
+#include "rviz/properties/status_list.h"
 
-#include <rviz/properties/property_tree_widget.h>
+#include "rviz/properties/property_tree_widget.h"
 
 namespace rviz
 {
@@ -71,7 +71,6 @@ PropertyTreeWidget::PropertyTreeWidget(QWidget* parent)
   setAllColumnsShowFocus(true);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
   setEditTriggers(QAbstractItemView::AllEditTriggers);
-  setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   QTimer* timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(update()));

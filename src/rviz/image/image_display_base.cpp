@@ -35,9 +35,9 @@
 
 #include <image_transport/subscriber_plugin.h>
 
-#include <rviz/validate_floats.h>
+#include "rviz/validate_floats.h"
 
-#include <rviz/image/image_display_base.h>
+#include "rviz/image/image_display_base.h"
 
 namespace rviz
 {
@@ -70,7 +70,7 @@ ImageDisplayBase::ImageDisplayBase() : Display(), sub_(), tf_filter_(), messages
 
 ImageDisplayBase::~ImageDisplayBase()
 {
-  ImageDisplayBase::unsubscribe();
+  unsubscribe();
 }
 
 void ImageDisplayBase::onInitialize()
@@ -134,6 +134,7 @@ void ImageDisplayBase::reset()
   if (tf_filter_)
   {
     tf_filter_->clear();
+    update_nh_.getCallbackQueue()->removeByID((uint64_t)tf_filter_.get());
   }
 
   messages_received_ = 0;
@@ -181,18 +182,15 @@ void ImageDisplayBase::subscribe()
 
       if (targetFrame_.empty())
       {
-        sub_->registerCallback(
-            boost::bind(&ImageDisplayBase::incomingMessage, this, boost::placeholders::_1));
+        sub_->registerCallback(boost::bind(&ImageDisplayBase::incomingMessage, this, _1));
       }
       else
       {
         tf_filter_.reset(new tf2_ros::MessageFilter<sensor_msgs::Image>(
             *sub_, *context_->getTF2BufferPtr(), targetFrame_, queue_size_property_->getInt(),
             update_nh_));
-        tf_filter_->registerCallback(
-            boost::bind(&ImageDisplayBase::incomingMessage, this, boost::placeholders::_1));
-        tf_filter_->registerFailureCallback(boost::bind(
-            &ImageDisplayBase::failedMessage, this, boost::placeholders::_1, boost::placeholders::_2));
+        tf_filter_->registerCallback(boost::bind(&ImageDisplayBase::incomingMessage, this, _1));
+        tf_filter_->registerFailureCallback(boost::bind(&ImageDisplayBase::failedMessage, this, _1, _2));
       }
     }
     setStatus(StatusProperty::Ok, "Topic", "OK");
@@ -209,6 +207,10 @@ void ImageDisplayBase::subscribe()
 
 void ImageDisplayBase::unsubscribe()
 {
+  // Quick fix for #1372. Can be removed if https://github.com/ros/geometry2/pull/402 is released
+  if (tf_filter_)
+    update_nh_.getCallbackQueue()->removeByID((uint64_t)tf_filter_.get());
+
   tf_filter_.reset();
   sub_.reset();
 }

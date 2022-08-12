@@ -28,24 +28,22 @@
  */
 
 #include "marker_utils.h"
-#include <rviz/default_plugin/markers/shape_marker.h>
-#include <rviz/default_plugin/markers/arrow_marker.h>
-#include <rviz/default_plugin/markers/line_list_marker.h>
-#include <rviz/default_plugin/markers/line_strip_marker.h>
-#include <rviz/default_plugin/marker_display.h>
-#include <rviz/default_plugin/markers/points_marker.h>
-#include <rviz/default_plugin/markers/text_view_facing_marker.h>
-#include <rviz/default_plugin/markers/mesh_resource_marker.h>
-#include <rviz/default_plugin/markers/triangle_list_marker.h>
-#include <rviz/display_context.h>
-#include <rviz/properties/property.h>
-#include <rviz/properties/property_tree_model.h>
-#include <rviz/properties/status_property.h>
-#include <rviz/properties/status_list.h>
-#include <rviz/validate_quaternions.h>
-#include <rviz/validate_floats.h>
-#include <rviz/windows_compat.h>
-
+#include "rviz/default_plugin/markers/shape_marker.h"
+#include "rviz/default_plugin/markers/arrow_marker.h"
+#include "rviz/default_plugin/markers/line_list_marker.h"
+#include "rviz/default_plugin/markers/line_strip_marker.h"
+#include "rviz/default_plugin/marker_display.h"
+#include "rviz/default_plugin/markers/points_marker.h"
+#include "rviz/default_plugin/markers/text_view_facing_marker.h"
+#include "rviz/default_plugin/markers/mesh_resource_marker.h"
+#include "rviz/default_plugin/markers/triangle_list_marker.h"
+#include "rviz/display_context.h"
+#include "rviz/properties/property.h"
+#include "rviz/properties/property_tree_model.h"
+#include "rviz/properties/status_property.h"
+#include "rviz/properties/status_list.h"
+#include "rviz/validate_quaternions.h"
+#include "rviz/validate_floats.h"
 
 namespace rviz
 {
@@ -84,39 +82,6 @@ createMarker(int marker_type, MarkerDisplay* owner, DisplayContext* context, Ogr
 
   default:
     return nullptr;
-  }
-}
-
-QString getMarkerTypeName(unsigned int type)
-{
-  switch (type)
-  {
-  case visualization_msgs::Marker::ARROW:
-    return "Arrow";
-  case visualization_msgs::Marker::CUBE:
-    return "Cube";
-  case visualization_msgs::Marker::CUBE_LIST:
-    return "Cube List";
-  case visualization_msgs::Marker::TRIANGLE_LIST:
-    return "Triangle List";
-  case visualization_msgs::Marker::SPHERE:
-    return "Sphere";
-  case visualization_msgs::Marker::SPHERE_LIST:
-    return "Sphere List";
-  case visualization_msgs::Marker::CYLINDER:
-    return "Cylinder";
-  case visualization_msgs::Marker::LINE_STRIP:
-    return "Line Strip";
-  case visualization_msgs::Marker::LINE_LIST:
-    return "Line List";
-  case visualization_msgs::Marker::POINTS:
-    return "Points";
-  case visualization_msgs::Marker::TEXT_VIEW_FACING:
-    return "Text View Facing";
-  case visualization_msgs::Marker::MESH_RESOURCE:
-    return "Mesh";
-  default:
-    return "Unknown";
   }
 }
 

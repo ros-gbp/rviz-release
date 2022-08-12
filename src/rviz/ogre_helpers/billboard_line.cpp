@@ -31,7 +31,7 @@
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreBillboardChain.h>
 #include <OgreMaterialManager.h>
@@ -83,7 +83,7 @@ BillboardLine::~BillboardLine()
     scene_manager_->destroyBillboardChain(*it);
   }
 
-  scene_manager_->destroySceneNode(scene_node_);
+  scene_manager_->destroySceneNode(scene_node_->getName());
 
   Ogre::MaterialManager::getSingleton().remove(material_->getName());
 }
@@ -94,7 +94,7 @@ Ogre::BillboardChain* BillboardLine::createChain()
   static int count = 0;
   ss << "BillboardLine chain" << count++;
   Ogre::BillboardChain* chain = scene_manager_->createBillboardChain(ss.str());
-  chain->setMaterialName(material_->getName(), material_->getGroup());
+  chain->setMaterialName(material_->getName());
   scene_node_->attachObject(chain);
 
   chains_.push_back(chain);

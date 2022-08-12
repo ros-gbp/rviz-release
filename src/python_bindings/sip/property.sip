@@ -242,12 +242,11 @@ public:
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
 
-  /** @brief Returns true if the property has data worth saving. */
+  /** @brief Returns true if the property is not read-only AND has data worth saving. */
   bool shouldBeSaved() const;
 
-  /** @brief If @a save is false, neither the property nor its children will get saved.
-   * If true (the default), the property itself will only get saved if it is not read-only;
-   * children will get saved in any case (according to their save + read-only flags). */
+  /** @brief If @a save is true and getReadOnly() is false,
+   * shouldBeSaved will return true; otherwise false.  Default is true. */
   void setShouldBeSaved( bool save );
 
   /** @brief Hide this Property in any PropertyTreeWidgets.
@@ -284,7 +283,7 @@ public:
 
   /** @brief Return the read-only-ness of this property.
    * @sa setReadOnly() */
-  virtual bool getReadOnly() const;
+  virtual bool getReadOnly();
 
   /** @brief Collapse (hide the children of) this Property.
    *
