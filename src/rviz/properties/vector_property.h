@@ -29,10 +29,10 @@
 #ifndef VECTOR_PROPERTY_H
 #define VECTOR_PROPERTY_H
 
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
-#include "rviz/properties/property.h"
-#include "rviz/rviz_export.h"
+#include <rviz/properties/property.h>
+#include <rviz/rviz_export.h>
 
 namespace rviz
 {

@@ -31,10 +31,10 @@
 
 #include <QColor>
 
-#include "rviz/display_context.h"
-#include "rviz/display_factory.h"
-#include "rviz/failed_display.h"
-#include "rviz/properties/property_tree_model.h"
+#include <rviz/display_context.h>
+#include <rviz/display_factory.h>
+#include <rviz/failed_display.h>
+#include <rviz/properties/property_tree_model.h>
 
 #include "display_group.h"
 
@@ -46,7 +46,7 @@ DisplayGroup::DisplayGroup()
 
 DisplayGroup::~DisplayGroup()
 {
-  removeAllDisplays();
+  DisplayGroup::removeAllDisplays();
 }
 
 Qt::ItemFlags DisplayGroup::getViewFlags(int column) const
@@ -147,7 +147,9 @@ void DisplayGroup::save(Config config) const
   int num_displays = displays_.size();
   for (int i = 0; i < num_displays; i++)
   {
-    displays_.at(i)->save(display_list_config.listAppendNew());
+    Display* display = displays_.at(i);
+    if (display->shouldBeSaved())
+      display->save(display_list_config.listAppendNew());
   }
 }
 

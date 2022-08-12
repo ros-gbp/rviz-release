@@ -34,7 +34,7 @@
 #include <QToolButton>
 #include <QCloseEvent>
 
-#include "rviz/panel_dock_widget.h"
+#include <rviz/panel_dock_widget.h>
 
 namespace rviz
 {
@@ -70,14 +70,14 @@ PanelDockWidget::PanelDockWidget(const QString& name)
   setTitleBarWidget(title_bar);
 }
 
-void PanelDockWidget::setWindowTitle(QString title)
+void PanelDockWidget::setWindowTitle(const QString& title)
 {
   QDockWidget::setWindowTitle(title);
   title_label_->setText(title);
 }
 
 
-void PanelDockWidget::setIcon(QIcon icon)
+void PanelDockWidget::setIcon(const QIcon& icon)
 {
   if (icon.isNull())
   {
@@ -139,7 +139,7 @@ void PanelDockWidget::save(Config config)
   config.mapSetValue("collapsed", collapsed_);
 }
 
-void PanelDockWidget::load(Config config)
+void PanelDockWidget::load(const Config& config)
 {
   config.mapGetBool("collapsed", &collapsed_);
 }

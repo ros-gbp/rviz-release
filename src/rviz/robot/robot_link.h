@@ -36,7 +36,7 @@
 #include <QObject>
 
 #ifndef Q_MOC_RUN
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreQuaternion.h>
 #include <OgreAny.h>
 #include <OgreMaterial.h>
@@ -46,20 +46,15 @@
 #include <urdf/model.h> // can be replaced later by urdf_model/types.h
 #include <urdf_model/pose.h>
 
-#include "rviz/ogre_helpers/object.h"
-#include "rviz/selection/forwards.h"
+#include <rviz/ogre_helpers/object.h>
+#include <rviz/selection/forwards.h>
+
+#include <OgrePrerequisites.h>
 
 namespace Ogre
 {
-class SceneManager;
-class Entity;
-class SubEntity;
-class SceneNode;
-class Vector3;
-class Quaternion;
 class Any;
-class RibbonTrail;
-} // namespace Ogre
+}
 
 namespace rviz
 {
@@ -228,7 +223,9 @@ protected:
   FloatProperty* alpha_property_;
 
 private:
-  typedef std::map<Ogre::SubEntity*, Ogre::MaterialPtr> M_SubEntityToMaterial;
+  // maintain the original material of each SubEntity to restore it after unsetColor()
+  using M_SubEntityToMaterial =
+      std::map<Ogre::SubEntity*, std::pair<Ogre::MaterialPtr, Ogre::MaterialPtr>>;
   M_SubEntityToMaterial materials_;
   Ogre::MaterialPtr default_material_;
   std::string default_material_name_;
@@ -245,9 +242,7 @@ private:
 
   Axes* axes_;
 
-  float material_alpha_; ///< If material is not a texture, this saves the alpha value set in the URDF,
-                         /// otherwise is 1.0.
-  float robot_alpha_;    ///< Alpha value from top-level robot alpha Property (set via setRobotAlpha()).
+  float robot_alpha_; ///< Alpha value from top-level robot alpha Property (set via setRobotAlpha()).
 
   bool only_render_depth_;
   bool is_selectable_;

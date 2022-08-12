@@ -33,6 +33,7 @@
 
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <QString>
 
 namespace Ogre
 {
@@ -50,6 +51,9 @@ MarkerBase* createMarker(int marker_type,
                          MarkerDisplay* owner,
                          DisplayContext* context,
                          Ogre::SceneNode* parent_node);
+
+/** Map marker type ID onto human-readable name */
+QString getMarkerTypeName(unsigned int type);
 
 /** Check for correctness of the marker description, issue a warning/error status in the owner if not
  *  Return false if there is a severe error meaning that this marker should be dropped */
