@@ -33,7 +33,7 @@
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <rviz/ogre_helpers/ogre_vector.h>
+#include <OgreVector3.h>
 #include <OgreQuaternion.h>
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
@@ -46,9 +46,8 @@
 
 #include <sstream>
 
-#include <rviz/ogre_helpers/custom_parameter_indices.h>
-#include <rviz/selection/forwards.h>
-#include <rviz/ogre_helpers/compatibility.h>
+#include "rviz/ogre_helpers/custom_parameter_indices.h"
+#include "rviz/selection/forwards.h"
 
 #define VERTEX_BUFFER_CAPACITY (36 * 1024 * 10)
 
@@ -72,7 +71,8 @@ static float g_box_vertices[6 * 6 * 3] = {
     0.5f, -0.5f, -0.5f,
 
     // back
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f,
+    -0.5f, 0.5f,
 
     // right
     0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5,
@@ -137,6 +137,13 @@ static void removeMaterial(Ogre::MaterialPtr& material)
 PointCloud::~PointCloud()
 {
   clear();
+
+  point_material_->unload();
+  square_material_->unload();
+  flat_square_material_->unload();
+  sphere_material_->unload();
+  tile_material_->unload();
+  box_material_->unload();
 
   removeMaterial(point_material_);
   removeMaterial(square_material_);
@@ -291,7 +298,7 @@ void PointCloud::setRenderMode(RenderMode mode)
   V_PointCloudRenderable::iterator end = renderables_.end();
   for (; it != end; ++it)
   {
-    setMaterial(**it, current_material_);
+    (*it)->setMaterial(current_material_->getName());
   }
 
   regenerateAll();
@@ -411,14 +418,7 @@ void PointCloud::addPoints(Point* points, uint32_t num_points)
   }
 
   Point* begin = &points_.front() + point_count_;
-#if defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
   memcpy(begin, points, sizeof(Point) * num_points);
-#if defined(__GNUC__) && (__GNUC__ >= 8)
-#pragma GCC diagnostic pop
-#endif
 
   uint32_t vpp = getVerticesPerPoint();
   Ogre::RenderOperation::OperationType op_type;
@@ -445,22 +445,29 @@ void PointCloud::addPoints(Point* points, uint32_t num_points)
   }
   else
   {
-    switch (render_mode_)
+    if (render_mode_ == RM_POINTS)
     {
-    case RM_POINTS:
       vertices = g_point_vertices;
-      break;
-    case RM_SQUARES:
-    case RM_FLAT_SQUARES:
-    case RM_TILES:
+    }
+    else if (render_mode_ == RM_SQUARES)
+    {
       vertices = g_billboard_vertices;
-      break;
-    case RM_SPHERES:
+    }
+    else if (render_mode_ == RM_FLAT_SQUARES)
+    {
+      vertices = g_billboard_vertices;
+    }
+    else if (render_mode_ == RM_SPHERES)
+    {
       vertices = g_billboard_sphere_vertices;
-      break;
-    case RM_BOXES:
+    }
+    else if (render_mode_ == RM_TILES)
+    {
+      vertices = g_billboard_vertices;
+    }
+    else if (render_mode_ == RM_BOXES)
+    {
       vertices = g_box_vertices;
-      break;
     }
   }
 
@@ -645,6 +652,11 @@ void PointCloud::shrinkRenderables()
   }
 }
 
+void PointCloud::_notifyCurrentCamera(Ogre::Camera* camera)
+{
+  MovableObject::_notifyCurrentCamera(camera);
+}
+
 void PointCloud::_updateRenderQueue(Ogre::RenderQueue* queue)
 {
   V_PointCloudRenderable::iterator it = renderables_.begin();
@@ -718,7 +730,7 @@ PointCloudRenderablePtr PointCloud::createRenderable(int num_points)
 {
   PointCloudRenderablePtr rend(
       new PointCloudRenderable(this, num_points, !current_mode_supports_geometry_shader_));
-  setMaterial(*rend, current_material_);
+  rend->setMaterial(current_material_->getName());
   Ogre::Vector4 size(width_, height_, depth_, 0.0f);
   Ogre::Vector4 alpha(alpha_, 0.0f, 0.0f, 0.0f);
   Ogre::Vector4 highlight(0.0f, 0.0f, 0.0f, 0.0f);
@@ -738,9 +750,11 @@ PointCloudRenderablePtr PointCloud::createRenderable(int num_points)
   return rend;
 }
 
+#if (OGRE_VERSION_MAJOR >= 1 && OGRE_VERSION_MINOR >= 6)
 void PointCloud::visitRenderables(Ogre::Renderable::Visitor* /*visitor*/, bool /*debugRenderables*/)
 {
 }
+#endif
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -789,6 +803,11 @@ PointCloudRenderable::~PointCloudRenderable()
 Ogre::HardwareVertexBufferSharedPtr PointCloudRenderable::getBuffer()
 {
   return mRenderOp.vertexData->vertexBufferBinding->getBuffer(0);
+}
+
+void PointCloudRenderable::_notifyCurrentCamera(Ogre::Camera* camera)
+{
+  SimpleRenderable::_notifyCurrentCamera(camera);
 }
 
 Ogre::Real PointCloudRenderable::getBoundingRadius() const

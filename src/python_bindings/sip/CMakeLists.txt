@@ -42,12 +42,7 @@ find_package(python_qt_binding REQUIRED)
 include(${python_qt_binding_EXTRAS_DIR}/sip_helper.cmake)
 
 # maintain context for different named target
-set(rviz_sip_INCLUDE_DIRS
-  "${PROJECT_SOURCE_DIR}/src"
-  ${EXPORT_HEADER_DIR}
-  ${OGRE_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
+set(rviz_sip_INCLUDE_DIRS ${rviz_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src" ${catkin_INCLUDE_DIRS} ${EXPORT_HEADER_DIR})
 set(rviz_sip_LIBRARIES ${rviz_LIBRARIES} ${PROJECT_NAME})
 set(rviz_sip_LIBRARY_DIRS ${rviz_LIBRARY_DIRS} ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
 if (MSVC)
@@ -66,9 +61,7 @@ if(sip_helper_FOUND)
     DEPENDS ${rviz_sip_DEPENDENT_FILES}
     DEPENDENCIES rviz
   )
-  if(DEFINED PYTHON_EXTENSION_MODULE_SUFFIX)
-    set(rviz_sip_LIBRARY_FILE librviz_sip${PYTHON_EXTENSION_MODULE_SUFFIX})
-  elseif(APPLE)
+  if(APPLE)
     set(rviz_sip_LIBRARY_FILE librviz_sip.so)
   elseif(WIN32)
     set(rviz_sip_LIBRARY_FILE librviz_sip.pyd)

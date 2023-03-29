@@ -35,10 +35,10 @@
 #include <QLineEdit>
 #include <QSpinBox>
 
-#include <rviz/properties/float_edit.h>
-#include <rviz/properties/property_tree_model.h>
+#include "rviz/properties/float_edit.h"
+#include "rviz/properties/property_tree_model.h"
 
-#include <rviz/properties/property.h>
+#include "rviz/properties/property.h"
 
 namespace rviz
 {
@@ -56,7 +56,7 @@ public:
 Property* Property::failprop_ = new FailureProperty;
 
 Property::Property(const QString& name,
-                   const QVariant& default_value,
+                   const QVariant default_value,
                    const QString& description,
                    Property* parent,
                    const char* changed_slot,
@@ -70,7 +70,7 @@ Property::Property(const QString& name,
   , is_read_only_(false)
   , save_(true)
 {
-  Property::setName(name);
+  setName(name);
   if (parent)
   {
     parent->addChild(this);
@@ -249,7 +249,6 @@ QVariant Property::getViewData(int column, int role) const
     switch (role)
     {
     case Qt::DisplayRole:
-    case Qt::EditRole:
       return getName();
     case Qt::DecorationRole:
       return icon_;
@@ -382,6 +381,15 @@ void Property::addChild(Property* child, int index)
   Q_EMIT childListChanged(this);
 }
 
+void Property::insertChildSorted(Property* child)
+{
+  auto it = std::lower_bound(children_.cbegin(), children_.cend(), child,
+                             [](Property* element, Property* child) {
+                               return element->getName() < child->getName();
+                             });
+  addChild(child, it - children_.cbegin());
+}
+
 void Property::setModel(PropertyTreeModel* model)
 {
   model_ = model;
@@ -484,13 +492,11 @@ void Property::save(Config config) const
   // If there are child properties, save them in a map from names to children.
   if (!children_.empty())
   {
-    bool valid = false;
     // If this property has child properties *and* a value itself,
     // save the value in a special map entry named "Value".
-    if (!is_read_only_ && value_.isValid())
+    if (value_.isValid())
     {
       config.mapSetValue("Value", value_);
-      valid = true;
     }
     int num_properties = children_.size();
     for (int i = 0; i < num_properties; i++)
@@ -498,21 +504,11 @@ void Property::save(Config config) const
       Property* prop = children_.at(i);
       if (prop && prop->shouldBeSaved())
       {
-        Config child = config.mapMakeChild(prop->getName());
-        prop->save(child);
-        if (child.getType() == Config::Invalid)
-          // if child property didn't save anything, remove it again
-          config.mapRemoveChild(prop->getName());
-        else
-          valid = true;
+        prop->save(config.mapMakeChild(prop->getName()));
       }
     }
-    if (!valid)
-      // if we didn't save anything in this property, mark the config as invalid
-      config.setType(Config::Invalid);
   }
-  // Else (there are no child properties), just save the value itself if it's not read-only
-  else if (!is_read_only_)
+  else // Else there are no child properties, so just save the value itself.
   {
     if (value_.isValid())
     {

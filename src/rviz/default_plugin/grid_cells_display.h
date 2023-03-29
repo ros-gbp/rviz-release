@@ -31,10 +31,15 @@
 #ifndef RVIZ_GRID_CELLS_DISPLAY_H
 #define RVIZ_GRID_CELLS_DISPLAY_H
 
-#include <rviz/message_filter_display.h>
+#include "rviz/display.h"
 
 #include <nav_msgs/GridCells.h>
 #include <nav_msgs/MapMetaData.h>
+
+#ifndef Q_MOC_RUN
+#include <message_filters/subscriber.h>
+#include <tf/message_filter.h>
+#endif
 
 #include <boost/shared_ptr.hpp>
 
@@ -48,12 +53,13 @@ namespace rviz
 class ColorProperty;
 class FloatProperty;
 class PointCloud;
+class RosTopicProperty;
 
 /**
  * \class GridCellsDisplay
  * \brief Displays a nav_msgs::GridCells message
  */
-class GridCellsDisplay : public MessageFilterDisplay<nav_msgs::GridCells>
+class GridCellsDisplay : public Display
 {
   Q_OBJECT
 public:
@@ -61,19 +67,38 @@ public:
   ~GridCellsDisplay() override;
 
   void onInitialize() override;
+
+  // Overrides from Display
+  void fixedFrameChanged() override;
   void reset() override;
+
+  void setTopic(const QString& topic, const QString& datatype) override;
+
+protected:
+  // overrides from Display
+  void onEnable() override;
+  void onDisable() override;
 
 private Q_SLOTS:
   void updateAlpha();
+  void updateTopic();
 
 private:
-  void processMessage(const nav_msgs::GridCells::ConstPtr& msg) override;
+  void subscribe();
+  void unsubscribe();
+  void clear();
+  void incomingMessage(const nav_msgs::GridCells::ConstPtr& msg);
 
   PointCloud* cloud_;
 
+  message_filters::Subscriber<nav_msgs::GridCells> sub_;
+  tf::MessageFilter<nav_msgs::GridCells>* tf_filter_;
+
   ColorProperty* color_property_;
+  RosTopicProperty* topic_property_;
   FloatProperty* alpha_property_;
 
+  uint32_t messages_received_;
   uint64_t last_frame_count_;
 };
 

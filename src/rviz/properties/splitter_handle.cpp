@@ -35,7 +35,7 @@
 #include <QHeaderView>
 #include <QScrollBar>
 
-#include <rviz/properties/splitter_handle.h>
+#include "rviz/properties/splitter_handle.h"
 
 namespace rviz
 {

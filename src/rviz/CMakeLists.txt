@@ -64,6 +64,7 @@ add_library(${PROJECT_NAME}
   ogre_helpers/render_widget.cpp
   ogre_helpers/shape.cpp
   ogre_helpers/mesh_shape.cpp
+  ogre_helpers/stl_loader.cpp
   panel.cpp
   panel_dock_widget.cpp
   panel_factory.cpp
@@ -128,12 +129,15 @@ add_library(${PROJECT_NAME}
 include(GenerateExportHeader)
 set(EXPORT_FILE_NAME ${EXPORT_HEADER_DIR}/rviz/${PROJECT_NAME}_export.h)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${EXPORT_FILE_NAME})
+if(NOT WIN32)
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++11")
+endif()
 
 target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
   ${QT_LIBRARIES}
-  ${OGRE_LIBRARIES}
+  ${OGRE_OV_LIBRARIES_ABS}
   ${OPENGL_LIBRARIES}
   ${rviz_ADDITIONAL_LIBRARIES}
   ${TinyXML2_LIBRARIES}
@@ -152,7 +156,11 @@ endif(APPLE)
 ########### The rviz executable ###########
 add_executable(executable main.cpp)
 
-target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_LIBRARIES})
+if(NOT WIN32)
+  set_target_properties(executable PROPERTIES COMPILE_FLAGS "-std=c++11")
+endif()
+
+target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS})
 
 set_target_properties(executable
                       PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
