@@ -28,14 +28,14 @@
  */
 
 #include "points_marker.h"
-#include "rviz/default_plugin/marker_display.h"
-#include "rviz/display_context.h"
-#include "rviz/selection/selection_manager.h"
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/display_context.h>
+#include <rviz/selection/selection_manager.h>
 #include "marker_selection_handler.h"
 
 #include <rviz/ogre_helpers/point_cloud.h>
 
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreQuaternion.h>
 #include <OgreSceneNode.h>
 #include <OgreSceneManager.h>
@@ -66,7 +66,13 @@ void PointsMarker::onNewMessage(const MarkerConstPtr& /*old_message*/, const Mar
 
   Ogre::Vector3 pos, scale;
   Ogre::Quaternion orient;
-  transform(new_message, pos, orient, scale);
+  if (!transform(new_message, pos, orient, scale))
+  {
+    scene_node_->setVisible(false);
+    return;
+  }
+
+  scene_node_->setVisible(true);
 
   switch (new_message->type)
   {

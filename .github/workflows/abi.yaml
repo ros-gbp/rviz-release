@@ -12,7 +12,7 @@ jobs:
   default:
     strategy:
       matrix:
-        distro: [melodic]
+        distro: [noetic]
 
     env:
       UPSTREAM_WORKSPACE: github:rhaschke/python_qt_binding#silent-external-warnings
@@ -20,7 +20,7 @@ jobs:
       BASEDIR: /home/runner/work
       DOCKER_IMAGE: rhaschke/ici:rviz-${{ matrix.distro }}-${{ matrix.repo || 'ros' }}
       CACHE_PREFIX: ${{ matrix.distro }}
-      ABICHECK_URL: github:ros-visualization/rviz#1.13.30
+      ABICHECK_URL: github:ros-visualization/rviz#1.14.20
       GHA_CACHE_SAVE: always
 
     name: "check"

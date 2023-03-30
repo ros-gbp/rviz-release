@@ -34,11 +34,11 @@
 #include <set>
 
 #include <OgreQuaternion.h>
-#include <OgreVector3.h>
+#include <rviz/ogre_helpers/ogre_vector.h>
 
-#include "rviz/selection/forwards.h"
+#include <rviz/selection/forwards.h>
 
-#include "rviz/display.h"
+#include <rviz/display.h>
 
 namespace Ogre
 {
@@ -120,6 +120,8 @@ private:
   BoolProperty* all_enabled_property_;
 
   FloatProperty* scale_property_;
+  FloatProperty* alpha_property_;
+
   RegexFilterProperty* filter_whitelist_property_;
   RegexFilterProperty* filter_blacklist_property_;
   Property* frames_category_;

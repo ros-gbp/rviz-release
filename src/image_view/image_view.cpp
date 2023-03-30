@@ -31,9 +31,10 @@
 #include <QtGlobal>
 #include <QTimer>
 
-#include "rviz/ogre_helpers/qt_ogre_render_window.h"
-#include "rviz/ogre_helpers/initialization.h"
-#include "rviz/image/ros_image_texture.h"
+#include <rviz/ogre_helpers/qt_ogre_render_window.h>
+#include <rviz/ogre_helpers/initialization.h>
+#include <rviz/ogre_helpers/compatibility.h>
+#include <rviz/image/ros_image_texture.h>
 
 #include "ros/ros.h"
 #include <ros/package.h>
@@ -93,7 +94,8 @@ void ImageView::showEvent(QShowEvent* event)
 
     texture_sub_.reset(new image_transport::SubscriberFilter());
     texture_sub_->subscribe(texture_it_, "image", 1, image_transport::TransportHints("raw"));
-    texture_sub_->registerCallback(boost::bind(&ImageView::textureCallback, this, _1));
+    texture_sub_->registerCallback(
+        boost::bind(&ImageView::textureCallback, this, boost::placeholders::_1));
   }
   catch (ros::Exception& e)
   {
@@ -112,7 +114,7 @@ void ImageView::showEvent(QShowEvent* event)
 
   Ogre::Rectangle2D* rect = new Ogre::Rectangle2D(true);
   rect->setCorners(-1.0f, 1.0f, 1.0f, -1.0f);
-  rect->setMaterial(material->getName());
+  setMaterial(*rect, material);
   rect->setRenderQueueGroup(Ogre::RENDER_QUEUE_OVERLAY - 1);
   Ogre::AxisAlignedBox aabb;
   aabb.setInfinite();

@@ -38,10 +38,10 @@
 #include <string>
 #include <deque>
 
-#include "rviz/config.h"
-#include "rviz/window_manager_interface.h"
-#include "rviz/panel.h"
-#include "rviz/rviz_export.h"
+#include <rviz/config.h>
+#include <rviz/window_manager_interface.h>
+#include <rviz/panel.h>
+#include <rviz/rviz_export.h>
 
 #include <ros/time.h>
 
@@ -78,7 +78,7 @@ public:
   VisualizationFrame(QWidget* parent = nullptr);
   ~VisualizationFrame() override;
 
-  void setApp(QApplication* app);
+  [[deprecated("setApp() not needed anymore")]] void setApp(QApplication* app);
 
   /** @brief Call this @e before initialize() to have it take effect. */
   void setShowChooseNewMaster(bool show);
@@ -139,8 +139,10 @@ public:
   void loadDisplayConfig(const QString& path);
 
   /** @brief Load display and other settings from the given full file path.
+   * @param full_path The (absolute) path to the config file to load
+   * @param discard_changes Flag indicating whether to discard any unsaved config changes
    * @return True on success, False on failure. */
-  bool loadDisplayConfigHelper(const std::string& full_path);
+  bool loadDisplayConfigHelper(const std::string& full_path, const bool discard_changes = false);
 
   /** @brief Save display and other settings to the given file.
    * @param path The full path of the config file to save into.
@@ -326,8 +328,6 @@ protected:
 
   void hideDockImpl(Qt::DockWidgetArea area, bool hide);
 
-  QApplication* app_;
-
   RenderPanel* render_panel_;
 
   QAction* show_help_action_;
@@ -381,8 +381,7 @@ protected:
   };
   QList<PanelRecord> custom_panels_;
 
-  //! @todo Rename to toolbar_button_separator_ in Noetic
-  QAction* add_tool_action_;
+  QAction* toolbar_separator_;
   QMenu* remove_tool_menu_;
 
   bool initialized_;

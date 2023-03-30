@@ -27,19 +27,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rviz/robot/robot_joint.h"
-#include "rviz/robot/robot_link.h"
-#include "rviz/robot/robot.h"
+#include <rviz/robot/robot_joint.h>
+#include <rviz/robot/robot_link.h>
+#include <rviz/robot/robot.h>
 
 #include <OgreSceneNode.h>
 
-#include "rviz/properties/float_property.h"
-#include "rviz/properties/vector_property.h"
-#include "rviz/properties/quaternion_property.h"
-#include "rviz/properties/string_property.h"
-#include "rviz/ogre_helpers/arrow.h"
-#include "rviz/ogre_helpers/axes.h"
-#include "rviz/load_resource.h"
+#include <rviz/properties/float_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/properties/quaternion_property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/ogre_helpers/arrow.h>
+#include <rviz/ogre_helpers/axes.h>
+#include <rviz/load_resource.h>
 
 namespace rviz
 {
@@ -180,7 +180,7 @@ void RobotJoint::setJointPropertyDescription()
   joint_property_->setDescription(desc.str().c_str());
 }
 
-void RobotJoint::setJointCheckbox(QVariant val)
+void RobotJoint::setJointCheckbox(const QVariant& val)
 {
   // setting doing_set_checkbox_ to true prevents updateChildVisibility() from
   // updating child link enables.
@@ -210,7 +210,8 @@ void RobotJoint::calculateJointCheckboxesRecursive(int& links_with_geom,
   links_with_geom_unchecked = 0;
 
   RobotLink* link = robot_->getLink(child_link_name_);
-  if (link && link->hasGeometry())
+  assert(link);
+  if (link->hasGeometry())
   {
     bool checked = link->getLinkProperty()->getValue().toBool();
     links_with_geom_checked += checked ? 1 : 0;
@@ -230,11 +231,9 @@ void RobotJoint::calculateJointCheckboxesRecursive(int& links_with_geom,
     }
   }
 
-  std::vector<std::string>::const_iterator child_joint_it = link->getChildJointNames().begin();
-  std::vector<std::string>::const_iterator child_joint_end = link->getChildJointNames().end();
-  for (; child_joint_it != child_joint_end; ++child_joint_it)
+  for (const std::string& child_joint_name : link->getChildJointNames())
   {
-    RobotJoint* child_joint = robot_->getJoint(*child_joint_it);
+    RobotJoint* child_joint = robot_->getJoint(child_joint_name);
     if (child_joint)
     {
       int child_links_with_geom;
@@ -271,7 +270,8 @@ void RobotJoint::getChildLinkState(int& links_with_geom,
   links_with_geom_unchecked = 0;
 
   RobotLink* link = robot_->getLink(child_link_name_);
-  if (link && link->hasGeometry())
+  assert(link);
+  if (link->hasGeometry())
   {
     bool checked = link->getLinkProperty()->getValue().toBool();
     links_with_geom_checked += checked ? 1 : 0;
