@@ -54,8 +54,13 @@ public:
     : panel(p)
     , viewport(vp)
     , type(e->type())
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    , x(e->position().x())
+    , y(e->position().y())
+#else
     , x(e->x())
     , y(e->y())
+#endif
     , wheel_delta(0)
     , acting_button(e->button())
     , buttons_down(e->buttons())
@@ -73,9 +78,14 @@ public:
     : panel(p)
     , viewport(vp)
     , type(e->type())
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    , x(e->position().x())
+    , y(e->position().y())
+#else
     , x(e->x())
     , y(e->y())
-    , wheel_delta(e->delta())
+#endif
+    , wheel_delta(e->angleDelta().y())
     , acting_button(Qt::NoButton)
     , buttons_down(e->buttons())
     , modifiers(e->modifiers())
@@ -93,7 +103,7 @@ public:
   }
   bool middle()
   {
-    return buttons_down & Qt::MidButton;
+    return buttons_down & Qt::MiddleButton;
   }
   bool right()
   {
@@ -121,7 +131,7 @@ public:
   }
   bool middleUp()
   {
-    return type == QEvent::MouseButtonRelease && acting_button == Qt::MidButton;
+    return type == QEvent::MouseButtonRelease && acting_button == Qt::MiddleButton;
   }
   bool rightUp()
   {
@@ -134,7 +144,7 @@ public:
   }
   bool middleDown()
   {
-    return type == QEvent::MouseButtonPress && acting_button == Qt::MidButton;
+    return type == QEvent::MouseButtonPress && acting_button == Qt::MiddleButton;
   }
   bool rightDown()
   {

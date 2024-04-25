@@ -38,6 +38,8 @@
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QTimer>
+#include <QScreen>
+#include <QWindow>
 
 #include "scaled_image_widget.h"
 #include "screenshot_dialog.h"
@@ -72,9 +74,9 @@ ScreenshotDialog::ScreenshotDialog(QWidget* main_window,
 
   setLayout(main_layout);
 
-  connect(button_box_, SIGNAL(clicked(QAbstractButton*)), this, SLOT(onButtonClicked(QAbstractButton*)));
-  connect(full_window_checkbox, SIGNAL(toggled(bool)), this, SLOT(setSaveFullWindow(bool)));
-  connect(delay_timer_, SIGNAL(timeout()), this, SLOT(onTimeout()));
+  connect(button_box_, &QDialogButtonBox::clicked, this, &ScreenshotDialog::onButtonClicked);
+  connect(full_window_checkbox, &QCheckBox::toggled, this, &ScreenshotDialog::setSaveFullWindow);
+  connect(delay_timer_, &QTimer::timeout, this, &ScreenshotDialog::onTimeout);
 }
 
 void ScreenshotDialog::showEvent(QShowEvent* event)
@@ -111,14 +113,8 @@ void ScreenshotDialog::onTimeout()
 
 void ScreenshotDialog::takeScreenshotNow()
 {
-  if (save_full_window_)
-  {
-    screenshot_ = QPixmap::grabWindow(main_window_->winId());
-  }
-  else
-  {
-    screenshot_ = QPixmap::grabWindow(render_window_->winId());
-  }
+  const QWidget* w = save_full_window_ ? main_window_ : render_window_;
+  screenshot_ = w->windowHandle()->screen()->grabWindow(w->winId());
   image_widget_->setImage(screenshot_);
 }
 
