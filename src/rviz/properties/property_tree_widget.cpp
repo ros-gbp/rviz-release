@@ -37,6 +37,7 @@
 #include <rviz/properties/status_list.h>
 
 #include <rviz/properties/property_tree_widget.h>
+#include <ros/console.h>
 
 namespace rviz
 {
@@ -73,7 +74,7 @@ PropertyTreeWidget::PropertyTreeWidget(QWidget* parent)
   setEditTriggers(QAbstractItemView::AllEditTriggers);
 
   QTimer* timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+  connect(timer, &QTimer::timeout, this, [this] { update(); });
   timer->start(100);
 }
 
@@ -95,10 +96,10 @@ void PropertyTreeWidget::setModel(PropertyTreeModel* model)
 {
   if (model_)
   {
-    disconnect(model_, SIGNAL(propertyHiddenChanged(const Property*)), this,
-               SLOT(propertyHiddenChanged(const Property*)));
-    disconnect(model_, SIGNAL(expand(const QModelIndex&)), this, SLOT(expand(const QModelIndex&)));
-    disconnect(model_, SIGNAL(collapse(const QModelIndex&)), this, SLOT(collapse(const QModelIndex&)));
+    disconnect(model_, &PropertyTreeModel::propertyHiddenChanged, this,
+               &PropertyTreeWidget::propertyHiddenChanged);
+    disconnect(model_, &PropertyTreeModel::expand, this, &PropertyTreeWidget::expand);
+    disconnect(model_, &PropertyTreeModel::collapse, this, &PropertyTreeWidget::collapse);
   }
   model_ = model;
   QTreeView::setModel(model_);
@@ -108,10 +109,10 @@ void PropertyTreeWidget::setModel(PropertyTreeModel* model)
     setSelectionModel(new PropertySelectionModel(model_));
     m->deleteLater();
 
-    connect(model_, SIGNAL(propertyHiddenChanged(const Property*)), this,
-            SLOT(propertyHiddenChanged(const Property*)), Qt::QueuedConnection);
-    connect(model_, SIGNAL(expand(const QModelIndex&)), this, SLOT(expand(const QModelIndex&)));
-    connect(model_, SIGNAL(collapse(const QModelIndex&)), this, SLOT(collapse(const QModelIndex&)));
+    connect(model_, &PropertyTreeModel::propertyHiddenChanged, this,
+            &PropertyTreeWidget::propertyHiddenChanged);
+    connect(model_, &PropertyTreeModel::expand, this, &PropertyTreeWidget::expand);
+    connect(model_, &PropertyTreeModel::collapse, this, &PropertyTreeWidget::collapse);
 
     // this will trigger all hiddenChanged events to get re-fired
     model_->getRoot()->setModel(model_->getRoot()->getModel());
@@ -122,7 +123,12 @@ void PropertyTreeWidget::propertyHiddenChanged(const Property* property)
 {
   if (model_)
   {
-    setRowHidden(property->rowNumberInParent(), model_->parentIndex(property), property->getHidden());
+    const auto& parent_index = model_->parentIndex(property);
+    if (parent_index.isValid())
+      setRowHidden(property->rowNumberInParent(), parent_index, property->getHidden());
+    else
+      ROS_WARN_STREAM("Trying to hide property '" << qPrintable(property->getName())
+                                                  << "' that is not part of the model.");
   }
 }
 

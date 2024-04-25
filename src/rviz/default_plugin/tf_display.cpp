@@ -96,7 +96,7 @@ void FrameSelectionHandler::createProperties(const Picked& /*obj*/, Property* pa
       new Property("Frame " + QString::fromStdString(frame_->name_), QVariant(), "", parent_property);
 
   enabled_property_ = new BoolProperty("Enabled", true, "", category_property_,
-                                       SLOT(updateVisibilityFromSelection()), frame_);
+                                       &FrameInfo::updateVisibilityFromSelection, frame_);
 
   parent_property_ = new StringProperty("Parent", "", "", category_property_);
   parent_property_->setReadOnly(true);
@@ -210,7 +210,7 @@ class RegexFilterProperty : public StringProperty
   }
 
 public:
-  RegexFilterProperty(const QString& name, const std::regex regex, Property* parent)
+  RegexFilterProperty(const QString& name, const std::regex& regex, Property* parent)
     : StringProperty(name, "", "regular expression", parent), default_(regex), regex_(regex)
   {
     QObject::connect(this, &RegexFilterProperty::changed, this, [this]() { onValueChanged(); });
@@ -235,15 +235,15 @@ TFDisplay::TFDisplay() : Display(), update_timer_(0.0f), changing_single_frame_e
 {
   show_names_property_ =
       new BoolProperty("Show Names", true, "Whether or not names should be shown next to the frames.",
-                       this, SLOT(updateShowNames()));
+                       this, &TFDisplay::updateShowNames);
 
   show_axes_property_ =
       new BoolProperty("Show Axes", true, "Whether or not the axes of each frame should be shown.", this,
-                       SLOT(updateShowAxes()));
+                       &TFDisplay::updateShowAxes);
 
   show_arrows_property_ = new BoolProperty("Show Arrows", true,
                                            "Whether or not arrows from child to parent should be shown.",
-                                           this, SLOT(updateShowArrows()));
+                                           this, &TFDisplay::updateShowArrows);
 
   scale_property_ =
       new FloatProperty("Marker Scale", 1, "Scaling factor for all names, axes and arrows.", this);
@@ -273,7 +273,7 @@ TFDisplay::TFDisplay() : Display(), update_timer_(0.0f), changing_single_frame_e
 
   all_enabled_property_ =
       new BoolProperty("All Enabled", true, "Whether all the frames should be enabled or not.",
-                       frames_category_, SLOT(allEnabledChanged()), this);
+                       frames_category_, &TFDisplay::allEnabledChanged, this);
 
   tree_category_ = new Property(
       "Tree", QVariant(), "A tree-view of the frames, showing the parent/child relationships.", this);
@@ -508,7 +508,7 @@ FrameInfo* TFDisplay::createFrame(const std::string& frame)
 
   info->enabled_property_ = new BoolProperty(QString::fromStdString(info->name_), true,
                                              "Enable or disable this individual frame.", nullptr,
-                                             SLOT(updateVisibilityFromFrame()), info);
+                                             &FrameInfo::updateVisibilityFromFrame, info);
   frames_category_->insertChildSorted(info->enabled_property_);
 
   info->parent_property_ =
@@ -554,6 +554,17 @@ FrameInfo* TFDisplay::createFrame(const std::string& frame)
 Ogre::ColourValue lerpColor(const Ogre::ColourValue& start, const Ogre::ColourValue& end, float t)
 {
   return start * t + end * (1 - t);
+}
+
+bool hasLoop(rviz::Property* child, rviz::Property* parent, rviz::Property* root)
+{
+  while (child != root)
+  {
+    if (child == parent)
+      return true;
+    child = child->getParent();
+  }
+  return false;
 }
 
 void TFDisplay::updateFrame(FrameInfo* frame)
@@ -736,7 +747,11 @@ void TFDisplay::updateFrame(FrameInfo* frame)
     // Retrieve tree property to add the new child at
     rviz::Property* parent_tree_property;
     if (parent && parent->tree_property_) // parent already created
+    {
       parent_tree_property = parent->tree_property_;
+      if (hasLoop(parent_tree_property, frame->tree_property_, tree_category_))
+        parent_tree_property = tree_category_; // insert loops at root node
+    }
     else // create (temporarily) at root
       parent_tree_property = tree_category_;
 
