@@ -52,7 +52,12 @@ MyFrame::MyFrame(QWidget* parent)
 
   try
   {
+#if (OGRE_VERSION < OGRE_VERSION_CHECK(13, 0, 0))
     scene_manager_ = root_->createSceneManager(Ogre::ST_GENERIC, "TestSceneManager");
+#else
+    scene_manager_ = root_->createSceneManager(Ogre::DefaultSceneManagerFactory::FACTORY_TYPE_NAME,
+                                               "TestSceneManager");
+#endif
 
     render_panel_ = new QtOgreRenderWindow();
     render_panel_->resize(this->size());
@@ -193,7 +198,7 @@ void MyFrame::mousePressEvent(QMouseEvent* event)
   case Qt::LeftButton:
     left_mouse_down_ = true;
     break;
-  case Qt::MidButton:
+  case Qt::MiddleButton:
     middle_mouse_down_ = true;
     break;
   case Qt::RightButton:
@@ -211,7 +216,7 @@ void MyFrame::mouseReleaseEvent(QMouseEvent* event)
   case Qt::LeftButton:
     left_mouse_down_ = false;
     break;
-  case Qt::MidButton:
+  case Qt::MiddleButton:
     middle_mouse_down_ = false;
     break;
   case Qt::RightButton:
@@ -250,13 +255,13 @@ void MyFrame::mouseMoveEvent(QMouseEvent* event)
 
 void MyFrame::wheelEvent(QWheelEvent* event)
 {
-  if (event->delta() != 0)
+  if (event->angleDelta().y() != 0)
   {
     bool cmd = event->modifiers() & Qt::ControlModifier;
     bool shift = event->modifiers() & Qt::ShiftModifier;
     bool alt = event->modifiers() & Qt::AltModifier;
 
-    camera_->scrollWheel(event->delta(), cmd, alt, shift);
+    camera_->scrollWheel(event->angleDelta().y(), cmd, alt, shift);
   }
 }
 
