@@ -37,10 +37,8 @@ namespace rviz
 EditableEnumProperty::EditableEnumProperty(const QString& name,
                                            const QString& default_value,
                                            const QString& description,
-                                           Property* parent,
-                                           const char* changed_slot,
-                                           QObject* receiver)
-  : StringProperty(name, default_value, description, parent, changed_slot, receiver)
+                                           Property* parent)
+  : StringProperty(name, default_value, description, parent)
 {
 }
 
@@ -66,8 +64,8 @@ QWidget* EditableEnumProperty::createEditor(QWidget* parent, const QStyleOptionV
   cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
   cb->addItems(strings_);
   cb->setEditText(getValue().toString());
-  QObject::connect(cb, SIGNAL(currentIndexChanged(const QString&)), this,
-                   SLOT(setString(const QString&)));
+  QObject::connect(cb, qOverload<int>(&QComboBox::currentIndexChanged), this,
+                   [this, cb](int idx) { setString(cb->itemText(idx)); });
 
   // TODO: need to better handle string value which is not in list.
   return cb;

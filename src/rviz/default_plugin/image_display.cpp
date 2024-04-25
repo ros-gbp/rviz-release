@@ -44,6 +44,7 @@
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+#include <rviz/panel_dock_widget.h>
 #include <rviz/ogre_helpers/compatibility.h>
 #include <rviz/render_panel.h>
 #include <rviz/validate_floats.h>
@@ -59,17 +60,17 @@ ImageDisplay::ImageDisplay() : ImageDisplayBase(), texture_()
   normalize_property_ = new BoolProperty(
       "Normalize Range", true,
       "If set to true, will try to estimate the range of possible values from the received images.",
-      this, SLOT(updateNormalizeOptions()));
+      this, &ImageDisplay::updateNormalizeOptions);
 
   min_property_ = new FloatProperty("Min Value", 0.0, "Value which will be displayed as black.", this,
-                                    SLOT(updateNormalizeOptions()));
+                                    &ImageDisplay::updateNormalizeOptions);
 
   max_property_ = new FloatProperty("Max Value", 1.0, "Value which will be displayed as white.", this,
-                                    SLOT(updateNormalizeOptions()));
+                                    &ImageDisplay::updateNormalizeOptions);
 
   median_buffer_size_property_ =
       new IntProperty("Median window", 5, "Window size for median filter used for computin min/max.",
-                      this, SLOT(updateNormalizeOptions()));
+                      this, &ImageDisplay::updateNormalizeOptions);
 
   got_float_image_ = false;
 }
@@ -81,7 +82,12 @@ void ImageDisplay::onInitialize()
     static uint32_t count = 0;
     std::stringstream ss;
     ss << "ImageDisplay" << count++;
+#if (OGRE_VERSION < OGRE_VERSION_CHECK(13, 0, 0))
     img_scene_manager_ = Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC, ss.str());
+#else
+    img_scene_manager_ = Ogre::Root::getSingleton().createSceneManager(
+        Ogre::DefaultSceneManagerFactory::FACTORY_TYPE_NAME, ss.str());
+#endif
   }
 
   img_scene_node_ = img_scene_manager_->getRootSceneNode()->createChildSceneNode();
@@ -125,12 +131,15 @@ void ImageDisplay::onInitialize()
   render_panel_->initialize(img_scene_manager_, context_);
 
   setAssociatedWidget(render_panel_);
+  getAssociatedWidgetPanel()->addMaximizeButton();
 
   render_panel_->setAutoRender(false);
   render_panel_->setOverlaysEnabled(false);
   render_panel_->getCamera()->setNearClipDistance(0.01f);
 
   updateNormalizeOptions();
+
+  mouse_click_ = new MouseClick(render_panel_, update_nh_);
 }
 
 ImageDisplay::~ImageDisplay()
@@ -146,6 +155,8 @@ ImageDisplay::~ImageDisplay()
 void ImageDisplay::onEnable()
 {
   ImageDisplayBase::subscribe();
+  mouse_click_->enable();
+
   render_panel_->getRenderWindow()->setActive(true);
 }
 
@@ -153,6 +164,8 @@ void ImageDisplay::onDisable()
 {
   render_panel_->getRenderWindow()->setActive(false);
   ImageDisplayBase::unsubscribe();
+  mouse_click_->disable();
+
   reset();
 }
 
@@ -212,6 +225,8 @@ void ImageDisplay::update(float wall_dt, float ros_dt)
     }
 
     render_panel_->getRenderWindow()->update();
+
+    mouse_click_->setDimensions(img_width, img_height, win_width, win_height);
   }
   catch (UnsupportedImageEncoding& e)
   {
@@ -241,6 +256,13 @@ void ImageDisplay::processMessage(const sensor_msgs::Image::ConstPtr& msg)
   }
   texture_.addMessage(msg);
 }
+
+void ImageDisplay::updateTopic()
+{
+  ImageDisplayBase::updateTopic();
+  mouse_click_->setImageTopic(topic_property_->getTopic());
+}
+
 
 } // namespace rviz
 

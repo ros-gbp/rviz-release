@@ -44,7 +44,7 @@ PanelDockWidget::PanelDockWidget(const QString& name)
   QWidget* title_bar = new QWidget(this);
 
   QPalette pal(palette());
-  pal.setColor(QPalette::Background, QApplication::palette().color(QPalette::Mid));
+  pal.setColor(QPalette::Window, QApplication::palette().color(QPalette::Mid));
   title_bar->setAutoFillBackground(true);
   title_bar->setPalette(pal);
   title_bar->setContentsMargins(0, 0, 0, 0);
@@ -53,7 +53,7 @@ PanelDockWidget::PanelDockWidget(const QString& name)
   close_button->setIcon(QIcon::fromTheme("window-close"));
   close_button->setIconSize(QSize(10, 10));
 
-  connect(close_button, SIGNAL(clicked()), this, SLOT(close()));
+  connect(close_button, &QToolButton::clicked, this, &PanelDockWidget::close);
 
   title_label_ = new QLabel(name, this);
 
@@ -115,12 +115,36 @@ void PanelDockWidget::setContentWidget(QWidget* child)
 {
   if (widget())
   {
-    disconnect(widget(), SIGNAL(destroyed(QObject*)), this, SLOT(onChildDestroyed(QObject*)));
+    disconnect(widget(), &QObject::destroyed, this, &PanelDockWidget::onChildDestroyed);
   }
   setWidget(child);
   if (child)
   {
-    connect(child, SIGNAL(destroyed(QObject*)), this, SLOT(onChildDestroyed(QObject*)));
+    connect(child, &QObject::destroyed, this, &PanelDockWidget::onChildDestroyed);
+  }
+}
+
+void PanelDockWidget::addMaximizeButton()
+{
+  QToolButton* button = new QToolButton();
+  button->setIcon(QIcon::fromTheme("view-fullscreen"));
+  button->setIconSize(QSize(10, 10));
+  button->setToolTip("Toggle maximize");
+  connect(button, &QToolButton::clicked, this, &PanelDockWidget::toggleMaximized);
+  dynamic_cast<QHBoxLayout*>(titleBarWidget()->layout())->insertWidget(2, button);
+}
+
+void PanelDockWidget::toggleMaximized()
+{
+  if (windowState() & Qt::WindowMaximized)
+  {
+    setFloating(false);
+    showNormal();
+  }
+  else
+  {
+    setFloating(true);
+    showMaximized();
   }
 }
 
